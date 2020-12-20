@@ -8,15 +8,15 @@
 typedef enum {
   None         = 0,               // Not characterized yet, counts as error.
   Denormal     = 1,
-  Finite       = 2, 
+  Normal       = 2, 
   Zero         = 3,
   Infinite     = 4,
   NaN          = 5,
 } ECVTTypes_t;
 
 typedef enum {
-  NoRounding   = 0,
-  NearestEven  = 1,
+  NoRoun       = 0,
+  NearEv       = 1,
 } ECVTRounding_t;
 
 typedef struct ECvt_t * ecvt_t;

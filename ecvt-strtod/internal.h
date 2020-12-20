@@ -10,7 +10,8 @@
 #include <ecvt-strtod.h>
 
 typedef const struct Bits_t {
-  uint8_t      pad[2];
+  uint8_t      pad[1];
+  uint8_t      nsdigits;          // Number of significant digits.
   uint8_t      width;             // Total width in bits.
   uint8_t      mantissa;          // Number of mantissa bits.
   uint16_t     saturated;         // Saturated bias, all bits 1.
@@ -22,6 +23,7 @@ typedef const struct Bits_t {
 } Bits_t;
 
 static Bits_t IEEE64c = {
+  .nsdigits    = 17,
   .width       = 64,
   .mantissa    = 52,
   .saturated   = 0b011111111111,
@@ -33,6 +35,7 @@ static Bits_t IEEE64c = {
 };
 
 static Bits_t IEEE32c = {
+  .nsdigits    =  9,
   .width       = 32,
   .mantissa    = 23,
   .saturated   = 0b011111111,
@@ -54,7 +57,7 @@ typedef struct IEEE754_t {
 typedef struct Float_t * flt_t;
 
 typedef struct Float_t {          // Our own internal floating point format.
-  UINTXX_t     I;                 // To facilitate the uintxx vdiv and vmul for scaling.
+  UINTXX_t     I;                 // Wide integer for scaling operations.
   union {
     uint64_t   mantissa;
     uint32_t   u32[8];

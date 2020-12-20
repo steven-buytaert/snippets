@@ -2,7 +2,7 @@
 
 #include <internal.h>
 
-void ieee2float(ECvt_t * n, Float_t * flt, Bits_t * const b) {
+void ieee2float(ECvt_t * n, Float_t * flt, Bits_t * const b) { // should become a static
 
   memset(& flt->I.nsb, 0x00, fltclr);                       // Make sure we don't multiply garbage.
 
@@ -14,7 +14,7 @@ void ieee2float(ECvt_t * n, Float_t * flt, Bits_t * const b) {
 
   if (flt->Exp.bin) {                                       // Exponent is not 0 ...
     if (flt->Exp.bin != b->saturated) {                     // ... and not saturated, ...
-      flt->type      = Finite;                              // ... so a finite number.
+      flt->type      = Normal;                              // ... so a finite number.
       flt->Exp.bin  -= b->bias + b->mantissa;               // Unbias the exponent.
       flt->mantissa |= b->implicitone;                      // Make the implicit 1. now explicit.
       flt->I.nsb     = b->mantissa + 1;                     // By definition of the implicit one position.
@@ -26,7 +26,7 @@ void ieee2float(ECvt_t * n, Float_t * flt, Bits_t * const b) {
   else {
     if (flt->mantissa) {
       flt->type = Denormal;                                 // Zero exponent, non zero mantissa, so a denormal.
-      flt->Exp.bin = - (b->bias + b->mantissa - 1);
+      flt->Exp.bin = (int16_t) -(b->bias + b->mantissa - 1);
       flt->I.nsb = vnsb(& flt->I);
     }
     else {
@@ -38,18 +38,22 @@ void ieee2float(ECvt_t * n, Float_t * flt, Bits_t * const b) {
 
   n->type = flt->type;
 
+  if (0 == n->ndig) { n->ndig = b->nsdigits; }              // Set to maximum if not specified.
+
+  if (n->ndig > b->nsdigits) { n->ndig = b->nsdigits; }     // But clip if too large for the type.
+
 }
 
 static void fmtint(ecvt_t ecvt, uint64_t integral) {        // Format the integral part.
 
   char * d = & ecvt->digits[sizeof(ecvt->digits)];          // Start at the back; predecremented before write, so start at index == size.
 
-  while (integral && ecvt->cndig < ecvt->ndig) {            // Put characters from least to most significant ...
+  while (integral) {                                        // Put characters from least to most significant ...
     *--d = integral % 10;                                   // ... so predecrement and write
     ecvt->cndig++;
     ecvt->decpt++;
     integral /= 10;
-  }
+  }                                                         // Note: no check for going beyond ndig; all integral digits are rendered.
 
   memmove(& ecvt->digits[0], d, ecvt->cndig);               // Move all digits to the front.
 
@@ -57,8 +61,9 @@ static void fmtint(ecvt_t ecvt, uint64_t integral) {        // Format the integr
 
 static void fmt(ecvt_t e, const Float_t * flt) {            // Format a float with mantissa * pow(2, exp) and exp E [-63, 0].
 
-  uint64_t  mask = (1ULL << -flt->Exp.bin) - 1;
-  uint64_t  mant = flt->mantissa;
+  uint64_t mask = (1ULL << -flt->Exp.bin) - 1;
+  uint64_t mant = flt->mantissa;
+  uint32_t i;
 
   assert(flt->Exp.bin >= -63 && flt->Exp.bin <= 0);         // Binary exponent must be in the proper range for a 64 bit mantissa.
 
@@ -76,23 +81,25 @@ static void fmt(ecvt_t e, const Float_t * flt) {            // Format a float wi
     mant &= mask;
   }
 
-  while (e->cndig < e->ndig) { e->digits[e->cndig++] = 0; } // Fill remainder up with 0; also clears temp space of fmtint.
+  for (i = e->cndig; i < sizeof(e->digits); i++) {          // Fill remainder up with 0; also clears temp space of fmtint.
+    e->digits[i] = 0;
+  }
 
   e->decpt -= flt->Exp.dec;                                 // Compensate for scaling, if any.
 
 }
 
 typedef const struct Scale_t {    // Power of 10 to scale a mantissa.
-  UINTXX_t I;
+  UINTXX_t I;                     // Note that n = nsb - 1; see scaledown.
   uint64_t pow10;
 } Scale_t;
 
 static const Scale_t Scales[] = {
-  { .I = { .width = 64, .nsb = 10, .exp =  3 }, .pow10 =                                                       0b1111101000 },
-  { .I = { .width = 64, .nsb = 30, .exp =  9 }, .pow10 =                                   0b111011100110101100101000000000 },
-  { .I = { .width = 64, .nsb = 40, .exp = 12 }, .pow10 =                         0b1110100011010100101001010001000000000000 },
-  { .I = { .width = 64, .nsb = 54, .exp = 16 }, .pow10 =           0b100011100001101111001001101111110000010000000000000000 },
-  { .I = { .width = 64, .nsb = 64, .exp = 19 }, .pow10 = 0b1000101011000111001000110000010010001001111010000000000000000000 }, 
+  { .I = { .width = 64, .n =  9, .nsb = 10, .exp =  3 }, .pow10 =                                                       0b1111101000 },
+  { .I = { .width = 64, .n = 29, .nsb = 30, .exp =  9 }, .pow10 =                                   0b111011100110101100101000000000 },
+  { .I = { .width = 64, .n = 39, .nsb = 40, .exp = 12 }, .pow10 =                         0b1110100011010100101001010001000000000000 },
+  { .I = { .width = 64, .n = 53, .nsb = 54, .exp = 16 }, .pow10 =           0b100011100001101111001001101111110000010000000000000000 },
+  { .I = { .width = 64, .n = 63, .nsb = 64, .exp = 19 }, .pow10 = 0b1000101011000111001000110000010010001001111010000000000000000000 }, 
 };
 
 static const uint32_t ns = sizeof(Scales) / sizeof(Scale_t);
@@ -163,15 +170,6 @@ static uint32_t need2scaleUp(const Float_t * flt) {         // Return 1 when the
 
 }
 
-static void digits2ascii(ecvt_t e) {                        // Convert the current digits from numerical to ascii value.
-
-  uint32_t i;
-  
-  for (i = 0; i < e->ndig; i++) { e->digits[i] += '0'; }
-
-  e->digits[e->ndig] = 0;                                   // Turn it into a C string.
-
-}
 
 static void scaledown(ECvt_t * n, Float_t * flt) {          // Scale down a mantissa to decrease the binary exponent.
 
@@ -194,7 +192,7 @@ static void scaledown(ECvt_t * n, Float_t * flt) {          // Scale down a mant
 
   vlefts(& flt->I, scaler->nsb, 0);
 
-  flt->mantissa |= (1ULL << (scaler->nsb - 1)) - 1;         // Fold in half of the divisor. Improves the rounding (Qnsb = Fnsb - Snsb + B, B = 0 or 1).
+  flt->mantissa |= (1ULL << scaler->n) - 1;                 // Fold in half of the divisor. Improves the rounding (Qnsb = Fnsb - Snsb + B, B = 0 or 1).
 
   flt->Exp.bin -= scaler->nsb;
 
@@ -208,6 +206,47 @@ static void scaledown(ECvt_t * n, Float_t * flt) {          // Scale down a mant
 
 }
 
+static void digits2ascii(ecvt_t e) {                        // Convert the current digits from numerical to ascii value.
+
+  uint32_t i;
+  
+  for (i = 0; i < e->ndig; i++) { e->digits[i] += '0'; }
+
+  e->digits[e->ndig] = 0;                                   // Turn it into a C string.
+
+}
+
+static void round2ne(ecvt_t c) {                            // Round to nearest even; digits[n]. Must have a digits[-1] slot!
+
+  static const int8_t rwv[10] = {                           // Rounding values for least significant digit.
+    0, -1, -2, -3, -4, 5, 4, 3, 2, 1
+  };
+
+  int32_t i = c->cndig - 1;                                 // Current, not requested.
+  int32_t round;
+  int32_t d;
+
+  round = rwv[(uint8_t) c->digits[i]];                      // Get the rounding value to start with.
+  
+  if (round == 5) {                                         // When 5, round next to nearest even.
+    c->digits[i] = 0;                                       // Current digit becomes 0.
+    round = c->digits[--i] & 1;                             // To next one we'll add either 1 or 0 to make even.
+  }
+  
+  while (i >= 0) {                                          // Do rest of fractional digits; we do work up all digits.
+    d              = c->digits[i] + round;
+    round          = (d == 10) ? 1 : 0;                     // Carry to next digit, if any.
+    c->digits[i--] = (d == 10) ? 0 : d;
+  }
+
+  if (round) {                                              // If carry not zero, move down to make room for new most significant digit.
+    memmove(c->digits, c->digits + 1, c->ndig - 1);
+    c->digits[0] = round;
+    c->decpt++;
+  }
+
+}
+
 void sbtecvt(ecvt_t ecvt) {
 
   Float_t Flt = { .I.width = sizeof(Flt.u32) * 8 };
@@ -216,8 +255,8 @@ void sbtecvt(ecvt_t ecvt) {
   memset(& ecvt->negative, 0x00, ecvtclr);
 
   ieee2float(ecvt, & Flt, ecvt->width == 64 ? & IEEE64c : & IEEE32c);
-
-  if (Finite == Flt.type || Denormal == Flt.type) {
+  
+  if (Normal == Flt.type || Denormal == Flt.type) {
 
     while (need2scaleUp(& Flt)) {
       scaleup(ecvt, & Flt);
@@ -235,6 +274,10 @@ void sbtecvt(ecvt_t ecvt) {
 
     fmt(ecvt, & Flt);
 
+    if (NearEv == ecvt->rounding) {
+      round2ne(ecvt);
+    }
+
     digits2ascii(ecvt);
   }
   else if (Zero == Flt.type) {
@@ -243,6 +286,8 @@ void sbtecvt(ecvt_t ecvt) {
   }
   else {                                                    // Either NaN or Inf
     assert(NaN == Flt.type || Infinite == Flt.type);
+    if (NaN == Flt.type) { strcpy(ecvt->digits, "NaN"); }
+    else                 { strcpy(ecvt->digits, "Inf"); }
   }
 
 }
