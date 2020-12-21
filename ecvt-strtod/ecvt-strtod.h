@@ -35,7 +35,8 @@ typedef struct ECvt_t {           // ECVT Arguments and result.
   uint8_t      type;              // One of the range [Denormal, Nan].
   uint8_t      cndig;             // Actual or current number of digits.
   int16_t      decpt;             // Digit that also contains decimal point; -1 means only fractional.
-  char         digits[24];        // ndig digits; most significant in digits[0].
+  uint16_t     scaled;            // Internal, when debugging, scaling operations done.
+  char         digits[22];        // ndig digits; most significant in digits[0].
 } ECvt_t;
 
 void sbtecvt(ecvt_t ecvt);

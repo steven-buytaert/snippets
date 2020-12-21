@@ -154,6 +154,8 @@ static void scaleup(ECvt_t * n, Float_t * flt) {            // Scale a float up 
   
   flt->I.nsb = P.I.nsb;                                     // ... and the nsb from the product.
 
+  assert((n->scaled++, 1));                                 // Accounting when debug set.
+
 }
 
 static uint32_t need2scaleUp(const Float_t * flt) {         // Return 1 when the float needs to be scaled up.
@@ -169,7 +171,6 @@ static uint32_t need2scaleUp(const Float_t * flt) {         // Return 1 when the
   return 0;
 
 }
-
 
 static void scaledown(ECvt_t * n, Float_t * flt) {          // Scale down a mantissa to decrease the binary exponent.
 
@@ -203,6 +204,8 @@ static void scaledown(ECvt_t * n, Float_t * flt) {          // Scale down a mant
   memcpy(flt->u32, Q.u32, sizeof(Q.u32));                   // Copy quotient back to float ...
   
   flt->I.nsb = Q.I.nsb;                                     // ... and the nsb from the quotient.
+
+  assert((n->scaled++, 1));                                 // Accounting when debug set.
 
 }
 
