@@ -1,3 +1,8 @@
+// From Makefile level
+// gcc -shared -I ../make-4.3/src/ -Wall -Wsign-compare -fpic -o ./tools/my-make.so ./tools/my-make.c
+
+// gcc -shared -I ../../make-4.3/src/ -Wall -Wsign-compare -fpic -o my-make.so my-make.c
+
 // Copyright 2020 Steven Buytaert
 
 #include <umbrella.h>
@@ -214,12 +219,14 @@ static void genimportpreqs(mod_t mod) {                     // Recursively gener
 
 }
 
-static void genAllObj(mod_t mod) {                          // Generate a string of object files for the module, separated by spaces.
+static void genAllObj(mod_t mod, Type_t SrcType) {          // Generate a string of object files for the module, separated by spaces.
 
   item_t  src;
   Out_t * o = & mod->Out;
 
-  for (eachitem(src, Source, mod)) {                        // List all the object files for either application or library.
+  assert(Source == SrcType || Sample == SrcType);           // Can only be Source or Sample code.
+
+  for (eachitem(src, SrcType, mod)) {                       // List all the object files for either application, sample app or library.
     out(o, "%s/%s ", bad(mod, Source), rep(src, ".o"));
   }
 
@@ -276,19 +283,20 @@ static void genlib4LD(Out_t * o, mod_t mod) {               // Generate the libr
 
 }
 
-static void genLDcmd(mod_t mod) {                           // Generate the link command.
+static void genLDcmd(mod_t mod, item_t lib) {               // Generate the link command.
 
   Out_t * o = & mod->Out;
   cchar_t bad = iname(Ctx.start, BuildFolder);              // Built Artifacts Directory in globals module.
 
   out(o, "$(LD) ");
   if (item(Ctx.start, LDFlag)) { out(o, "$(LDFLAGS) "); }   // Only if there is a not empty global LDFLAGS.
+  out(o, "$(filter %%.o,$^) -L %s/lib ", bad);
+  if (lib) { out(o, "-l%s ", lib->name); }                  // Add an extra passed library, if not NULL.
   if (item(mod, LDFlag)) {
     out(o, "$(LDFLAGS-%s) ", mod->ums);                     // Only if not empty.
   }
-  out(o, "$(filter %%.o,$^) -L %s/lib ", bad);
   genlib4LD(o, mod);
-  out(o, " -o $@\n", mod->ums);
+  out(o, " -o $@\n");
 
 }
 
@@ -331,11 +339,32 @@ static void genflags(mod_t mod) {
 
 }
 
+static void genCompileRules(mod_t mod, Type_t SrcType) {
+
+  item_t  src;  
+  Out_t * o = & mod->Out;
+
+  assert(Source == SrcType || Sample == SrcType);           // Can only be Source or Sample code.
+
+  for (eachitem(src, SrcType, mod)) {                       // Generate the compile rules.
+    out(o, "%s/%s: ", bad(mod, Source), rep(src, ".o"));    // We always pass 'Source' as type.
+    out(o, "%s/%s", here(mod), src->name);
+    if (Ctx.start->Out.off) {                               // Add the imported prerequisites, if any (from genimportpreqs).
+      out(o, " %s", Ctx.start->Out.buf);
+    }
+    out(o, " %s/Rules.mk Makefile\n\t", mod->path);
+    genCCcmd(mod, src);                                     // Generate the specific compile/assemble command, based upon the type.
+    out(o, "\n\n");
+  }
+
+}
+
 static void gen1mod(mod_t mod) {
 
   item_t  src;
   item_t  lib;
   item_t  app;
+  item_t  sample;
   Out_t * o = & mod->Out;
 
   SETFLOC(Floc);
@@ -349,6 +378,12 @@ static void gen1mod(mod_t mod) {
     mkerror("Either LIBNAME or APPNAME in %s/Rules.mk", mod->path);
   }
 
+  sample = item(mod, Sample);
+
+  if (sample && ! lib) {
+    mkerror("Sample only when LIBNAME is present; %s/Rules.mk", mod->path);
+  }
+
   if (! lib && ! app) { return; }                           // Can happen for documentation only modules.
 
   out(o, "# Module: %s:%s\n\n", mod->path, mod->name);
@@ -359,7 +394,13 @@ static void gen1mod(mod_t mod) {
 
   out(o, "DEPS += ");                                       // Generate the DEPS additions.
 
-  for (eachitem(src, Source, mod)) {
+  for (eachitem(src, Source, mod)) {                        // Add library or application sources to the DEPS.
+    if (src->sub == CSource || src->sub == CXXSource) {
+      out(o, "%s/%s ", bad(mod, Source), rep(src, ".d"));
+    }
+  }
+
+  for (eachitem(src, Sample, mod)) {                        // Also add sample code source(s) to the DEPS.
     if (src->sub == CSource || src->sub == CXXSource) {
       out(o, "%s/%s ", bad(mod, Source), rep(src, ".d"));
     }
@@ -370,23 +411,16 @@ static void gen1mod(mod_t mod) {
   out(o, "\n\n");
 
   mkdirs(mod, mod->Gen.folder);                             // Check gen folder and create if it doesn't exist yet.
-
-  for (eachitem(src, Source, mod)) {                        // Generate the compile rules.
-    out(o, "%s/%s: ", bad(mod, Source), rep(src, ".o"));
-    out(o, "%s/%s", here(mod), src->name);
-    if (Ctx.start->Out.off) {                               // Add the imported prerequisites, if any (from genimportpreqs).
-      out(o, " %s", Ctx.start->Out.buf);
-    }
-    out(o, " %s/Rules.mk Makefile\n\t", mod->path);
-    genCCcmd(mod, src);                                     // Generate the specific compile/assemble command, based upon the type.
-    out(o, "\n\n");
-  }
   
+  genCompileRules(mod, Source);                             // Generate the compile rules for the normal lib or app sources.
+
+  genCompileRules(mod, Sample);                             // Generate the compile rules for sample code, if any.
+
   if (lib) {
     out(o, "LIB_TARGETS += %s/", bad(mod, LibName));
     out(o, "lib%s.a\n\n%s/", lib->name, bad(mod, LibName));
     out(o, "lib%s.a: ", lib->name);
-    genAllObj(mod);
+    genAllObj(mod, Source);
     out(o, "\n\t$(AR) cr $@ $?\n\n");
   }
 
@@ -394,10 +428,21 @@ static void gen1mod(mod_t mod) {
     out(o, "APP_TARGETS += %s/", bad(mod, AppName));
     out(o, "%s\n\n%s/", app->name, bad(mod, AppName));
     out(o, "%s: ", app->name);
-    genAllObj(mod);
+    genAllObj(mod, Source);
     genlibpreqs(o, mod);
     out(o, "\n\t");
-    genLDcmd(mod);
+    genLDcmd(mod, NULL);
+    out(o, "\n\n");
+  }
+
+  if (sample) {
+    out(o, "SAMPLE_TARGETS += %s/", bad(mod, AppName));     // A sample is an application, so use AppName.
+    out(o, "%s\n\n", rep(sample, ""));
+    out(o, "%s/%s: ", bad(mod, AppName), rep(sample, ""));
+    genAllObj(mod, Sample);
+    genlibpreqs(o, mod);
+    out(o, "\n\t");
+    genLDcmd(mod, lib);
     out(o, "\n\n");
   }
 

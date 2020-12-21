@@ -1,5 +1,7 @@
 # Copyright 2020 Steven Buytaert
 
+$(info Included driver $(filter %umbrella.mk,$(MAKEFILE_LIST)))
+
 # The build driver, included by the top level Makefile
 
 # Prefer to load the ./tools/umbrella.so (under development probably) in
@@ -8,6 +10,8 @@
 UMBMOD := $(shell echo $(HOME))/.local/lib/umbrella.so
 
 MOD2LOAD := $(if $(wildcard ./tools/umbrella.so),./tools/umbrella.so,$(UMBMOD))
+
+#$(info MOD2LOAD=$(MOD2LOAD))
 
 load $(MOD2LOAD)
 
@@ -23,7 +27,7 @@ APP_TARGETS := # Applications that should be generated
 # $? all dependencies more recent than the target
 # To have a view on all variables in scope, one can start make with the -p option.
 
-all:    bad-setup obj-setup libs apps
+all:    bad-setup obj-setup libs apps samples
 
 clean:
 	@rm -rf $(BAD) $(GENERATED)
@@ -40,7 +44,7 @@ bad-setup:
 obj-setup:
 	@mkdir -p $(BAD)/gen
 
-.PHONY: all bad-setup obj-setup libs apps html lstargets
+.PHONY: all bad-setup obj-setup libs apps samples html lstargets
 
 # Transfer global settings to Umbrella make.
 
@@ -54,7 +58,7 @@ $$(setvars $(1))
 
 include $(1)/Rules.mk
 
-$$(module $(1),$$(GEN),$$(LIBNAME),$$(EXPORTS),$$(APPNAME),$$(IMPORTS),$$(SOURCES),$$(SRC),$$(CFLAGS),$$(CXXFLAGS),$$(LDFLAGS),$$(DOCTEXT),$$(DOCFLAGS),$$(ASFLAGS),$$(GENERATED))
+$$(module $(1),$$(GEN),$$(LIBNAME),$$(EXPORTS),$$(APPNAME),$$(IMPORTS),$$(SAMPLE),$$(SOURCES),$$(SRC),$$(CFLAGS),$$(CXXFLAGS),$$(LDFLAGS),$$(DOCTEXT),$$(DOCFLAGS),$$(ASFLAGS),$$(GENERATED))
 
 endef
 
@@ -70,8 +74,11 @@ html: bad-setup $(HTML_TARGETS)
 pdf:  html      $(PDF_TARGETS)
 libs: bad-setup $(LIB_TARGETS)
 apps: libs      $(APP_TARGETS)
+samples: libs   $(SAMPLE_TARGETS)
 
 # Include all dependencies, will be redone when the dependencies are out of date or regenerated
+
+#$(info DEPS=$(DEPS))
 
 -include $(DEPS)
 

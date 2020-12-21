@@ -58,7 +58,8 @@ typedef enum {
   Generated     = 28,
   Path2Obj      = 29,
   Goal          = 30,
-  NUMTYPES      = 31,
+  Sample        = 31,
+  NUMTYPES      = 32,
 } Type_t;
 
 typedef mod_t (* ahndlr_t)(mod_t mod, var_t var, char * val);

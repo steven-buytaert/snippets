@@ -183,6 +183,7 @@ const char * T2A[] = {
   "Generated",
   "Path2Obj",
   "Goal",
+  "Sample",
 };
 
 void dumpmod(mod_t mod) {

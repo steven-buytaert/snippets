@@ -1,3 +1,7 @@
+// gcc -shared -I ../make-4.3/src/ -Wall -Wsign-compare -fpic -o ./tools/my-make.so ./tools/my-make.c
+
+// gcc -shared -I ../../make-4.3/src/ -Wall -Wsign-compare -fpic -o my-make.so my-make.c
+
 // Copyright 2020 Steven Buytaert
 
 #include <unistd.h>
@@ -72,6 +76,7 @@ static Var_t Args4Mod[] = {       // In the order as passed to the module functi
   { "EXPORTS",       7,  1,  1,  1, Export,      nop,  },
   { "APPNAME",       7,  1,  1,  1, AppName,     name, },
   { "IMPORTS",       7,  1,  1,  1, Import,      nop,  },
+  { "SAMPLE",        6,  1,  1,  1, Sample,      nop,  },
   { "SOURCES",       7,  1,  1,  1, Source,      nop,  },
   { "SRC",           3,  1,  1,  1, Source,      nop,  }, // Also regulary used to gather source files.
   { "CFLAGS",        6,  1,  1,  1, CFlag,       nop,  },
@@ -234,7 +239,7 @@ static mod_t itemize(mod_t mod, Var_t const * var, char * lst, Type_t type) {
     strcpy(item->name, cur);
     item->len = (size_t)(s4s - cur - 1);
 
-    if (Source == type) {                                   // Source items have a subtype.
+    if (Source == type || Sample == type) {                 // Source items and sample code items have a subtype.
       item->sub = ext2type(cur, item->len);                 // Deduce type from extension.
       setindex(item->sub, mod);
       stripfolder(mod, item);                               // Strip folder spec from a source, if any.
