@@ -400,9 +400,11 @@ static void gen1mod(mod_t mod) {
     }
   }
 
-  for (eachitem(src, Sample, mod)) {                        // Also add sample code source(s) to the DEPS.
-    if (src->sub == CSource || src->sub == CXXSource) {
-      out(o, "%s/%s ", bad(mod, Source), rep(src, ".d"));
+  if (! mod->isRemote) {
+    for (eachitem(src, Sample, mod)) {                      // Also add sample code source(s) to the DEPS.
+      if (src->sub == CSource || src->sub == CXXSource) {
+        out(o, "%s/%s ", bad(mod, Source), rep(src, ".d"));
+      }
     }
   }
 
@@ -414,7 +416,9 @@ static void gen1mod(mod_t mod) {
   
   genCompileRules(mod, Source);                             // Generate the compile rules for the normal lib or app sources.
 
-  genCompileRules(mod, Sample);                             // Generate the compile rules for sample code, if any.
+  if (! mod->isRemote) {
+    genCompileRules(mod, Sample);                           // Generate the compile rules for sample code, if any and if not a remote folder.
+  }
 
   if (lib) {
     out(o, "LIB_TARGETS += %s/", bad(mod, LibName));
@@ -435,7 +439,8 @@ static void gen1mod(mod_t mod) {
     out(o, "\n\n");
   }
 
-  if (sample) {
+  if (sample && ! mod->isRemote) {
+    out(o, "# module [%s] remote %d\n", mod->name, mod->isRemote);
     out(o, "SAMPLE_TARGETS += %s/", bad(mod, AppName));     // A sample is an application, so use AppName.
     out(o, "%s\n\n", rep(sample, ""));
     out(o, "%s/%s: ", bad(mod, AppName), rep(sample, ""));
@@ -500,8 +505,6 @@ char * genmod(const char *nm, uint32_t argc, char * argv[]) {
   genGenerated();
 
   if (! Ctx.cleaning) {
-
-    dumpmod(NULL);                                          // Signal all modules are read to dump routine.
 
     genexported();
 

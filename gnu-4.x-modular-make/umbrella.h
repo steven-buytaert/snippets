@@ -100,6 +100,7 @@ typedef struct Mod_t {            // Single Module context.
   char          path[256];
   size_t        pathlen;          // Length of the path.
   char          ums[256];         // Unique module suffix.
+  uint32_t      isRemote;         // Will be non zero, when this is a remote folder/symbolic link.
   Index_t       Index[NUMTYPES];
   size_t        avail;            // How many item slots are available (free).
   size_t        num;
@@ -128,7 +129,6 @@ void    out(Out_t * out, const char * fmt, ...);            // Safely write to a
 void    resetout(Out_t * out);                              // Reset output buffer.
 void    stripspace(Out_t * out);                            // Strip the final space, if any.
 void    umbreval(const char *buffer, const gmk_floc *floc); // Umbrella eval function (with verbosity control).
-void    dumpmod(mod_t mod);                                 // Dump a module to generate test data.
 void    umblog(uint32_t level, const char * fmt, ...);      // Log something; level 0 is always printed, any other if verbosity set.
 void    mkdirs(mod_t mod, cchar_t folder);                  // Make the given folder path if not existing, like mdkir -p.
 

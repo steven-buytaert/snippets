@@ -157,6 +157,22 @@ static void setindex(Type_t type, mod_t mod) {              // Set from and to o
 
 } 
 
+static uint32_t isRemote(mod_t mod) {
+
+  item_t folder;
+
+  for (eachitem(folder, ModFolder, Ctx.start)) {            // Go over all ModFolders in the globals module.
+    if (folder->remote) {                                   // If they have a remote part ...
+      if (0 == strcmp(folder->folder, mod->path)) {         // ... see if there's a match.
+        return 1;
+      }
+    }
+  }
+
+  return 0;
+
+}
+
 static uint32_t folder(mod_t mod, item_t spec) {   
 
   char         rem[4096];                                   // Remote resolved path.
@@ -313,7 +329,7 @@ static char * module(const char *nm, uint32_t argc, char * argv[]) {
   Ctx.last = mod;
   Ctx.num++;
 
-  dumpmod(mod);
+  mod->isRemote = isRemote(mod);                            // Check if it is a remote module.
 
   return NULL;
 
@@ -399,8 +415,6 @@ static char * globals(const char *nm, uint32_t argc, char * argv[]) {
   Ctx.bad = iname(mod, BuildFolder);                        // Get the build artefact folder.
   
   Ctx.bad = Ctx.bad[0] ? Ctx.bad : "./";                    // When not set, build in current folder.
-
-  dumpmod(mod);
 
   const gmk_floc Floc = {
     .filenm = __FUNCTION__,
