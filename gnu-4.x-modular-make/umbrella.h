@@ -77,6 +77,7 @@ typedef const struct Var_t {
 typedef struct Item_t {           // An item in a module; a file or a dependency.
   uint8_t       type;
   uint8_t       sub;              // Subtype; e.g. type == Source and sub == CSource.
+  uint8_t       drop;             // When not zero, drop this as source (sample source handling).
   const char *  folder;           // When Type == ModFolder, the name of the folder as seen here.
   const char *  remote;           // The remote folder name, if applicable.
   mod_t         mod;              // When resolved, the link to module that satisfies the dependency.
@@ -88,6 +89,12 @@ typedef struct Index_t {
   int16_t       from;
   int16_t       to;
 } Index_t;
+
+typedef struct Flags_t {
+  uint32_t      preqsImported;    // When not 0, prerequisites for this module are already imported or being imported.
+  uint32_t      libsImported;     // When not 0, the required imported libraries already have been imported.
+  uint32_t      modsImported;
+} Flags_t;
 
 typedef struct Mod_t {            // Single Module context.
   mod_t         next;             // All modules are kept on a linked list.
@@ -101,6 +108,7 @@ typedef struct Mod_t {            // Single Module context.
   size_t        pathlen;          // Length of the path.
   char          ums[256];         // Unique module suffix.
   uint32_t      isRemote;         // Will be non zero, when this is a remote folder/symbolic link.
+  Flags_t       Flags;            // These are transient flags; reset after each module generated.
   Index_t       Index[NUMTYPES];
   size_t        avail;            // How many item slots are available (free).
   size_t        num;

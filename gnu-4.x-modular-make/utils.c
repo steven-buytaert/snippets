@@ -74,13 +74,14 @@ void umblog(uint32_t level, const char * fmt, ...) {
 
   va_list ap;
   char    buf[1024 * 16];
+  FILE *  stream = stdout;
   
   if (Ctx.verbosity >= level) {
     va_start(ap, fmt);
     vsnprintf(buf, sizeof(buf), fmt, ap);
     va_end(ap);
-    fprintf(stdout, buf);
-    fflush(stdout);
+    fprintf(stream, buf);
+    fflush(stream);
   }
 
 }

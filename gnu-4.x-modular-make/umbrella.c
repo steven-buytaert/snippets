@@ -195,10 +195,16 @@ static void importpreqs4mod(mod_t mod) {                    // Recursively gener
   item_t  exported;
   Out_t * o = & Ctx.start->Out;
 
+  if (mod->Flags.preqsImported) return;                     // Don't go into an infinite loop.
+
+  mod->Flags.preqsImported = 1;
+
   for (eachitem(imported, Import, mod)) {                   // Walk over all imported modules.
     assert(imported->mod);                                  // Must have been resolved already.
     for (eachitem(exported, Export, imported->mod)) {       // For each imported module, write out its exports.
-      out(o, "%s/%s ", bad(mod, Export), exported->name);
+      if (! imported->mod->Flags.preqsImported) {
+        out(o, "%s/%s ", bad(mod, Export), exported->name);
+      }
     }
     if (item(imported->mod, Import)) {                      // If the imported module also imports another module, call recursively.
       importpreqs4mod(imported->mod);
@@ -227,7 +233,9 @@ static void genAllObj(mod_t mod, Type_t SrcType) {          // Generate a string
   assert(Source == SrcType || Sample == SrcType);           // Can only be Source or Sample code.
 
   for (eachitem(src, SrcType, mod)) {                       // List all the object files for either application, sample app or library.
-    out(o, "%s/%s ", bad(mod, Source), rep(src, ".o"));
+    if (! src->drop) {
+      out(o, "%s/%s ", bad(mod, Source), rep(src, ".o"));
+    }
   }
 
   stripspace(o);
@@ -258,9 +266,15 @@ static void genlibpreqs(Out_t * o, mod_t mod) {             // Generate the libr
 
   item_t imported;
 
+  if (mod->Flags.libsImported) return;
+  
+  mod->Flags.libsImported = 1;
+
   for (eachitem(imported, Import, mod)) {                   // Walk over all imported modules.
-    out(o, " %s/", bad(mod, Import));
-    out(o, "lib%s.a", imported->name);
+    if (! imported->mod->Flags.libsImported) {
+      out(o, " %s/", bad(mod, Import));
+      out(o, "lib%s.a", imported->name);
+    }
     if (item(imported->mod, Import)) {
       genlibpreqs(o, imported->mod);                        // Call recursively if imported module also imports modules.
     }
@@ -272,14 +286,18 @@ static void genlib4LD(Out_t * o, mod_t mod) {               // Generate the libr
 
   item_t imported;
 
+  if (mod->Flags.modsImported) return ;
+  
+  mod->Flags.modsImported = 1;
+
   for (eachitem(imported, Import, mod)) {                   // Walk over all imported modules.
-    out(o, "-l%s ", imported->name);
+    if (! imported->mod->Flags.modsImported) {
+      out(o, "-l%s ", imported->name);
+    }
     if (item(imported->mod, Import)) {
       genlib4LD(o, imported->mod);                          // Call recursively if imported module also imports modules.
     }
   }
-
-  stripspace(o);
 
 }
 
@@ -296,6 +314,7 @@ static void genLDcmd(mod_t mod, item_t lib) {               // Generate the link
     out(o, "$(LDFLAGS-%s) ", mod->ums);                     // Only if not empty.
   }
   genlib4LD(o, mod);
+  stripspace(o);
   out(o, " -o $@\n");
 
 }
@@ -347,14 +366,32 @@ static void genCompileRules(mod_t mod, Type_t SrcType) {
   assert(Source == SrcType || Sample == SrcType);           // Can only be Source or Sample code.
 
   for (eachitem(src, SrcType, mod)) {                       // Generate the compile rules.
-    out(o, "%s/%s: ", bad(mod, Source), rep(src, ".o"));    // We always pass 'Source' as type.
-    out(o, "%s/%s", here(mod), src->name);
-    if (Ctx.start->Out.off) {                               // Add the imported prerequisites, if any (from genimportpreqs).
-      out(o, " %s", Ctx.start->Out.buf);
+    if (! src->drop) {
+      out(o, "%s/%s: ", bad(mod, Source), rep(src, ".o"));  // We always pass 'Source' as type.
+      out(o, "%s/%s", here(mod), src->name);
+      if (Ctx.start->Out.off) {                             // Add the imported prerequisites, if any (from genimportpreqs).
+        out(o, " %s", Ctx.start->Out.buf);
+      }
+      out(o, " %s/Rules.mk Makefile\n\t", mod->path);
+      genCCcmd(mod, src);                                   // Generate the specific compile/assemble command, based upon the type.
+      out(o, "\n\n");
     }
-    out(o, " %s/Rules.mk Makefile\n\t", mod->path);
-    genCCcmd(mod, src);                                     // Generate the specific compile/assemble command, based upon the type.
-    out(o, "\n\n");
+  }
+
+}
+
+static void filterout(mod_t mod) {                          // Filter out the sample code source from the normal source; if e.g. wildcard has been used.
+
+  item_t src;
+  item_t sample;
+
+  for (eachitem(src, Source, mod)) {
+    for (eachitem(sample, Sample, mod)) {
+      if (0 == strcmp(src->name, sample->name)) {
+        umblog(1, "# Dropping '%s', is sample source.\n", src->name);
+        src->drop = 1;
+      }
+    }
   }
 
 }
@@ -380,6 +417,10 @@ static void gen1mod(mod_t mod) {
 
   sample = item(mod, Sample);
 
+  if (sample) {
+    filterout(mod);
+  }
+
   if (sample && ! lib) {
     mkerror("Sample only when LIBNAME is present; %s/Rules.mk", mod->path);
   }
@@ -396,14 +437,18 @@ static void gen1mod(mod_t mod) {
 
   for (eachitem(src, Source, mod)) {                        // Add library or application sources to the DEPS.
     if (src->sub == CSource || src->sub == CXXSource) {
-      out(o, "%s/%s ", bad(mod, Source), rep(src, ".d"));
+      if (! src->drop) {
+        out(o, "%s/%s ", bad(mod, Source), rep(src, ".d"));
+      }
     }
   }
 
   if (! mod->isRemote) {
     for (eachitem(src, Sample, mod)) {                      // Also add sample code source(s) to the DEPS.
       if (src->sub == CSource || src->sub == CXXSource) {
-        out(o, "%s/%s ", bad(mod, Source), rep(src, ".d"));
+        if (! src->drop) {
+          out(o, "%s/%s ", bad(mod, Source), rep(src, ".d"));
+        }
       }
     }
   }
@@ -440,7 +485,6 @@ static void gen1mod(mod_t mod) {
   }
 
   if (sample && ! mod->isRemote) {
-    out(o, "# module [%s] remote %d\n", mod->name, mod->isRemote);
     out(o, "SAMPLE_TARGETS += %s/", bad(mod, AppName));     // A sample is an application, so use AppName.
     out(o, "%s\n\n", rep(sample, ""));
     out(o, "%s/%s: ", bad(mod, AppName), rep(sample, ""));
@@ -495,6 +539,16 @@ static void genGenerated(void) {                            // Make the GENERATE
 
 }
 
+static void resetFlags(void) {                              // Reset all transient flags.
+
+  mod_t mod;
+  
+  for (mod = Ctx.start; mod; mod = mod->next) {
+    memset(& mod->Flags, 0x00, sizeof(mod->Flags));
+  }
+
+}
+
 char * genmod(const char *nm, uint32_t argc, char * argv[]) {
 
   mod_t   mod;
@@ -517,6 +571,7 @@ char * genmod(const char *nm, uint32_t argc, char * argv[]) {
   
     for (mod = Ctx.start; mod; mod = mod->next) {
       if (mod == Ctx.start) continue;                       // Skip global module
+      resetFlags();
       gen1mod(mod);
     }
 
