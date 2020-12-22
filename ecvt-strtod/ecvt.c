@@ -34,9 +34,10 @@ void ieee2float(ECvt_t * n, Float_t * flt, Bits_t * const b) { // should become 
     }
   }
 
-  assert(Zero == flt->type || flt->I.nsb == vnsb(& flt->I));
+//  assert(Zero == flt->type || flt->I.nsb == vnsb(& flt->I));
 
   n->type = flt->type;
+  n->negative = flt->negative;
 
   if (0 == n->ndig) { n->ndig = b->nsdigits; }              // Set to maximum if not specified.
 
@@ -243,7 +244,7 @@ static void round2ne(ecvt_t c) {                            // Round to nearest 
   }
 
   if (round) {                                              // If carry not zero, move down to make room for new most significant digit.
-    memmove(c->digits, c->digits + 1, c->ndig - 1);
+    memmove(c->digits, c->digits + 1, c->ndig - 1u);
     c->digits[0] = round;
     c->decpt++;
   }
@@ -287,10 +288,10 @@ void sbtecvt(ecvt_t ecvt) {
     ecvt->decpt = 1;                                        // The first zero really is the first significant digit.
     digits2ascii(ecvt);
   }
-  else {                                                    // Either NaN or Inf
+  else {                                                    // Either NaN or Infinite.
     assert(NaN == Flt.type || Infinite == Flt.type);
-    if (NaN == Flt.type) { strcpy(ecvt->digits, "NaN"); }
-    else                 { strcpy(ecvt->digits, "Inf"); }
+    if (NaN == Flt.type) { strcpy(ecvt->digits, "nan"); }
+    else                 { strcpy(ecvt->digits, "inf"); }
   }
 
 }

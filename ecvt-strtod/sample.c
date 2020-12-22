@@ -16,4 +16,6 @@ int main(int argc, char * argv[]) {
   
   printf("%c.%se%d sbtecvt\n", ECvt.digits[0], & ECvt.digits[1], ECvt.decpt - 1);
 
+  return 0;
+
 }
