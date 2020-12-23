@@ -226,27 +226,29 @@ static void round2ne(ecvt_t c) {                            // Round to nearest 
     0, -1, -2, -3, -4, 5, 4, 3, 2, 1
   };
 
-  int32_t i = c->cndig - 1;                                 // Current, not requested.
-  int32_t round;
+  int32_t i = c->ndig - 1;                                  // Requested, not current.
+  int32_t round = 0;
   int32_t d;
 
-  round = rwv[(uint8_t) c->digits[i]];                      // Get the rounding value to start with.
-  
-  if (round == 5) {                                         // When 5, round next to nearest even.
-    c->digits[i] = 0;                                       // Current digit becomes 0.
-    round = c->digits[--i] & 1;                             // To next one we'll add either 1 or 0 to make even.
-  }
-  
-  while (i >= 0) {                                          // Do rest of fractional digits; we do work up all digits.
-    d              = c->digits[i] + round;
-    round          = (d == 10) ? 1 : 0;                     // Carry to next digit, if any.
-    c->digits[i--] = (d == 10) ? 0 : d;
-  }
+  if (i > c->decpt) {                                       // Rounding only starts in the fractional part.
+    round = rwv[(uint8_t) c->digits[i]];                    // Get the rounding value to start with.
 
-  if (round) {                                              // If carry not zero, move down to make room for new most significant digit.
-    memmove(c->digits, c->digits + 1, c->ndig - 1u);
-    c->digits[0] = round;
-    c->decpt++;
+    if (round == 5) {                                       // When 5, round next to nearest even.
+      c->digits[i] = 0;                                     // Current digit becomes 0.
+      round = c->digits[--i] & 1;                           // To next one we'll add either 1 or 0 to make even.
+    }
+  
+    while (i >= 0) {                                        // Do rest of fractional digits; we do work up all digits.
+      d              = c->digits[i] + round;
+      round          = (d == 10) ? 1 : 0;                   // Carry to next digit, if any.
+      c->digits[i--] = (d == 10) ? 0 : d;
+    }
+
+    if (round) {                                            // If carry not zero, move down to make room for new most significant digit.
+      memmove(c->digits, c->digits + 1, c->ndig - 1u);
+      c->digits[0] = round;
+      c->decpt++;
+    }
   }
 
 }
