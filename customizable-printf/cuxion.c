@@ -1,3 +1,5 @@
+// Copyright 2020 Steven Buytaert.
+
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
