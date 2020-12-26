@@ -1,11 +1,8 @@
 #ifndef CUXION_H
 #define CUXION_H
 
-<<<<<<< HEAD
-=======
 // Copyright 2020 Steven Buytaert.
 
->>>>>>> 48f6e74 (Implementation of customizable and extendable printf.)
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdarg.h>

@@ -1,34 +1,10 @@
-<<<<<<< HEAD
-=======
 // Copyright 2020 Steven Buytaert.
 
->>>>>>> 48f6e74 (Implementation of customizable and extendable printf.)
 #include <string.h>
 #include <assert.h>
 #include <cuxion.h>
 #include <ecvt-strtod.h>
 
-<<<<<<< HEAD
-/* 
-
-  e The double argument is rounded and converted in the style [-]d.ddde±dd where there is one digit (which is nonzero if the argument is nonzero) before
-    the decimal-point character and the number of digits after it is equal to the precision; if the precision is missing, it is taken as 6; if the  pre‐
-    cision  is zero, no decimal-point character appears.  An E conversion uses the letter E (rather than e) to introduce the exponent.  The exponent al‐
-    ways contains at least two digits; if the value is zero, the exponent is 00.
-
-  f The double argument is rounded and converted to decimal notation in the style [-]ddd.ddd, where the number of digits after the decimal-point charac‐
-    ter  is  equal to the precision specification.  If the precision is missing, it is taken as 6; if the precision is explicitly zero, no decimal-point
-    character appears.  If a decimal point appears, at least one digit appears before it.
-
-  g The double argument is converted in style f or e (or F or E for G conversions).  The precision specifies the number of significant digits.   If  the
-    precision is missing, 6 digits are given; if the precision is zero, it is treated as 1.  Style e is used if the exponent from its conversion is less
-    than -4 or greater than or equal to the precision.  Trailing zeros are removed from the fractional part of the result; a decimal point appears  only
-    if it is followed by at least one digit.
-
-*/
-
-=======
->>>>>>> 48f6e74 (Implementation of customizable and extendable printf.)
 typedef void (* fmtgef_t)(fmtcb_t cb, ecvt_t ecvt);
 
 static int32_t min(int32_t a, uint32_t b) {

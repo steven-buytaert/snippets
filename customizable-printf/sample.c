@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-=======
 // Copyright 2020 Steven Buytaert.
 
->>>>>>> 48f6e74 (Implementation of customizable and extendable printf.)
 #include <stdint.h>
 #include <unistd.h>
 
