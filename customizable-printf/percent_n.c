@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+// Copyright 2020 Steven Buytaert.
+
+>>>>>>> 48f6e74 (Implementation of customizable and extendable printf.)
 #include <string.h>
 #include <assert.h>
 #include <cuxion.h>

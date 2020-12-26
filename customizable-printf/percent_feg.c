@@ -1,8 +1,14 @@
+<<<<<<< HEAD
+=======
+// Copyright 2020 Steven Buytaert.
+
+>>>>>>> 48f6e74 (Implementation of customizable and extendable printf.)
 #include <string.h>
 #include <assert.h>
 #include <cuxion.h>
 #include <ecvt-strtod.h>
 
+<<<<<<< HEAD
 /* 
 
   e The double argument is rounded and converted in the style [-]d.ddde±dd where there is one digit (which is nonzero if the argument is nonzero) before
@@ -21,6 +27,8 @@
 
 */
 
+=======
+>>>>>>> 48f6e74 (Implementation of customizable and extendable printf.)
 typedef void (* fmtgef_t)(fmtcb_t cb, ecvt_t ecvt);
 
 static int32_t min(int32_t a, uint32_t b) {
