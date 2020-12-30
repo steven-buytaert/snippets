@@ -1,6 +1,8 @@
 #ifndef CIRCBUFFER_H
 #define CIRCBUFFER_H
 
+// Copyright 2020 Steven Buytaert
+
 #include <stdint.h>
 #include <assert.h>
 

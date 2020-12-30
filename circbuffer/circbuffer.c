@@ -1,4 +1,5 @@
-#include <assert.h>
+// Copyright 2020 Steven Buytaert
+
 #include <circbuffer.h>
 
 void bcb_readslice(const Bcb_t * cb, slice_t slice) {
