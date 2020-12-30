@@ -362,6 +362,7 @@ static void genCompileRules(mod_t mod, Type_t SrcType) {
 
   item_t  src;  
   Out_t * o = & mod->Out;
+  item_t  export;
 
   assert(Source == SrcType || Sample == SrcType);           // Can only be Source or Sample code.
 
@@ -371,6 +372,11 @@ static void genCompileRules(mod_t mod, Type_t SrcType) {
       out(o, "%s/%s", here(mod), src->name);
       if (Ctx.start->Out.off) {                             // Add the imported prerequisites, if any (from genimportpreqs).
         out(o, " %s", Ctx.start->Out.buf);
+      }
+      if (Sample == SrcType) {                              // For sample code, we must also add the exports of the library as prerequisites.
+        for (eachitem(export, Export, mod)) {
+          out(o, " %s/%s", bad(mod, Export), export->name);
+        }
       }
       out(o, " %s/Rules.mk Makefile\n\t", mod->path);
       genCCcmd(mod, src);                                   // Generate the specific compile/assemble command, based upon the type.
@@ -484,12 +490,13 @@ static void gen1mod(mod_t mod) {
     out(o, "\n\n");
   }
 
-  if (sample && ! mod->isRemote) {
+  if (sample && ! mod->isRemote) {                          // We only compile sample code of non remote folders.
     out(o, "SAMPLE_TARGETS += %s/", bad(mod, AppName));     // A sample is an application, so use AppName.
     out(o, "%s\n\n", rep(sample, ""));
     out(o, "%s/%s: ", bad(mod, AppName), rep(sample, ""));
     genAllObj(mod, Sample);
     genlibpreqs(o, mod);
+    out(o, " %s/lib%s.a", bad(mod, Import), mod->name);     // For samples, we also include the libname as prerequisite.
     out(o, "\n\t");
     genLDcmd(mod, lib);
     out(o, "\n\n");
