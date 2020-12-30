@@ -70,6 +70,7 @@ typedef struct Float_t {          // Our own internal floating point format.
   uint8_t      negative;
   uint8_t      width;             // Width in bits of the IEEE type.
   uint8_t      pad[1];
+  Bits_t *     bits;              // Model used to build this float.
 } Float_t;
 
 static const size_t fltclr  = (sizeof(Float_t) - offsetof(Float_t, I.nsb));

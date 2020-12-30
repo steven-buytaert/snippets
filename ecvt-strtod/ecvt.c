@@ -1,5 +1,6 @@
 // Copyright 2020 Steven Buytaert
 
+#include <stdlib.h>
 #include <internal.h>
 
 void ieee2float(ECvt_t * n, Float_t * flt, Bits_t * const b) { // should become a static
@@ -7,6 +8,7 @@ void ieee2float(ECvt_t * n, Float_t * flt, Bits_t * const b) { // should become 
   memset(& flt->I.nsb, 0x00, fltclr);                       // Make sure we don't multiply garbage.
 
   flt->width = b->width;
+  flt->bits = b;
 
   flt->negative = (n->bits & b->signbit) ? 1 : 0;
   flt->Exp.bin  = (n->bits & b->expomask) >> b->mantissa;   // Get the biased exponent.
@@ -68,7 +70,7 @@ static void fmt(ecvt_t e, const Float_t * flt) {            // Format a float wi
 
   assert(flt->Exp.bin >= -63 && flt->Exp.bin <= 0);         // Binary exponent must be in the proper range for a 64 bit mantissa.
 
-  assert(vnsb(& flt->I) >= 53);
+  assert(vnsb(& flt->I) >= flt->bits->mantissa + 1u);
 
   fmtint(e, flt->mantissa >> -flt->Exp.bin);                // Format the integral part.
 
@@ -249,6 +251,8 @@ static void round2ne(ecvt_t c) {                            // Round to nearest 
       c->digits[0] = round;
       c->decpt++;
     }
+    
+    assert(c->decpt < 0 || abs(c->decpt) <= c->ndig);       // Decimal point, when positive, should always ly within the number of digits range.
   }
 
 }

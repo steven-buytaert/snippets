@@ -16,6 +16,13 @@ int main(int argc, char * argv[]) {
   
   printf("%c.%se%d sbtecvt\n", ECvt.digits[0], & ECvt.digits[1], ECvt.decpt - 1);
 
+  ECvt.f32 = 3.14159265f;
+  ECvt.width = 32;
+
+  sbtecvt(& ECvt);
+  
+  printf("%c.%s sbtecvt\n", ECvt.digits[0], & ECvt.digits[1]);
+
   return 0;
 
 }
