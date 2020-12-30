@@ -1,4 +1,4 @@
-// Copyright 2020 Steven Buytaert.
+// Copyright 2020 Steven Buytaert
 
 #include <assert.h>
 #include <stddef.h>

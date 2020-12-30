@@ -1,7 +1,6 @@
 // Copyright 2020 Steven Buytaert.
 
 #include <stdint.h>
-#include <unistd.h>
 
 void myprintf(const char * fmt, ...);                       // In sample-print.c
 
