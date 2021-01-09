@@ -22,3 +22,9 @@ Container repo with code snippets
   Make 4.x. It allows subfolders with implementation code for libraries.
   Applications and libraries can express imports they need and they will be
   properly handled by the code. There's not more documentation for the moment.
+
+* snset: a simple implementation of an object allocator; if you need to
+  create a set of objects that have a dynamic tail end and you want to be
+  the result a single block of memory (e.g. for efficiency reasons), this
+  will help in creating that block of objects. There is sample
+  code showing how to use the set.
