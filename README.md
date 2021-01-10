@@ -28,3 +28,6 @@ Container repo with code snippets
   the result a single block of memory (e.g. for efficiency reasons), this
   will help in creating that block of objects. There is sample
   code showing how to use the set.
+
+* hexdump: create a canonical hexdump in a given character buffer. ALways
+  terminate the dump, even if the buffer is too small.
