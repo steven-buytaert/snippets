@@ -68,6 +68,31 @@ static mod_t path(mod_t mod, var_t var, char * val) {
   
 }
 
+static uint32_t isPICFlag(const char * fn) {
+
+  if (0 == strcasecmp(fn, "-fpic")) return 1;
+  if (0 == strcasecmp(fn, "-fpie")) return 1;
+
+  return 0;
+
+}
+
+static mod_t fpic(mod_t mod, var_t var, char * val) {       // Called upon CFLAGS and CXXFLAGS to check for fpic option.
+
+  item_t flag;
+
+  for (eachitem(flag, CFlag, mod)) {
+    if (isPICFlag(flag->name)) mod->isFPICmod = 1;
+  }
+
+  for (eachitem(flag, CXXFlag, mod)) {
+    if (isPICFlag(flag->name)) mod->isFPICmod = 1;
+  }
+
+  return mod;
+  
+}
+
 static Var_t Args4Mod[] = {       // In the order as passed to the module function.
   //                 L   X   R   I
   { "HERE",          4,  0,  0,  0, None,        path, },
@@ -79,9 +104,9 @@ static Var_t Args4Mod[] = {       // In the order as passed to the module functi
   { "SAMPLE",        6,  1,  1,  1, Sample,      nop,  },
   { "SOURCES",       7,  1,  1,  1, Source,      nop,  },
   { "SRC",           3,  1,  1,  1, Source,      nop,  }, // Also regulary used to gather source files.
-  { "CFLAGS",        6,  1,  1,  1, CFlag,       nop,  },
-  { "CXXFLAGS",      8,  1,  1,  1, CXXFlag,     nop,  },
-  { "LDFLAGS",       7,  1,  1,  1, LDFlag,      nop,  },
+  { "CFLAGS",        6,  1,  1,  1, CFlag,       fpic, },
+  { "CXXFLAGS",      8,  1,  1,  1, CXXFlag,     fpic, },
+  { "LDFLAGS",       7,  1,  1,  1, LDFlag,      fpic, },
   { "DOCTEXT",       7,  1,  1,  1, DocSource,   nop,  },
   { "DOCFLAGS",      8,  1,  1,  1, DocFlag,     nop,  },
   { "ASFLAGS",       7,  1,  1,  1, ASFlag,      nop,  }, 
@@ -94,9 +119,9 @@ static Var_t Args4Globals[] = {
   { "DIRS",          4,  1,  0,  1, ModFolder,   nop,  },
   { "BAD",           3,  1,  0,  1, BuildFolder, nop,  },
   { "BASE",          4,  0,  0,  0, None,        base, },
-  { "CFLAGS",        6,  1,  0,  1, CFlag,       nop,  },
-  { "CXXLAGS",       7,  1,  0,  1, CXXFlag,     nop,  },
-  { "LDFLAGS",       7,  1,  0,  1, LDFlag,      nop,  },
+  { "CFLAGS",        6,  1,  0,  1, CFlag,       fpic, },
+  { "CXXLAGS",       7,  1,  0,  1, CXXFlag,     fpic, },
+  { "LDFLAGS",       7,  1,  0,  1, LDFlag,      fpic, },
   { "LDLIBS",        6,  1,  0,  1, LDLib,       nop,  },
   { "DOCFLAGS",      8,  1,  0,  1, DocFlag,     nop,  },
   { "CXX",           3,  1,  0,  1, CXXCompiler, nop,  },

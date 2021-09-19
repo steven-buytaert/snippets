@@ -108,6 +108,7 @@ typedef struct Mod_t {            // Single Module context.
   size_t        pathlen;          // Length of the path.
   char          ums[256];         // Unique module suffix.
   uint32_t      isRemote;         // Will be non zero, when this is a remote folder/symbolic link.
+  uint32_t      isFPICmod;        // The module CFLAGS or CXXFLAGS contains fpic.
   Flags_t       Flags;            // These are transient flags; reset after each module generated.
   Index_t       Index[NUMTYPES];
   size_t        avail;            // How many item slots are available (free).

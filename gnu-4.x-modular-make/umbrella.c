@@ -477,6 +477,15 @@ static void gen1mod(mod_t mod) {
     out(o, "lib%s.a: ", lib->name);
     genAllObj(mod, Source);
     out(o, "\n\t$(AR) cr $@ $?\n\n");
+
+    if (mod->isFPICmod) {                                   // See if we also need to create a shared library; in the same spot as the archive.
+      out(o, "LIB_TARGETS += %s/", bad(mod, LibName));
+      out(o, "lib%s.so\n\n%s/", lib->name, bad(mod, LibName));
+      out(o, "lib%s.so: ", lib->name);
+      genAllObj(mod, Source);
+      out(o, "\n\t$(LD) -shared -o $@ $^\n\n");
+    }
+
   }
 
   if (app) {
