@@ -229,7 +229,7 @@ static void round2ne(ecvt_t c) {                            // Round to nearest 
   };
 
   int32_t i = c->ndig - 1;                                  // Requested, not current.
-  int32_t round = 0;
+  int32_t round;
   int32_t d;
 
   if (i > c->decpt) {                                       // Rounding only starts in the fractional part.
@@ -252,7 +252,7 @@ static void round2ne(ecvt_t c) {                            // Round to nearest 
       c->decpt++;
     }
     
-    assert(c->decpt < 0 || abs(c->decpt) <= c->ndig);       // Decimal point, when positive, should always ly within the number of digits range.
+    assert(c->decpt < 0 || abs(c->decpt) <= c->ndig);       // Decimal point, when positive, should always lay within the number of digits range.
   }
 
 }

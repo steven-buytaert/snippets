@@ -104,13 +104,13 @@ typedef struct Mod_t {            // Single Module context.
     size_t      index;            // The item index that points to the GEN folder.
     char *      folder;           // Only when the module size has been fixed.
   } Gen;
-  char          path[256];
+  char          path[256];        // The path as seen here by the Makefile.
   size_t        pathlen;          // Length of the path.
   char          ums[256];         // Unique module suffix.
   uint32_t      isRemote;         // Will be non zero, when this is a remote folder/symbolic link.
   uint32_t      isFPICmod;        // The module CFLAGS or CXXFLAGS contains fpic.
   Flags_t       Flags;            // These are transient flags; reset after each module generated.
-  Index_t       Index[NUMTYPES];
+  Index_t       Index[NUMTYPES];  // To keep track of dependencies.
   size_t        avail;            // How many item slots are available (free).
   size_t        num;
   Item_t        Items[0];

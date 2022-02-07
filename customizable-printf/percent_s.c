@@ -20,6 +20,6 @@ static void drv(fmtcb_t cb) {
 
 FmtSpec_t Fmt_percent_s = {
   .type    = 's',
-  .args    = no32wiap,            // Note that 'number of 32 bit words in a pointer' give the correct number of argument words on 64 or 32 bit systems
+  .args    = no32wiap,            // Note that 'number of 32 bit words in a pointer' gives the correct number of argument words on 64 or 32 bit systems
   .drv     = drv,
 };

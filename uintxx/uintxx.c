@@ -124,7 +124,7 @@ static uint32_t vdivmnu(const uint16_t u[], uint32_t m, const uint16_t v[], uint
   int32_t        t;                                         // Temporary; must be integer!
   uint32_t       s, i, k, j;
 
-  if (m < n || n <= 0 || v[n - 1] == 0) {                   // Check for invalid parameters. Divisor can not have leading 0.
+  if (m < n || (int32_t) n <= 0 || v[n - 1] == 0) {         // Check for invalid parameters. Divisor can not have leading 0.
     assert(0);
     return 1;
   }

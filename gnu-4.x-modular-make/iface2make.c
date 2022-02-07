@@ -198,17 +198,56 @@ static uint32_t isRemote(mod_t mod) {
 
 }
 
+static const mode_t fmode = S_IRWXU |                       // User   rwx
+                            S_IRWXG |                       // Group  rwx
+                            S_IROTH | S_IXOTH;              // Others r-x
+                            
+static uint32_t check4intermediate(const char * path) {     // Check if *intermediate* folders need to be created.
+
+  char         buf[4096];
+  uint32_t     nic = 0;                                     // Number of intermediate components.
+  uint32_t     i;
+  size_t       length = strlen(path);
+  const char * cur = path;
+  struct stat  Stat;
+
+  for (i = 0; i < length; i++, cur++) {                     // Find each component ended by a '/'.
+    buf[i] = *cur;
+    if (buf[i] == '/') {
+      nic++;
+      buf[i] = 0;                                           // Properly end for stat and mkdir call.
+      if (stat(buf, & Stat)) {
+        if (errno == ENOENT) {
+          if (mkdir(buf, fmode)) {
+            mkerror("Could not create '%s' %s\n", buf, strerror(errno));
+          }
+        }
+      }
+      buf[i] = '/';                                         // Insert again for next component, if any.
+    }
+  }
+
+  return nic;
+  
+}
+
 static uint32_t folder(mod_t mod, item_t spec) {   
 
   char         rem[4096];                                   // Remote resolved path.
   const char * dc = strstr(spec->name, "::");               // See if the folder specification contains a remote part.
   struct stat  Stat;
+  uint32_t     nic;
+  uint32_t     i;
+  int32_t      off = 0;
 
   spec->folder = spec->name;                                // Default case when no remote part.
 
   if (dc) {
     if ((size_t) ((dc + 2) - spec->name) == spec->len) {    // Nothing specified behind the ::
       mkerror("Malformed remote module '%s'", spec->name);
+    }
+    if (dc == spec->name) {
+      mkerror("Malformed remote module '%s'", spec->name);  // Nothing specified in front of the ::
     }
     spec->folder = dc + 2;
     spec->name[dc - spec->name] = 0;
@@ -227,7 +266,12 @@ static uint32_t folder(mod_t mod, item_t spec) {
         if (! S_ISDIR(Stat.st_mode)) {                      // The remote must point to a folder that can contain a Rules.mk.
           mkerror("Remote '%s' not a dir", spec->remote);
         }
-        if (symlink(spec->remote, spec->folder)) {
+        nic = check4intermediate(spec->folder);
+        for (i = 0; i < nic; i++) {                         // Add intermediate references if any.
+          off += sprintf(rem + off, "../");
+        }
+        sprintf(rem + off, "%s", spec->remote);
+        if (symlink(rem, spec->folder)) {
           mkerror("Symlink failed '%s'; %s", spec->folder, strerror(errno));
         }
       }

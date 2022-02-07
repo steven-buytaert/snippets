@@ -1,5 +1,7 @@
 // Copyright 2020 Steven Buytaert.
 
+#if defined(FPSUPPORTED)
+
 #include <string.h>
 #include <assert.h>
 #include <cuxion.h>
@@ -15,14 +17,11 @@ static int32_t min(int32_t a, uint32_t b) {
 
 static void fmtf(fmtcb_t cb, ecvt_t ecvt) {
 
-  int32_t i;
-  int32_t f;
-  char    sd;                                               // Saved digit.
-  int     dp = ecvt->decpt;
+  int dp = ecvt->decpt;
 
   if (dp > 0) {
     assert(dp <= ecvt->ndig);
-    sd = ecvt->digits[dp]; ecvt->digits[dp] = 0;            // Truncate at decimal point; save the digit at the decimal point first.
+    char sd = ecvt->digits[dp]; ecvt->digits[dp] = 0;       // Truncate at decimal point; save the digit at the decimal point first.
     cux_sprintf(cb->buffer, "%s", ecvt->digits);
     ecvt->ndig -= ecvt->decpt;                              // Number of digits we have left to render.
     if (cb->Field.precision) {
@@ -36,9 +35,9 @@ static void fmtf(fmtcb_t cb, ecvt_t ecvt) {
     cb->out(cb, '0');
     if (cb->Field.precision) {
       ecvt->decpt = -ecvt->decpt;                           // Change sign.
-      i = min(ecvt->decpt, cb->Field.precision);
+      int32_t i = min(ecvt->decpt, cb->Field.precision);
       cux_sprintf(cb->buffer, ".%0*u", i, 0);               // Fill with zeros.
-      f = cb->Field.precision - ecvt->decpt;
+      int32_t f = cb->Field.precision - ecvt->decpt;
       if (f > 0 && f < ecvt->ndig) { ecvt->digits[f] = 0; } // More digits than space available, truncate.
       cux_sprintf(cb->buffer, "%s", ecvt->digits);
     }
@@ -86,7 +85,7 @@ static void doany(fmtcb_t cb, uint32_t a2p, fmtgef_t fmt) { // The main driver, 
   ECvt_t ECvt = {
     .f64      = cb->Arg.f64,
     .width    = 64,
-    .ndig     = cb->Field.precision + a2p,
+    .ndig     = cb->Field.precision + a2p,                  // a2p == 'Add to the precision this number of digits'.
     .rounding = NearEv,
   };
 
@@ -156,3 +155,5 @@ FmtSpec_t Fmt_percent_G = {
   .issigned = 1,
   .drv      = dog,
 };
+
+#endif // FPSUPPORTED
