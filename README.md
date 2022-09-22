@@ -32,3 +32,8 @@ Container repo with very simple code snippets.
 
 * hexdump: create a canonical hexdump in a given character buffer. Always
   terminate the dump, even if the buffer is too small.
+
+* delta-timers: implement a multitude of timers by means of a linked list
+  with each timer/element having a delta relative timeout wrt the previous timer
+  in the list, so when evaluating the timeout, only the first element/timer needs
+  to be checked. Does not contain sample code (yet).
