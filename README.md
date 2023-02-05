@@ -37,3 +37,7 @@ Container repo with very simple code snippets.
   with each timer/element having a delta relative timeout wrt the previous timer
   in the list, so when evaluating the timeout, only the first element/timer needs
   to be checked. Does not contain sample code (yet).
+
+* txt-tr-utils: a small set of in place text transformation functions. They
+  are all very simple. None of them implement any checking for the buffer
+  size being large enough.
