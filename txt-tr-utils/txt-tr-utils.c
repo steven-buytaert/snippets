@@ -40,13 +40,13 @@ uint32_t trimInterSpaces(char * buf) {                      // Trim consecutive 
 
   while (*cur) {
     if (*cur == ' ') { spaces++; }
-    else {
+    else {                                                  // Non space character, evaluate spaces.
       if (spaces > 1) {
-        spaces--;
+        spaces--;                                           // We want to keep 1 space.
         memmove(cur - spaces, cur, end - cur + 1);
         end -= spaces;
         count += spaces;
-        cur--;
+        cur--;                                              // Start rechecking here; note that cur is always incremented below.
       }
       spaces = 0;
     }
@@ -57,7 +57,7 @@ uint32_t trimInterSpaces(char * buf) {                      // Trim consecutive 
 
 }
 
-uint32_t turnCont2SingleWord(char * buf) {                  // Change 'xx- yy' into 'xxyy'; return # characters removed.
+uint32_t turnCont2SingleWord(char * buf) {                  // Change e.g. 'xx- yy' into 'xxyy'; return # characters removed.
 
   char *   cur = buf;
   char *   end = buf + strlen(buf);
@@ -89,44 +89,30 @@ uint32_t trimTrailSpaces(char * buf) {                     // Remove all trailin
 
 }
 
-typedef struct Rep_t {     // Replacement.
-  struct {
-    const char * str;
-    uint32_t     size;
-  } Replace;
-  struct {
-    const char * str;
-    uint32_t     size;
-  } With;
-} Rep_t;
-
-uint32_t replaceStrWithStr(char * buf, const char * macro, const char * with) {
+uint32_t replaceStrWithStr(char * buf, const char * replace, const char * with) {
 
   char *   c;
   char *   end = buf + strlen(buf);
   char *   src;
   char *   dst;
-  Rep_t    Rep = { { .str = macro }, { .str = with } };
-  Rep_t *  m = & Rep;
   uint32_t count = 0;
-  int32_t  diff = strlen(with) - strlen(macro);
-
-  Rep.Replace.size = strlen(macro);
-  Rep.With.size = strlen(with);
+  uint32_t withsize = strlen(with);
+  uint32_t replsize = strlen(replace);
+  int32_t  diff = withsize - replsize;
 
   for (c = & buf[0]; c < end; c++) {
-    if (0 == strncmp(c, m->Replace.str, m->Replace.size)) { // OK replace here.
+    if (0 == strncmp(c, replace, replsize)) {               // OK replace here.
       count++;
-      src = c + m->Replace.size;
-      dst = c + m->With.size;
+      src = c + replsize;
+      dst = c + withsize;
       if (diff > 0) {
         memmove(dst, src, end - src);                       // Need to increase.
       }
       else if (diff < 0) {
         memmove(dst, src, end - dst);                       // Need to shrink.
       }
-      memcpy(c, m->With.str, m->With.size);                 // Insert replacement.
-      c += m->With.size;
+      memcpy(c, with, withsize);                            // Insert replacement.
+      c += withsize;
       end += diff;
     }
   }
