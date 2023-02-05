@@ -46,6 +46,7 @@ uint32_t trimInterSpaces(char * buf) {                      // Trim consecutive 
         memmove(cur - spaces, cur, end - cur + 1);
         end -= spaces;
         count += spaces;
+        cur--;
       }
       spaces = 0;
     }
