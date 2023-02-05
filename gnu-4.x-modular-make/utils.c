@@ -1,5 +1,6 @@
-// Copyright 2020 Steven Buytaert
+// Copyright 2020-2023 Steven Buytaert
 
+#include <dirent.h>
 #include <stdarg.h>
 #include <unistd.h>
 
@@ -182,3 +183,80 @@ void mkdirs(mod_t mod, cchar_t folder) {                    // Create the folder
   }
 
 }                                                           // Yes the mod parameter isn't used.
+
+static void defcb(f2find_t f2f) { f2f->found = 1; }         // Default callback. Stops further search.
+
+typedef int32_t (* strcmp_t)(const char *s1, const char *s2);
+
+static int32_t add2buffer(f2find_t f2f, const char * s) {   // Try to add the string to the buffer of f2f; with error handling.
+
+  uint32_t        rem = sizeof(f2f->buffer) - f2f->off;     // Characters remaining in buffer.
+  char *          add =  f2f->buffer + f2f->off;            // Start adding the string here.
+  int32_t         nc = snprintf(add, rem, "/%s", s);
+
+  if (nc < 0 || (uint32_t) nc > rem) {                      // Buffer size not enough or strange characters.
+    f2f->error = 1;                                         // Will break the loop above.
+  }
+
+  return  nc;                                               // Number of characters added.
+
+}
+
+static void f2find_int(f2find_t f2f) {                      // Internal find.
+
+  DIR *           dd;
+  struct dirent * de;
+  int32_t         nc;
+  strcmp_t        cmp = f2f->anycase ? strcasecmp : strcmp;
+
+  dd = opendir(f2f->buffer);
+  if (dd) {
+    while (! f2f->found && (de = readdir(dd))) {            // Loop over all files in the folder as long as necessary.
+      if (de->d_name[0] == '.') continue;                   // Skip current and parent.
+      if (DT_DIR == de->d_type) {
+        nc = add2buffer(f2f, de->d_name);
+        if (f2f->error) { break; }                          // Stop at error.
+        f2f->off += nc;
+        f2find_int(f2f);                                    // Search recursively.
+        if (! f2f->found) {
+          f2f->off -= nc;
+        }
+      }
+      else {
+//        printf("FOUND '%s'\n", de->d_name);
+        if (0 == cmp(de->d_name, f2f->name)) {              // Names must match; note that lengths are also equal in this case.
+          nc = add2buffer(f2f, de->d_name);
+          if (f2f->error) { break; }                        // Stop at error.
+          f2f->off += nc;
+          f2f->callback(f2f);                               // Callback decides if we search further or not.
+          if (! f2f->found) {
+            f2f->off -= nc;                                 // We need to continue; restore our offset.
+          }
+        }
+      }
+    }
+    closedir(dd);
+  }
+
+}
+
+void f2find(f2find_t f2f, const char * roots[]) {
+
+  uint32_t i;
+  uint32_t size = sizeof(f2f->buffer);
+
+  assert(f2f->name);
+
+  f2f->found = 0;
+
+  if (! f2f->callback) {
+    f2f->callback = defcb;
+  }
+
+  for (i = 0; ! f2f->found; i++) {
+    if (! roots[i]) break;
+    f2f->off = (uint16_t) snprintf(f2f->buffer, size, "%s", roots[i]);
+    f2find_int(f2f);
+  }
+
+}

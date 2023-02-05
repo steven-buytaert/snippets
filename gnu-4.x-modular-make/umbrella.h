@@ -1,7 +1,7 @@
 #ifndef UMBRELLA
 #define UMBRELLA
 
-// Copyright 2020 Steven Buytaert
+// Copyright 2020-2023 Steven Buytaert
 
 #include <stdio.h>
 #include <errno.h>
@@ -59,7 +59,8 @@ typedef enum {
   Path2Obj      = 29,
   Goal          = 30,
   Sample        = 31,
-  NUMTYPES      = 32,
+  ToolName      = 32,
+  NUMTYPES      = 33,
 } Type_t;
 
 typedef mod_t (* ahndlr_t)(mod_t mod, var_t var, char * val);
@@ -107,7 +108,8 @@ typedef struct Mod_t {            // Single Module context.
   char          path[256];        // The path as seen here by the Makefile.
   size_t        pathlen;          // Length of the path.
   char          ums[256];         // Unique module suffix.
-  uint32_t      isRemote;         // Will be non zero, when this is a remote folder/symbolic link.
+  uint16_t      isRemote;         // Will be non zero, when this is a remote folder/symbolic link.
+  uint16_t      isTool;           // The module is a tool module with TOOLNAME is like an application.
   uint32_t      isFPICmod;        // The module CFLAGS or CXXFLAGS contains fpic.
   Flags_t       Flags;            // These are transient flags; reset after each module generated.
   Index_t       Index[NUMTYPES];  // To keep track of dependencies.
@@ -126,6 +128,24 @@ typedef struct Ctx_t {
   const char *  bad;
   const char *  base;
 } Ctx_t;
+
+typedef struct F2Find_t * f2find_t;
+typedef void (* f2fcb_t)(f2find_t f2f);
+
+typedef struct F2Find_t {
+  const char * name;              // File to find.
+  uint8_t      found;             // When not zero, found the file; path/name in buffer.
+  uint8_t      anycase;           // When non zero, ignore the case when comparing.
+  uint8_t      error;             // Should remain zero.
+  uint8_t      pad[3];
+  uint16_t     off;               // Offset in the buffer.
+  f2fcb_t      callback;          // When not NULL, called on a hit. Set found to non zero to stop search.
+  char         buffer[4096];      // Contains a \0 terminated path.
+} F2Find_t;
+
+// Search for the F2Find.name file from a given number of roots. Ends on NULL root.
+
+void f2find(f2find_t f2f, const char * roots[]);
 
 extern Ctx_t Ctx;
 

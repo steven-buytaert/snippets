@@ -1,4 +1,6 @@
-# Copyright 2020 Steven Buytaert
+# Copyright 2020-2023 Steven Buytaert
+
+# $ make;make --directory .. UMBFLAGS=debug
 
 $(info Included driver $(filter %umbrella.mk,$(MAKEFILE_LIST)))
 
@@ -27,24 +29,25 @@ APP_TARGETS := # Applications that should be generated
 # $? all dependencies more recent than the target
 # To have a view on all variables in scope, one can start make with the -p option.
 
-all:    bad-setup obj-setup libs apps samples
+all:    libs apps samples
 
 clean:
-	@rm -rf $(BAD) $(GENERATED)
+	@rm -rf $(BAD) $(GENERATED) $(EXTERN)
 	@find . -name \*~ -print | xargs rm -rf
 	@echo Cleaned...
 
 .ONESHELL:
-bad-setup:
+$(BAD)/marker:
 	@mkdir -p $(BAD)/include
 	@mkdir -p $(BAD)/lib
 	@mkdir -p $(BAD)/bin
 	@mkdir -p $(BAD)/doc
+	@touch $(BAD)/marker
 
-obj-setup:
+obj-setup: $(BAD)/marker
 	@mkdir -p $(BAD)/gen
 
-.PHONY: all bad-setup obj-setup libs apps samples html lstargets
+.PHONY: all libs apps samples html lstargets
 
 # Transfer global settings to Umbrella make.
 
@@ -58,7 +61,7 @@ $$(setvars $(1))
 
 include $(1)/Rules.mk
 
-$$(module $(1),$$(GEN),$$(LIBNAME),$$(EXPORTS),$$(APPNAME),$$(IMPORTS),$$(SAMPLE),$$(SOURCES),$$(SRC),$$(CFLAGS),$$(CXXFLAGS),$$(LDFLAGS),$$(DOCTEXT),$$(DOCFLAGS),$$(ASFLAGS),$$(GENERATED))
+$$(module $(1),$$(GEN),$$(LIBNAME),$$(EXPORTS),$$(APPNAME),$$(IMPORTS),$$(SAMPLE),$$(SOURCES),$$(SRC),$$(CFLAGS),$$(CXXFLAGS),$$(LDFLAGS),$$(DOCTEXT),$$(DOCFLAGS),$$(ASFLAGS),$$(GENERATED),$$(TOOLNAME))
 
 endef
 
@@ -70,11 +73,11 @@ $(genmod $(HOME))
 # The generic targets
 #
 
-html: bad-setup $(HTML_TARGETS)
-pdf:  html      $(PDF_TARGETS)
-libs: bad-setup $(LIB_TARGETS)
-apps: libs      $(APP_TARGETS)
-samples: libs   $(SAMPLE_TARGETS)
+html: $(BAD)/marker $(HTML_TARGETS)
+pdf:  html          $(PDF_TARGETS)
+libs: $(BAD)/marker $(LIB_TARGETS)
+apps: libs          $(APP_TARGETS)
+samples: libs       $(SAMPLE_TARGETS)
 
 # Include all dependencies, will be redone when the dependencies are out of date or regenerated
 

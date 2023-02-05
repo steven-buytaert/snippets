@@ -3,7 +3,7 @@
 
 // gcc -shared -I ../../make-4.3/src/ -Wall -Wsign-compare -fpic -o my-make.so my-make.c
 
-// Copyright 2020 Steven Buytaert
+// Copyright 2020-2023 Steven Buytaert
 
 #include <umbrella.h>
 
@@ -60,11 +60,12 @@ static const char * bad(mod_t mod, Type_t type) {           // Return the build 
     out(& Out, "%s/", Ctx.bad);
 
     switch (type) {
-      case DocSource: out(& Out, "doc"); break;
-      case Export:    out(& Out, "include"); break;
-      case Import:    out(& Out, "lib"); break;
-      case AppName:   out(& Out, "bin"); break;
-      case LibName:   out(& Out, "lib"); break;
+      case DocSource: out(& Out, "doc");            break;
+      case Export:    out(& Out, "include");        break;
+      case Import:    out(& Out, "lib");            break;
+      case AppName:   out(& Out, "bin");            break;
+      case ToolName:  out(& Out, "bin");            break;
+      case LibName:   out(& Out, "lib");            break;
       default: mkerror("No bad for type %d", type); break;
     }
   }
@@ -244,17 +245,18 @@ static void genAllObj(mod_t mod, Type_t SrcType) {          // Generate a string
 
 static void genCCcmd(mod_t mod, item_t src) {               // Generate the compile or assembly command for the given source.
 
-  Out_t * o = & mod->Out;
-  cchar_t bad = iname(Ctx.start, BuildFolder);              // Built Artifacts Directory in globals module.
+  Out_t *      o = & mod->Out;
+  cchar_t      bad = iname(Ctx.start, BuildFolder);         // Built Artifacts Directory in globals module.
+  const char * tool = mod->isTool ? "TOOL" : "";
 
   if (CSource == src->sub) {
-    out(o, "$(CC) $(CFLAGS) $(CFLAGS-%s) -I %s/include -I %s -c $< -o $@", mod->ums, bad, mod->path);
+    out(o, "$(%sCC) $(CFLAGS) $(CFLAGS-%s) -I %s/include -I %s -c $< -o $@", tool, mod->ums, bad, mod->path);
   }
   else if (ASource == src->sub) {
-    out(o, "$(AS) $(ASFLAGS) $(ASFLAGS-%s) -I %s/include -I %s $< -o $@ ", mod->ums, bad, mod->path);
+    out(o, "$(%sAS) $(ASFLAGS) $(ASFLAGS-%s) -I %s/include -I %s $< -o $@ ", tool, mod->ums, bad, mod->path);
   }
   else if (CXXSource == src->sub) {
-    out(o, "$(CXX) $(CXXFLAGS) $(CXXFLAGS-%s) -I %s/include -I %s -c $< -o $@", mod->ums, bad, mod->path);
+    out(o, "$(%sCXX) $(CXXFLAGS) $(CXXFLAGS-%s) -I %s/include -I %s -c $< -o $@", tool, mod->ums, bad, mod->path);
   }
   else {
     mkerror("Subtype %d not yet", src->sub);
@@ -303,10 +305,11 @@ static void genlib4LD(Out_t * o, mod_t mod) {               // Generate the libr
 
 static void genLDcmd(mod_t mod, item_t lib) {               // Generate the link command.
 
-  Out_t * o = & mod->Out;
-  cchar_t bad = iname(Ctx.start, BuildFolder);              // Built Artifacts Directory in globals module.
+  Out_t *      o = & mod->Out;
+  cchar_t      bad = iname(Ctx.start, BuildFolder);         // Built Artifacts Directory in globals module.
+  const char * tool = mod->isTool ? "TOOL" : "";
 
-  out(o, "$(LD) ");
+  out(o, "$(%sLD) ", tool);
   if (item(Ctx.start, LDFlag)) { out(o, "$(LDFLAGS) "); }   // Only if there is a not empty global LDFLAGS.
   out(o, "$(filter %%.o,$^) -L %s/lib ", bad);
   if (lib) { out(o, "-l%s ", lib->name); }                  // Add an extra passed library, if not NULL.
@@ -407,6 +410,7 @@ static void gen1mod(mod_t mod) {
   item_t  src;
   item_t  lib;
   item_t  app;
+  item_t  tool;
   item_t  sample;
   Out_t * o = & mod->Out;
 
@@ -416,9 +420,15 @@ static void gen1mod(mod_t mod) {
 
   lib = item(mod, LibName);
   app = item(mod, AppName);
+  tool = item(mod, ToolName);
 
-  if (lib && app) {
-    mkerror("Either LIBNAME or APPNAME in %s/Rules.mk", mod->path);
+  if ((lib && app) || (lib && tool) || (tool && app)) {
+    mkerror("Either LIBNAME, APPNAME or TOOLNAME in %s/Rules.mk", mod->path);
+  }
+
+  if (tool) {                                               // OK if we're compiling a tool, as of now, we treat it like an application.
+    app = tool;
+    mod->isTool = 1;
   }
 
   sample = item(mod, Sample);
@@ -431,17 +441,17 @@ static void gen1mod(mod_t mod) {
     mkerror("Sample only when LIBNAME is present; %s/Rules.mk", mod->path);
   }
 
-  if (! lib && ! app) { return; }                           // Can happen for documentation only modules.
+  if (! lib && ! app && ! tool) { return; }                 // Can happen for documentation only modules.
 
   out(o, "# Module: %s:%s\n\n", mod->path, mod->name);
 
   genflags(mod);                                            // Generate all the flags for this module.
-  
+
   genimportpreqs(mod);                                      // Import prerequisites are generated in the global buffer.
 
   out(o, "DEPS += ");                                       // Generate the DEPS additions.
 
-  for (eachitem(src, Source, mod)) {                        // Add library or application sources to the DEPS.
+  for (eachitem(src, Source, mod)) {                        // Add library or application/tool sources to the DEPS.
     if (src->sub == CSource || src->sub == CXXSource) {
       if (! src->drop) {
         out(o, "%s/%s ", bad(mod, Source), rep(src, ".d"));
@@ -465,7 +475,7 @@ static void gen1mod(mod_t mod) {
 
   mkdirs(mod, mod->Gen.folder);                             // Check gen folder and create if it doesn't exist yet.
   
-  genCompileRules(mod, Source);                             // Generate the compile rules for the normal lib or app sources.
+  genCompileRules(mod, Source);                             // Generate the compile rules for the normal lib or app/tool sources.
 
   if (! mod->isRemote) {
     genCompileRules(mod, Sample);                           // Generate the compile rules for sample code, if any and if not a remote folder.

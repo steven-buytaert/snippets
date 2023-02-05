@@ -2,7 +2,7 @@
 
 // gcc -shared -I ../../make-4.3/src/ -Wall -Wsign-compare -fpic -o my-make.so my-make.c
 
-// Copyright 2020 Steven Buytaert
+// Copyright 2020-2023 Steven Buytaert
 
 #include <unistd.h>
 #include <sys/stat.h>
@@ -14,6 +14,8 @@ int plugin_is_GPL_compatible = 1; // MIT License is GP Compatible.
 Ctx_t Ctx;                        // The global context.
 
 static char * resetvars = NULL;   // To issue a reset of variables at each module read.
+static uint32_t numpaths = 0;
+static const char * umbpaths[256];// NULL terminated array of paths to search for modules (see UMBPATH environment variable).
 
 static mod_t nop(mod_t mod, var_t var, char * val) {
 
@@ -33,7 +35,7 @@ static mod_t name(mod_t mod, var_t var, char * val) {
 
   if (strlen(val)) {
     mod->name = strdup(val);
-    umblog(1, "# Reading module %s:%s\n", mod->path, mod->name);
+    umblog(1, "# -------- Reading module %s:%s\n", mod->path, mod->name);
   }
 
   return mod;
@@ -103,7 +105,7 @@ static Var_t Args4Mod[] = {       // In the order as passed to the module functi
   { "IMPORTS",       7,  1,  1,  1, Import,      nop,  },
   { "SAMPLE",        6,  1,  1,  1, Sample,      nop,  },
   { "SOURCES",       7,  1,  1,  1, Source,      nop,  },
-  { "SRC",           3,  1,  1,  1, Source,      nop,  }, // Also regulary used to gather source files.
+  { "SRC",           3,  1,  1,  1, Source,      nop,  },   // Also regulary used to gather source files.
   { "CFLAGS",        6,  1,  1,  1, CFlag,       fpic, },
   { "CXXFLAGS",      8,  1,  1,  1, CXXFlag,     fpic, },
   { "LDFLAGS",       7,  1,  1,  1, LDFlag,      fpic, },
@@ -111,6 +113,7 @@ static Var_t Args4Mod[] = {       // In the order as passed to the module functi
   { "DOCFLAGS",      8,  1,  1,  1, DocFlag,     nop,  },
   { "ASFLAGS",       7,  1,  1,  1, ASFlag,      nop,  }, 
   { "GENERATED",     9,  1,  1,  1, Generated,   nop,  }, 
+  { "TOOLNAME",      8,  1,  1,  1, ToolName,    name  },   // The name of a tool built with the tool compiler.
   { NULL }
 };
 
@@ -182,7 +185,7 @@ static void setindex(Type_t type, mod_t mod) {              // Set from and to o
 
 } 
 
-static uint32_t isRemote(mod_t mod) {
+static uint16_t isRemote(mod_t mod) {
 
   item_t folder;
 
@@ -231,14 +234,44 @@ static uint32_t check4intermediate(const char * path) {     // Check if *interme
   
 }
 
+static const char ** mkpaths(const char * folder) {         // Create a set of search paths for the folder, based upon UMBPATH.
+
+  const char ** roots;
+  uint32_t      i;
+  uint32_t      size = sizeof(char *);                      // Space for the final NULL slot.
+  char *        dst;
+
+  for (i = 0; i < numpaths; i++) {
+    size += strlen(folder) + strlen(umbpaths[i]) + 2;       // Add 1 for the '/' and 1 for the trailing \0.
+    size += sizeof(char *);                                 // Add space for the slot itself.
+  }
+
+  roots = malloc(size);
+  assert(roots);
+  memset(roots, 0x00, size);
+  dst = (char *) & roots[numpaths + 1];                     // Don't forget the NULL slot.
+  
+  for (i = 0; i < numpaths; i++) {
+    roots[i] = dst;
+    dst += sprintf(dst, "%s/%s", umbpaths[i], folder);
+    dst += 1;                                               // 0\ terminate each path.
+  }
+
+  return roots;
+
+}
+
 static uint32_t folder(mod_t mod, item_t spec) {   
 
-  char         rem[4096];                                   // Remote resolved path.
-  const char * dc = strstr(spec->name, "::");               // See if the folder specification contains a remote part.
-  struct stat  Stat;
-  uint32_t     nic;
-  uint32_t     i;
-  int32_t      off = 0;
+  char          rem[4096];                                  // Remote resolved path.
+  char          buf[4096];
+  const char *  dc = strstr(spec->name, "::");              // See if the folder specification contains a remote part.
+  struct stat   Stat;
+  uint32_t      nic;
+  uint32_t      i;
+  int32_t       off = 0;
+  F2Find_t      F2Find;
+  const char ** roots;
 
   spec->folder = spec->name;                                // Default case when no remote part.
 
@@ -255,6 +288,23 @@ static uint32_t folder(mod_t mod, item_t spec) {
   }
 
   if (dc && ! Ctx.cleaning) {                               // Remote spec; create link if not yet done and not cleaning.
+    if (0 == strncmp(spec->remote, ".../", 4)) {
+      if (numpaths) {                                       // Only search if there are paths to search in.
+        F2Find.name = "Rules.mk";
+        roots = mkpaths(spec->remote + 4);                  // Strip off the .../ before making the roots.
+        f2find(& F2Find, roots);
+        free(roots);
+        if (F2Find.found) {
+          size_t size = strlen(F2Find.buffer);
+          F2Find.buffer[size - 9] = 0;                      // Strip of the Rules.mk from the buffer.
+          spec->remote = F2Find.buffer;                     // Remote is now this one.
+        }
+      }
+      else {
+        mkerror("UMBPATH not set; can't use .../");
+      }
+    }
+
     if (lstat(spec->folder, & Stat)) {                      // Use lstat not stat.
       if (ENOENT == errno) {                                // Symbolic link doesn't exist yet; create it.
         if (! realpath(spec->remote, rem)) {                // Check if the remote path is OK.
@@ -266,13 +316,20 @@ static uint32_t folder(mod_t mod, item_t spec) {
         if (! S_ISDIR(Stat.st_mode)) {                      // The remote must point to a folder that can contain a Rules.mk.
           mkerror("Remote '%s' not a dir", spec->remote);
         }
-        nic = check4intermediate(spec->folder);
-        for (i = 0; i < nic; i++) {                         // Add intermediate references if any.
-          off += sprintf(rem + off, "../");
+        sprintf(buf, "%s/Rules.mk", spec->remote);          // Check there is indeed a Rules.mk file present.
+        if (0 == lstat(buf, & Stat)) {                      // Now stat should NOT return an error.
+          nic = check4intermediate(spec->folder);
+          for (i = 0; i < nic; i++) {                       // Add intermediate references if any.
+            if ('/' == spec->remote[0]) break;              // No need to add ../ when the path is absolute.
+            off += sprintf(rem + off, "../");
+          }
+          sprintf(rem + off, "%s", spec->remote);
+          if (symlink(rem, spec->folder)) {
+            mkerror("Symlink failed '%s'; %s", spec->folder, strerror(errno));
+          }
         }
-        sprintf(rem + off, "%s", spec->remote);
-        if (symlink(rem, spec->folder)) {
-          mkerror("Symlink failed '%s'; %s", spec->folder, strerror(errno));
+        else {
+          mkerror("%s: %s", buf, strerror(errno));
         }
       }
     }
@@ -503,6 +560,7 @@ static char * globals(const char *nm, uint32_t argc, char * argv[]) {
       out(o, "%s ", arg->folder);
     }
   }
+  out(o, "\n");
   stripspace(o);
   umbreval(o->buf, & Floc);                                 // ... and make it overrride the current DIRS.
   resetout(o);
@@ -535,13 +593,13 @@ static char * ums(const char *nm, uint32_t argc, char * argv[]) {
 
   sz = strlen(buf);
 
-  umblog(3, "%3d [%s] = [%s] %zu\n", __LINE__, argv[0], buf, sz);
+  umblog(3, "%s:%3d [%s] = [%s] %zu\n", __FILE__, __LINE__, argv[0], buf, sz);
 
   while ('/' == buf[sz - 1] || ' ' == buf[sz - 1]) {        // Strip any trailing slashes or spaces.
     buf[--sz] = 0;
   }
 
-  umblog(3, "%3d [%s] = [%s] %zu\n", __LINE__, argv[0], buf, sz);
+  umblog(3, "%s:%3d [%s] = [%s] %zu\n", __FILE__, __LINE__, argv[0], buf, sz);
 
   for (i = (int32_t) sz - 1; i >= 0 && ! suffix; i--) {
     if ('.' == buf[i]) {
@@ -551,7 +609,7 @@ static char * ums(const char *nm, uint32_t argc, char * argv[]) {
     }
   }
 
-  umblog(3, "%3d [%s] = [%s] %zu\n", __LINE__, argv[0], buf, sz);
+  umblog(3, "%s:%3d [%s] = [%s] %zu\n", __FILE__, __LINE__, argv[0], buf, sz);
 
   for (i = (int32_t) sz - 1; suffix && i >= 0; i--) {       // If we had a suffix, find the final slash.
     if ('/' == buf[i]) {
@@ -561,14 +619,14 @@ static char * ums(const char *nm, uint32_t argc, char * argv[]) {
     }
   }
 
-  umblog(3, "%3d [%s] = [%s] %zu\n", __LINE__, argv[0], buf, sz);
+  umblog(3, "%s:%3d [%s] = [%s] %zu\n", __FILE__, __LINE__, argv[0], buf, sz);
 
   for (i = 0; i < (int32_t) sz; i++) {                      // Replace spaces and slashes with dashes.
     if (' ' == buf[i]) { buf[i] = '-'; }
     if ('/' == buf[i]) { buf[i] = '-'; }
   }
 
-  umblog(3, "%3d [%s] = [%s] %zu\n", __LINE__, argv[0], buf, sz);
+  umblog(3, "%s:%3d [%s] = [%s] %zu\n", __FILE__, __LINE__, argv[0], buf, sz);
 
   addend = gmk_alloc((uint32_t) sz + 2);                    // For the - and the trailing \0.
   
@@ -576,15 +634,20 @@ static char * ums(const char *nm, uint32_t argc, char * argv[]) {
   
   strcpy(& addend[1], buf);
 
+  umblog(3, "\n");
+
   return addend;
 
 }
 
-int umbrella_gmk_setup(void) {
+int umbrella_gmk_setup(void) {                              // Module name is 'umbrella.so' so umbrella_gmk_setup() is called at load time.
 
   uint32_t      bufsz = 1024;
   int32_t       off = 0;
   char *        cur = malloc(bufsz);
+  char *        end;
+  uint32_t      i = 0;
+  char *        colon;
   Var_t const * var;
 
   assert(cur);
@@ -597,6 +660,23 @@ int umbrella_gmk_setup(void) {
       assert((int) bufsz - off > 0);                        // Or we need to increase the buffer.
     }
   }
+
+  cur = getenv("UMBPATH");                                  // See if there is a module search path set.
+  if (cur) {
+    end = cur + strlen(cur);
+    while ((colon = index(cur, ':'))) {
+      assert(i + 1 < NUM(umbpaths));
+      umbpaths[i++] = strndup(cur, (uint32_t)(colon - cur));
+      cur = colon + 1;
+    }
+
+    if (cur < end) {                                        // Add the final path, if any.
+      assert(i + 1 < NUM(umbpaths));
+      umbpaths[i++] = strndup(cur, (uint32_t)(end - cur));
+    }
+  }
+
+  numpaths = i;
 
   gmk_add_function("module", module, NUM(Args4Mod) - 1, NUM(Args4Mod) - 1, GMK_FUNC_NOEXPAND);
 
