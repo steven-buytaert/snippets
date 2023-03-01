@@ -148,7 +148,7 @@ static void a4Sz(ctx_t ctx, cctype_t stack[], uint32_t d) { // Internal function
 
   for (i = 0; i < d; i++) {
     if (stack[i] == type) {
-      ctxmsg(ctx, "Circularity involving [%s].\n", stack[0]->name);
+      ctxmsg(ctx, "Circularity involving type [%s].\n", stack[0]->name);
       ctx->error = ccd_Circularity;
     }
   }
@@ -156,7 +156,7 @@ static void a4Sz(ctx_t ctx, cctype_t stack[], uint32_t d) { // Internal function
   if (ctx->error) { return; }                               // Don't continue in error.
 
   if (isPrim(type) && isComp(type)) {
-    ctxmsg(ctx, "Type %s can't be both Comp and Prim.\n", type->name);
+    ctxmsg(ctx, "Type [%s] can't be both Comp and Prim.\n", type->name);
     ctx->error = ccd_BadProperties;
     return;
   }
@@ -170,13 +170,13 @@ static void a4Sz(ctx_t ctx, cctype_t stack[], uint32_t d) { // Internal function
 
   for (i = 0; ! ctx->error && i < type->num; i++, m++) {
     if (m->type == type && ! m->numind) {
-      ctxmsg(ctx, "Type %s includes itself without indirection.\n", type->name);
+      ctxmsg(ctx, "Type [%s] includes itself without indirection.\n", type->name);
       ctx->error = ccd_Circularity;
       break;
     }
     if (m->ref2size) {
       if (! m->isVTail && ! m->numind) {
-        ctxmsg(ctx, "[%s] ref2size [%s] implies either indirection or VTail.\n", m->name, m->ref2size->name);
+        ctxmsg(ctx, "Member [%s] ref2size [%s] implies either indirection or VTail.\n", m->name, m->ref2size->name);
         ctx->error = ccd_LoneRef2size;
         break;
       }
@@ -187,7 +187,7 @@ static void a4Sz(ctx_t ctx, cctype_t stack[], uint32_t d) { // Internal function
       }
     }
     if (m->numind && m->isVTail) {
-      ctxmsg(ctx, "[%s] can never both be reference and VTail.\n", m->name);
+      ctxmsg(ctx, "Member [%s] can never both be reference and VTail.\n", m->name);
       ctx->error = ccd_RefAndVTail;
       break;
     }
@@ -278,7 +278,7 @@ static void * _getmem(uint32_t ln, ctx_t ctx, uint32_t sz) {
   
 }
 
-static char * ccstrdup(ctx_t ctx, const char * str) {       // Return aan allocated duplicate; resembles strdup.
+static char * ccstrdup(ctx_t ctx, const char * str) {       // Return an allocated duplicate; resembles strdup.
 
   uint32_t size = strlen(str) + 1;
   char *   dup = getmem(ctx, size);
@@ -411,7 +411,7 @@ static clctx_t allocluster(ctx_t ctx, uint32_t cap) {       // Allocate a tempor
 
 }
 
-static int32_t mcmp(const void * r2a, const void * r2b, void * r2ctx) {
+static int32_t mcmp(const void * r2a, const void * r2b, void * r2ctx) { // Member size compare for qsort.
 
   ctx_t              ctx = r2ctx;
   const ccMember_t * a = r2a;
@@ -676,7 +676,7 @@ static void initbitset(ctx_t ctx, cctype_t bs) {
       ctx->error = ccd_ZeroWidth;
     }
     if (remain < m->width) {
-      ctxmsg(ctx, "Bits left %u nog enough for [%s] width %u.\n", remain, m->name, m->width);
+      ctxmsg(ctx, "Not enough bits left %u for [%s] width %u.\n", remain, m->name, m->width);
       ctx->error = ccd_TooSmall;
     }
     if (ctx->error) { break; }
@@ -852,7 +852,7 @@ static int32_t _typecmp(const ccType_t *a, const ccType_t *b, uint32_t r) {  // 
 
 }
 
-int32_t cc_typecmp(const ccType_t *a, const ccType_t *b) {  // Compare 2 types. Does not compare the names.
+int32_t cc_typecmp(const ccType_t *a, const ccType_t *b) {  // Compare 2 types. Does not compare the context.
 
   return _typecmp(a, b, 0);
 
@@ -1039,7 +1039,7 @@ static int32_t weightcmp(const void * r2a, const void * r2b) {
 
 }
 
-void cc_prep4gen(ccCtx_t * ctx) {
+void cc_prep4gen(ccCtx_t * ctx) {                           // Prepare for generation; try to reduce forward references as much as possible.
 
   UDA_t UDA;
 

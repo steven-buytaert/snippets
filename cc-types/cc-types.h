@@ -59,7 +59,7 @@ typedef struct ccCtx_t {
   uint8_t          size4ref;      // Size of a reference or pointer.
   uint8_t          align4ref;     // Alignment requirement for a pointer or reference.
   uint8_t          maxnamesize;   // Maximum size for a name, including \0.
-  uint8_t          cmpMemberNames;// When non zero, also compare member names for equalness.
+  uint8_t          cmpMemberNames;// When non zero, also compare member names in cc_typecmp() for equalness.
   uint8_t          error;         // Should remain 0 (ccd_OK).
   char             msg[7 + 128];  // Diagnostic message.
   const uint16_t   cap;           // Capacity at the tail; fixed at creation.
