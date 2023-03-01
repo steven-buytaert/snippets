@@ -41,3 +41,9 @@ Container repo with very simple code snippets.
 * txt-tr-utils: a small set of in place text transformation functions. They
   are all very simple. None of them implement any checking for the buffer
   size being large enough.
+
+* cc-types: a set of utilities to create, manipulate and analyze structure
+  types, union types and bitsets. Could prove useful in code generation
+  tools. Can cluster fields that are governed by the same member for size,
+  together. Can optimize a type to avoid padding as much as possible, by
+  reordering members. No sample code.
