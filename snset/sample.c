@@ -71,8 +71,8 @@ int main(int argc, char * argv[]) {
 
   snset_init(set, mem);
 
-  set->Grow.avail = 128;                                    // Ensure we have some object bytes to start with.
-  set->Grow.num =     5;                                    // And some slots; use larger values to reduce reallocations.
+  set->Grow.bytes = 128;                                    // Ensure we have some free object bytes to start with.
+  set->Grow.slots =   5;                                    // And some slots; use larger values to reduce reallocations.
 
   for (i = 0; i < setsize; i++) {
     size = 1 + (random() % 99);                             // Some non zero tail size (must fit in uint8_t of obj->size).

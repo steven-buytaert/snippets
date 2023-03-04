@@ -1,7 +1,7 @@
 #ifndef SNSET_H
 #define SNSET_H
 
-// Copyright 2021 Steven Buytaert
+// Copyright 2021-2023 Steven Buytaert
 
 #include <stdint.h>
 #include <stdalign.h>
@@ -18,11 +18,11 @@ typedef struct SNSet_t {
     const char * name;            // Name of the set.
     void *       custom;          // Or a user defined pointer.
   };
-  snsetmem_t     mem;             // From user; function to allocate/release/realloc memory.
-  snsetapi_t     obj;             // From set; allocation new = obj(set, size, alignment); obj memory is cleared.
+  snsetmem_t     mem;             // From user; function to allocate/release/realloc memory; realloc semantics.
+  snsetapi_t     obj;             // From set; allocation new = obj(set, size, alignment); returned obj memory is cleared.
   snsetapi_t     ensure;          // From set; ensure free capacity ensure(set, refs, bytes);
   snsetadd_t     stretch;         // From set; stretch the object at 'index' with 'add' bytes; returns the (maybe changed) obj reference.
-  snstseal_t     seal;            // From set; seal off a set or trim a set to used data only; when ditchRefs non zero, set is ditched too.
+  snstseal_t     seal;            // From set; seal off a set or trim a set to object bytes only.
   
   union {
     void *       Set;             // Start of the block of Objects; aligned to Grow.wca.
@@ -34,15 +34,15 @@ typedef struct SNSet_t {
   };
   union {
     void * *     set;             // Set with 'num' references to items and 'freeslots' unused slots.
-    uint8_t *    addr4set;        // Valid after sealing when ditchRefs was false/zero.
+    uint8_t *    addr4set;        // Address where the set array starts; invalid after sealing.
     uint8_t **   addr4ref;        // Reference to an object for address calculation.
   };
 
   struct {
     uint8_t *    block;           // Original block allocated from Set.mem(...). Is valid after sealing.
     uint32_t     size;            // Original size allocated at block. Is valid after sealing.
-    uint32_t     avail;           // Number of object bytes to grow with when needed.
-    uint32_t     num;             // Number of refs slots to grow with.
+    uint32_t     bytes;           // Number of object bytes to grow with when needed.
+    uint32_t     slots;           // Number of refs slots to grow with.
     uint8_t      locked;          // When not 0, growing is locked; NULL returned when no more space.
     uint8_t      pad[3];
   } Grow;
