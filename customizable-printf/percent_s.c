@@ -11,7 +11,7 @@ static void drv(fmtcb_t cb) {
   cux_pad(cb, length);
      
   while (*cursor) {
-    cb->out(cb, *cursor++);
+    cb->out(cb, (uint32_t) *cursor++);
   }
 
   cux_fill(cb, length);

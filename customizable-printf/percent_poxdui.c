@@ -60,18 +60,18 @@ static void fmtnumber(fmtcb_t cb, const char * digits) {    // Generic driver to
 
   if (0 == cb->Flags.left && cb->Field.width > length) {    // We must right align, so we maybe need to put some fillers first
     if ('0' == cb->Flags.fill && cb->Flags.sign) {          // If we need an explicit sign and we're going to pad with 0, put the sign in front of the zeros
-      cb->out(cb, sign);
+      cb->out(cb, (uint32_t) sign);
       cb->Flags.sign = 0;                                   // Sign has been done, so clear this flag
     }
     cux_fill(cb, length);
   }  
 
   if (cb->Flags.sign) {
-    cb->out(cb, sign);
+    cb->out(cb, (uint32_t) sign);
   }
 
   while (Ltoa.result < & Ltoa.end) {                        // Output the converted number
-    cb->out(cb, *Ltoa.result++);
+    cb->out(cb, (uint32_t) *Ltoa.result++);
   }
 
   cux_fill(cb, length);

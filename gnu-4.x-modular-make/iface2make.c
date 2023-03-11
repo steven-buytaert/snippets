@@ -241,7 +241,7 @@ static const char ** mkpaths(const char * folder) {         // Create a set of s
   uint32_t      size = sizeof(char *);                      // Space for the final NULL slot.
   char *        dst;
 
-  for (i = 0; i < numpaths; i++) {
+  for (i = 0; i < numpaths; i++) {                          // We will create numpaths roots.
     size += strlen(folder) + strlen(umbpaths[i]) + 2;       // Add 1 for the '/' and 1 for the trailing \0.
     size += sizeof(char *);                                 // Add space for the slot itself.
   }
@@ -255,6 +255,7 @@ static const char ** mkpaths(const char * folder) {         // Create a set of s
     roots[i] = dst;
     dst += sprintf(dst, "%s/%s", umbpaths[i], folder);
     dst += 1;                                               // 0\ terminate each path.
+    umblog(3, ".../%s search path[%u] = '%s'\n", folder, i, roots[i]);
   }
 
   return roots;
@@ -272,6 +273,7 @@ static uint32_t folder(mod_t mod, item_t spec) {
   int32_t       off = 0;
   F2Find_t      F2Find;
   const char ** roots;
+  uint32_t      absolute = 0;
 
   spec->folder = spec->name;                                // Default case when no remote part.
 
@@ -284,6 +286,9 @@ static uint32_t folder(mod_t mod, item_t spec) {
     }
     spec->folder = dc + 2;
     spec->name[dc - spec->name] = 0;
+    while ('/' == spec->name[strlen(spec->name) - 1]) {     // Strip away trailing slashes, if any.
+      spec->name[strlen(spec->name) - 1] = 0;
+    }
     spec->remote = spec->name;
   }
 
@@ -298,17 +303,18 @@ static uint32_t folder(mod_t mod, item_t spec) {
           size_t size = strlen(F2Find.buffer);
           F2Find.buffer[size - 9] = 0;                      // Strip of the Rules.mk from the buffer.
           spec->remote = F2Find.buffer;                     // Remote is now this one.
+          absolute = ('/' == F2Find.buffer[0]) ? 1 : 0;
         }
       }
       else {
-        mkerror("UMBPATH not set; can't use .../");
+        mkerror("Using %s but no UMBPATH set.", spec->remote);
       }
     }
 
     if (lstat(spec->folder, & Stat)) {                      // Use lstat not stat.
       if (ENOENT == errno) {                                // Symbolic link doesn't exist yet; create it.
         if (! realpath(spec->remote, rem)) {                // Check if the remote path is OK.
-          mkerror("No such remote '%s'", spec->name);
+          mkerror("No such remote '%s'", spec->remote);
         }
         if (stat(rem, & Stat)) {                            // Check if it is a folder we can link to.
           mkerror("Stat '%s'; %s", rem, strerror(errno));

@@ -30,12 +30,23 @@ typedef const struct FmtCfg_t {
   fmtspec_t      specs[0];
 } FmtCfg_t;
 
+typedef union FmtArg_t {          // When arguments are passed in an array.
+  double         f64;
+  float          f32;
+  uint64_t       u64;
+  int32_t        i32;
+  uint32_t       u32;
+  uint16_t       u16;
+  uint8_t        u08;  
+} FmtArg_t;
+
 typedef struct FmtBuf_t {
   char *         space;           // Start of the buffer space we will write into
   char *         cursor;          // The current position in this output space
   uint32_t       size;            // Total size of space in bytes
   uint32_t       remain;
   fmtcfg_t       cfg;
+  FmtArg_t *     Arg;             // Array of arguments, if not NULL; otherwise use the va_list.
 } FmtBuf_t;
 
 typedef void (* volatile fmtout_t)(fmtcb_t cb, uint32_t c);

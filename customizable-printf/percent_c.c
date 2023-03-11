@@ -7,7 +7,7 @@
 static void drv(fmtcb_t cb) {
 
   cux_pad(cb, 1);
-  cb->out(cb, (char) cb->Arg.u32);
+  cb->out(cb, (uint32_t) cb->Arg.u32);
   cux_fill(cb, 1);
    
 }

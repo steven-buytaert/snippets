@@ -62,6 +62,8 @@ void myprintf(const char * fmt, ...) {                      // The only exported
   cux_vprintf(& Fmt, fmt, ap);
   va_end(ap);
 
-  write(1, buf, Fmt.cursor - buf);
+  ssize_t fu = write(1, buf, Fmt.cursor - buf);
+  
+  (void) fu;
 
 }

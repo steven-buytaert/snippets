@@ -84,7 +84,7 @@ static void add_char(fmtcb_t cb, uint32_t c) {
 void cux_fill(fmtcb_t cb, uint32_t required) {              // Fill with the filler character until enough room remains for the field data
 
   while (required < cb->Field.width--) {
-    cb->out(cb, cb->Flags.fill);
+    cb->out(cb, (uint32_t) cb->Flags.fill);
   }
   
 }
@@ -142,7 +142,7 @@ static fmtspec_t search(fmtcfg_t cfg, skey_t key) {
 
   int32_t   low = 0;                                        // Must be signed !
   int32_t   mid;                                            // Must be signed !
-  int32_t   high = cfg->num - 1;                            // Must be signed !
+  int32_t   high = (int32_t)(cfg->num - 1);                 // Must be signed !
   int32_t   com;                                            // Must be signed !
   uint32_t  i;
   fmtspec_t spec = NULL;
@@ -183,7 +183,7 @@ static uint32_t atoi_and_advance(const char **s) {          // Return the intege
     i = (i * 10) + *((*s)++) - '0';
   }
   
-  return i;
+  return (uint32_t) i;
 
 }
 
@@ -239,16 +239,18 @@ static const char * flags(fmtcb_t cb, const char * c) {     // Process the flags
 
 void cux_vprintf(fmtbuf_t buffer, const char * fmt, va_list args) {
 
-  SKey_t  Key;
-  FmtCb_t Cb;
-  char *  tag;
+  SKey_t   Key;
+  FmtCb_t  Cb;
+  char *   tag;
+  uint32_t useaa = buffer->Arg ? 1 : 0;                     // See if we should use the argument array in stead of args.
+  uint32_t ai = 0;                                          // Index in buf->Arg[ai] when needed.
   
   Cb.buffer = buffer;                                       // Initialize callback with proper buffer and output driver
   Cb.out = buffer->size ? add_char : add_no_char;
 
   for (; fmt[0]; fmt++) {                                   // Go over the format string, character by character until terminating 0 reached
     if ('%' != fmt[0]) {
-      Cb.out(& Cb, fmt[0]);                                 // When not '%', just copy to output ...
+      Cb.out(& Cb, (uint32_t) fmt[0]);                      // When not '%', just copy to output ...
       continue;                                             // ... and do next character
     }
 
@@ -269,7 +271,12 @@ void cux_vprintf(fmtbuf_t buffer, const char * fmt, va_list args) {
     }
     else if ('*' == fmt[0]) {                               // Field width is given as the next argument
       fmt++;
-      narg(& Cb.Field.width, & Cb, va_arg(args, int32_t));
+      if (useaa) {
+        narg(& Cb.Field.width, & Cb, buffer->Arg[ai++].i32);
+      }
+      else {
+        narg(& Cb.Field.width, & Cb, va_arg(args, int32_t));
+      }
     }
 
     if ('.' == fmt[0]) {
@@ -279,7 +286,12 @@ void cux_vprintf(fmtbuf_t buffer, const char * fmt, va_list args) {
       }
       else if ('*' == fmt[0]) {                             // Precision is given as the next argument
         fmt++;
-        narg(& Cb.Field.precision, & Cb, va_arg(args, int32_t));
+        if (useaa) {
+          narg(& Cb.Field.precision, & Cb, buffer->Arg[ai++].i32);
+        }
+        else {
+          narg(& Cb.Field.precision, & Cb, va_arg(args, int32_t));
+        }
       }
     }
 
@@ -307,13 +319,28 @@ void cux_vprintf(fmtbuf_t buffer, const char * fmt, va_list args) {
     }
 
     if (96 == Cb.size) {                                    // Special 'args' length to indicate double format.
-      Cb.Arg.f64 = va_arg(args, double);
+      if (useaa) {
+        Cb.Arg.f64 = buffer->Arg[ai++].f64;
+      }
+      else {
+        Cb.Arg.f64 = va_arg(args, double);
+      }
     }
     else if (64 == Cb.size) {                               // ptrdiff_t or size_t on 64 bit system.
-      Cb.Arg.u64 = va_arg(args, uint64_t);
+      if (useaa) {
+        Cb.Arg.u64 = buffer->Arg[ai++].u64;
+      }
+      else {
+        Cb.Arg.u64 = va_arg(args, uint64_t);
+      }
     }
     else {
-      Cb.Arg.u32 = va_arg(args, uint32_t);
+      if (useaa) {
+        Cb.Arg.u32 = buffer->Arg[ai++].u32;
+      }
+      else {
+        Cb.Arg.u32 = va_arg(args, uint32_t);
+      }
     }
 
     Cb.spec->drv(& Cb);                                     // Call the proper driver
@@ -332,6 +359,7 @@ void cux_vprintf(fmtbuf_t buffer, const char * fmt, va_list args) {
 
 void cux_initbuf(fmtbuf_t buf, fmtcfg_t cfg, char space[], uint32_t size) {
 
+  buf->Arg    = NULL;                                       // Should be assigned *after* call to initbuf, if applicable.
   buf->space  = space;
   buf->cursor = space;
   buf->size   = size;
