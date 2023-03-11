@@ -47,7 +47,7 @@
 typedef union {
   void *    any;
   uint8_t * addr;
-  intptr_t  align;
+  uintptr_t uref;
 } Ref_t;
 
 static uint32_t roundup(uint32_t value, uint32_t pot) {     // Round up to a power of two.
@@ -63,9 +63,9 @@ static uint32_t padding(uint8_t * addr, uint32_t a4o) {     // Calculate number 
   assert(a4o == roundup(a4o, 2));                           // It must be a power of two.
 
   if (addr) {  
-    mask.align = a4o - 1;                                   // Prepare the mask.
-    oadd.align &= mask.align;
-    padding = (a4o - oadd.align) & mask.align;
+    mask.uref = a4o - 1;                                   // Prepare the mask.
+    oadd.uref &= mask.uref;
+    padding = (a4o - oadd.uref) & mask.uref;
   }
 
   assert(padding == 0 || padding <= a4o - 1);               // By definition.
@@ -74,14 +74,10 @@ static uint32_t padding(uint8_t * addr, uint32_t a4o) {     // Calculate number 
 
 }
 
-static uint32_t abso(int32_t diff) {                        // Return the difference as an absolute value (unsigned).
-  return diff > 0 ? (uint32_t) diff : (uint32_t) -diff;
-}
-
 static void seal(snset_t set) {                             // Seal off a set.
 
   uint8_t * block = set->Grow.block;
-  uint32_t  size = set->addr4next - set->Grow.block;        // Number of bytes used by allocated objects and alignment.
+  int32_t   size = set->addr4next - set->Grow.block;        // Number of bytes used by allocated objects and alignment.
   Ref_t     NewSet;
   Ref_t     OldSet = { .any = set->Set };
   uint32_t  i = 0;
@@ -92,16 +88,16 @@ static void seal(snset_t set) {                             // Seal off a set.
   assert(off >= 0 && off < set->wca);                       // Must be a positive value and smaller than the worst case alignment. 
   assert(size >= off);
 
-  block = set->mem(set, block, size + set->wca);
+  block = set->mem(set, block, (uint32_t) size + set->wca);
 
   assert(block);                                            // Shrink should always work.
 
   NewSet.addr = block;
 
   diff = NewSet.addr - OldSet.addr;
-  
-  i = abso((int32_t)(roundup(diff, set->wca) - diff));      // Number of bytes to add to reach proper worst case alignment.
 
+  i = roundup((uint32_t) diff, set->wca) - (uint32_t) diff; // Number of bytes to add to reach proper worst case alignment.
+  
   NewSet.addr += i;                                         // Align the address to the worst case alignment.
 
   assert(i < set->wca);
@@ -112,8 +108,8 @@ static void seal(snset_t set) {                             // Seal off a set.
 
   set->Grow.block = block;
   set->addr4Set = NewSet.addr + off2first;                  // First object should be at addr4Set, therefore + off2first.
-  set->size = size;
-  set->Grow.size = size + set->wca;
+  set->size = (uint32_t) size;
+  set->Grow.size = (uint32_t) size + set->wca;
   set->Grow.locked = 1;
   set->avail = 0;
   set->freeslots = 0;
@@ -147,9 +143,9 @@ static void * resize(snset_t set, uint32_t extra) {         // Grow the whole bl
   NewSet.addr = set->Grow.block;
 
   diff = NewSet.addr - OldSet.addr;
-  
-  i = abso((int32_t)(roundup(diff, set->wca) - diff));      // Number of bytes to add to reach proper worst case alignment.
 
+  i = roundup((uint32_t) diff, set->wca) - (uint32_t) diff; // Number of bytes to add to reach proper worst case alignment.
+  
   NewSet.addr += i;                                         // Align the address to the worst case alignment.
 
   assert(i < set->wca);
@@ -190,7 +186,7 @@ static void * ensure(snset_t set, uint32_t nos, uint32_t nob) {
       off = set->addr4Set - old;                            // Offset to add to any reference.
 
       set->addr4next += off;
-      set->addr4set  += off + nob;                          // Reference set has been pushed down nob bytes wrt. Set.
+      set->addr4set  += off + (intptr_t) nob;               // Reference set has been pushed down nob bytes wrt. Set.
 
       if (old && nob) {                                     // Not when set is being created or only reference slots added.
         b2m = set->num * sizeof(void *);                    // Number of reference slot bytes we need to move.
@@ -260,7 +256,7 @@ static void * grow(snset_t set, uint32_t x, uint32_t add) { // Grow set->set[x] 
   uint32_t  i;
   uint32_t  last = (x + 1 == set->num) ? 1 : 0;
   uint8_t * next;                                           // First byte after the grown object.
-  uint32_t  bytes2move;
+  int32_t   bytes2move;
 
   assert(x < set->num);                                     // Must be inside the set.
 
@@ -282,7 +278,8 @@ static void * grow(snset_t set, uint32_t x, uint32_t add) { // Grow set->set[x] 
     else {
       next = set->set[x + 1];
       bytes2move = set->addr4next - next;                   // Bytes of following objects we need to move down to grow this object.
-      memmove(add + next, next, bytes2move);                // Make room for the grown object by moving bytes down.
+      assert(bytes2move >= 0);                              // So we can guarantee the next cast of bytes2move.
+      memmove(add + next, next, (uint32_t) bytes2move);     // Make room for the grown object by moving bytes down.
     }
 
     memset(next, 0x00, add);                                // Clear the grown area, after the potential memmove.

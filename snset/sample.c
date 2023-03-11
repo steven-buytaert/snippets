@@ -1,4 +1,4 @@
-// Copyright 2021 Steven Buytaert
+// Copyright 2021-2023 Steven Buytaert
 
 #include <snset.h>
 
@@ -63,6 +63,7 @@ int main(int argc, char * argv[]) {
   snset_t  set = & Set;
   uint32_t i;
   uint32_t size;
+  int32_t  total;
   obj_t    obj;
   obj_t    prev;
   uint32_t setsize = 99;                                    // Number of elements in the set.
@@ -95,9 +96,9 @@ int main(int argc, char * argv[]) {
     printf("%2u %2u '%s'\n", obj->number, obj->size, obj->tail);
   }
 
-  size = set->addr4next - set->addr4Set;                    // Number of bytes used by allocated objects.
+  total = set->addr4next - set->addr4Set;                   // Number of bytes used by allocated objects.
 
-  printf("Set size %u (%u obj) reallocs done %u\n", set->size, size, set->reallocs);
+  printf("Set size %u (%d for obj) reallocs done %u\n", set->size, total, set->reallocs);
 
   set->seal(set);                                           // Shrink set to used objects only.
 
