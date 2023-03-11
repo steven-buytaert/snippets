@@ -1,4 +1,4 @@
-// Copyright 2021 Steven Buytaert
+// Copyright 2020-2021 Steven Buytaert
 
 #include <ctype.h>
 #include <stdio.h>
@@ -35,12 +35,12 @@ static uint32_t used(buf_t b) {                             // Return number of 
   return (b->cur - b->space);
 }
 
-static void copy2out(buf_t out, buf_t buf) {                // Copy the given buffer to the output buffer, if space permits
+static void add2out(buf_t out, buf_t add) {                 // Add the given buffer to the output buffer, if space permits
 
-  uint32_t u = used(buf);
+  uint32_t u = used(add);
   uint32_t r = remain(out);
 
-  if (r) { memcpy(out->cur, buf->space, (r > u) ? u : r); } // Copy to out when there's space remaining
+  if (r) { memcpy(out->cur, add->space, (r > u) ? u : r); } // Copy to out when there's space remaining
 
   out->cur += u;                                            // The cursor position is always updated since we need to return # characters that would have been written
 
@@ -50,12 +50,11 @@ static void flush2out(buf_t out, buf_t hex, buf_t ascii) {  // Try to copy the h
 
   addstr(hex, "| ", 2);                                     // Add separator between dump area and ascii area
 
-  copy2out(out, hex);
-  copy2out(out, ascii);
+  add2out(out, hex);
+  add2out(out, ascii);
 
   if (remain(out)) { *out->cur = '\n'; }                    // Add a newline if space permits ...
   out->cur++;                                               // ... but always account for it
-
 
 }
 
@@ -105,7 +104,7 @@ uint32_t hex2buf(char b[], uint32_t s, const void * d, uint32_t n) {
     uint32_t  addr;
   } Data = { .dump = d };
 
-  uint32_t        iaddr = (Data.addr) & (0 - 16);           // Initial address to dump, aligned on a 16 byte boundary, could be equal to d address argument
+  uint32_t        iaddr = (Data.addr) & (0u - 16u);         // Initial address to dump, aligned on a 16 byte boundary, could be equal to d address argument
   const uint8_t * end = Data.dump + n;
   Buf_t           Out;
 
@@ -141,7 +140,7 @@ uint32_t hex2buf(char b[], uint32_t s, const void * d, uint32_t n) {
 
   while (Data.dump < end) {
     hex(Data.dump[0]);                                      // Output hexadecimal ...
-    ascii(isprint(Data.dump[0]) ? Data.dump[0] : '.');      // ... and ascii representation, if any, of the current byte
+    ascii(isprint(Data.dump[0])?(char) Data.dump[0] : '.'); // ... and ascii representation, if any, of the current byte
     Data.dump++;                                            // Go to next byte, if any
     if (0 == (0xf & Data.addr)) {                           // Next address is a 16 byte aligned address ...
       flush;                                                // ... flush this line ...

@@ -1,7 +1,7 @@
 #ifndef HEXDUMP_H
 #define HEXDUMP_H
 
-// Copyright 2021 Steven Buytaert
+// Copyright 2020-2021 Steven Buytaert
 
 #include <stdint.h>
 
