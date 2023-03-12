@@ -6,10 +6,13 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include <cc-types.h>
+#include <t2c-types.h>
 
-typedef struct ccCtx_t * ctx_t;   // Internally used shorthand for context.
-typedef struct ccXRef_t * xref_t;
+typedef struct t2c_Ctx_t *    ctx_t;    // Internally used shorthands.
+typedef struct t2c_XRef_t *   xref_t;
+typedef struct t2c_Type_t *   type_t;
+typedef struct t2c_Member_t * member_t;
+typedef struct t2c_Alt_t *    alt_t;
 
 //#define DEBUG
 
@@ -49,39 +52,38 @@ static void ctxmsg(ctx_t ctx, const char * format, ...) {
 
 }
 
-static uint32_t isComp(cctype_t type) {
-  return (cc_Comp == (type->prop & cc_Comp)) ? 1 : 0;
+static uint32_t isComp(type_t type) {
+  return (t2c_Comp == (type->prop & t2c_Comp)) ? 1 : 0;
 }
 
-static uint32_t isStruct(cctype_t type) {
-  return (cc_Struct == (type->prop & cc_Struct)) ? 1 : 0;
+static uint32_t isStruct(type_t type) {
+  return (t2c_Struct == (type->prop & t2c_Struct)) ? 1 : 0;
 }
 
-static uint32_t isUnion(cctype_t type) {
-  return (cc_Union == (type->prop & cc_Union)) ? 1 : 0;
+static uint32_t isUnion(type_t type) {
+  return (t2c_Union == (type->prop & t2c_Union)) ? 1 : 0;
 }
 
-static uint32_t isPrim(cctype_t type) {
-  return (cc_Prim == (type->prop & cc_Prim)) ? 1 : 0;
+static uint32_t isPrim(type_t type) {
+  return (t2c_Prim == (type->prop & t2c_Prim)) ? 1 : 0;
 }
 
-static uint32_t isBitset(cctype_t type) {
-  return (cc_Bitset == (type->prop & cc_Bitset)) ? 1 : 0;
+static uint32_t isBitset(type_t type) {
+  return (t2c_Bitset == (type->prop & t2c_Bitset)) ? 1 : 0;
 }
 
 typedef struct M2M_t     * m2m_t;
-typedef struct ccAlt_t   * alt_t;
 typedef struct ClCtx_t   * clctx_t;
 typedef struct Clust_t   * clust_t;
 
 typedef struct Clust_t {   // Cluster member
-  ccmember_t   ref2size;   // The reference to the size in the original type.
+  member_t   ref2size;   // The reference to the size in the original type.
   uint16_t     size;       // How many times it is used as ref2size.
   uint16_t     mi;         // The cluster member is inserted at this member index in the new type.
   uint8_t      move2tail;  // When non zero, move this clustered or single element to the tail.
   uint8_t      done2outer; // When this cluster has been inserted as a member in the new type.
   uint8_t      pad[2];
-  cctype_t     type;       // The newly clustered type created from this cluster.
+  type_t     type;       // The newly clustered type created from this cluster.
 } Clust_t;
 
 typedef struct M2C_t {     // Member to cluster mapping.
@@ -93,7 +95,7 @@ typedef struct M2C_t {     // Member to cluster mapping.
 } M2C_t;
 
 typedef struct ClCtx_t {   // Cluster Context information
-  cctype_t     orig;       // Original type being cluster analyzed.
+  type_t     orig;       // Original type being cluster analyzed.
   uint16_t     created;    // Number of clusters created.
   uint16_t     largest;    // Index of the largest cluster; will be moved to the tail.
   uint16_t     num;        // Number of Clust in use.
@@ -104,21 +106,21 @@ typedef struct ClCtx_t {   // Cluster Context information
 
 #define NUM(A) (uint32_t)(sizeof(A) / sizeof(A[0]))
 
-const ccType_t cc_Char = { .name = "char",     .prop = cc_Prim, .size = 1, .align = 1 };
-const ccType_t cc_U64  = { .name = "uint64_t", .prop = cc_Prim, .size = 8, .align = 8 };
-const ccType_t cc_U32  = { .name = "uint32_t", .prop = cc_Prim, .size = 4, .align = 4 };
-const ccType_t cc_U16  = { .name = "uint16_t", .prop = cc_Prim, .size = 2, .align = 2 };
-const ccType_t cc_U08  = { .name = "uint8_t",  .prop = cc_Prim, .size = 1, .align = 1 };
-const ccType_t cc_S64  = { .name = "int64_t",  .prop = cc_Prim, .size = 8, .align = 8 };
-const ccType_t cc_S32  = { .name = "int32_t",  .prop = cc_Prim, .size = 4, .align = 4 };
-const ccType_t cc_S16  = { .name = "int16_t",  .prop = cc_Prim, .size = 2, .align = 2 };
-const ccType_t cc_S08  = { .name = "int8_t",   .prop = cc_Prim, .size = 1, .align = 1 };
+const t2c_Type_t t2c_Char = { .name = "char",     .prop = t2c_Prim, .size = 1, .align = 1 };
+const t2c_Type_t t2c_U64  = { .name = "uint64_t", .prop = t2c_Prim, .size = 8, .align = 8 };
+const t2c_Type_t t2c_U32  = { .name = "uint32_t", .prop = t2c_Prim, .size = 4, .align = 4 };
+const t2c_Type_t t2c_U16  = { .name = "uint16_t", .prop = t2c_Prim, .size = 2, .align = 2 };
+const t2c_Type_t t2c_U08  = { .name = "uint8_t",  .prop = t2c_Prim, .size = 1, .align = 1 };
+const t2c_Type_t t2c_S64  = { .name = "int64_t",  .prop = t2c_Prim, .size = 8, .align = 8 };
+const t2c_Type_t t2c_S32  = { .name = "int32_t",  .prop = t2c_Prim, .size = 4, .align = 4 };
+const t2c_Type_t t2c_S16  = { .name = "int16_t",  .prop = t2c_Prim, .size = 2, .align = 2 };
+const t2c_Type_t t2c_S08  = { .name = "int8_t",   .prop = t2c_Prim, .size = 1, .align = 1 };
 
 static uint32_t roundup(uint32_t value, uint32_t powerOf2) {
   return (value + (powerOf2 - 1)) & ~(powerOf2 - 1);
 }
 
-static uint32_t ioMNm(const ccType_t * t, const char * m) { // Return the member index of member with name 'm'.
+static uint32_t ioMNm(const t2c_Type_t * t, const char * m) { // Return the member index of member with name 'm'.
 
   uint32_t i;
   
@@ -134,10 +136,10 @@ static uint32_t ioMNm(const ccType_t * t, const char * m) { // Return the member
 
 }
 
-static void a4Sz(ctx_t ctx, cctype_t stack[], uint32_t d) { // Internal function for size and alignment calulcation.
+static void a4Sz(ctx_t ctx, type_t stack[], uint32_t d) { // Internal function for size and alignment calulcation.
 
-  cctype_t   type = stack[d];                               // Type to calculate is at d.
-  ccmember_t m = type->Members;
+  type_t   type = stack[d];                               // Type to calculate is at d.
+  member_t m = type->Members;
   uint32_t   i;
   uint16_t   align = 0;
   uint16_t   offset = 0;                                    // This is also the running size of the type.
@@ -149,7 +151,7 @@ static void a4Sz(ctx_t ctx, cctype_t stack[], uint32_t d) { // Internal function
   for (i = 0; i < d; i++) {
     if (stack[i] == type) {
       ctxmsg(ctx, "Circularity involving type [%s].\n", stack[0]->name);
-      ctx->error = ccd_Circularity;
+      ctx->error = t2c_Circularity;
     }
   }
 
@@ -157,7 +159,7 @@ static void a4Sz(ctx_t ctx, cctype_t stack[], uint32_t d) { // Internal function
 
   if (isPrim(type) && isComp(type)) {
     ctxmsg(ctx, "Type [%s] can't be both Comp and Prim.\n", type->name);
-    ctx->error = ccd_BadProperties;
+    ctx->error = t2c_BadProperties;
     return;
   }
 
@@ -171,24 +173,24 @@ static void a4Sz(ctx_t ctx, cctype_t stack[], uint32_t d) { // Internal function
   for (i = 0; ! ctx->error && i < type->num; i++, m++) {
     if (m->type == type && ! m->numind) {
       ctxmsg(ctx, "Type [%s] includes itself without indirection.\n", type->name);
-      ctx->error = ccd_Circularity;
+      ctx->error = t2c_Circularity;
       break;
     }
     if (m->ref2size) {
       if (! m->isVTail && ! m->numind) {
         ctxmsg(ctx, "Member [%s] ref2size [%s] implies either indirection or VTail.\n", m->name, m->ref2size->name);
-        ctx->error = ccd_LoneRef2size;
+        ctx->error = t2c_LoneRef2size;
         break;
       }
       if (m->isVTail && i + 1 < type->num) {
         ctxmsg(ctx, "VTail [%s] can only apply to final member.\n", m->name);
-        ctx->error = ccd_VTailNotFinal;
+        ctx->error = t2c_VTailNotFinal;
         break;
       }
     }
     if (m->numind && m->isVTail) {
       ctxmsg(ctx, "Member [%s] can never both be reference and VTail.\n", m->name);
-      ctx->error = ccd_RefAndVTail;
+      ctx->error = t2c_RefAndVTail;
       break;
     }
 
@@ -254,9 +256,9 @@ static void a4Sz(ctx_t ctx, cctype_t stack[], uint32_t d) { // Internal function
 
 }
 
-void ana4size(ctx_t ctx, cctype_t type) {                   // Analyze for size and also alignment.
+void ana4size(ctx_t ctx, type_t type) {                   // Analyze for size and also alignment.
 
-  cctype_t stack[32];                                       // Max depth.
+  type_t stack[32];                                       // Max depth.
 
   stack[0] = type;
 
@@ -271,7 +273,7 @@ static void * _getmem(uint32_t ln, ctx_t ctx, uint32_t sz) {
   void * mem = ctx->mem(ctx, NULL, sz);
 
   if (! mem) {
-    ctx->error = ccd_AllocFailed;
+    ctx->error = t2c_AllocFailed;
   }
 
   return mem;
@@ -295,10 +297,10 @@ static void freemem(ctx_t ctx, void * mem) {                // Release memory vi
 
 static alt_t allocAlt(ctx_t ctx, uint32_t num) {            // Allocate and set up an alternative.
 
-  uint32_t size = sizeof(ccAlt_t);
+  uint32_t size = sizeof(t2c_Alt_t);
   alt_t    alt;
 
-  size += num * sizeof(cctype_t);
+  size += num * sizeof(type_t);
   alt = getmem(ctx, size);
   if (alt) { memset(alt, 0x00, size); }
 
@@ -306,21 +308,21 @@ static alt_t allocAlt(ctx_t ctx, uint32_t num) {            // Allocate and set 
 
 }
 
-static void freetype(ctx_t ctx, cctype_t type) {            // Internal function to free a type.
+static void freetype(ctx_t ctx, type_t type) {            // Internal function to free a type.
 
   uint32_t   i;
   uint32_t   x;
   uint32_t   n2mu;
-  ccmember_t m;
+  member_t m;
 
   for (i = 0; i < ctx->num; i++) {
     if (ctx->types[i] == type) {
-      n2mu = sizeof(cctype_t) * (ctx->cap - i - 1);         // Number of bytes to move up.
+      n2mu = sizeof(type_t) * (ctx->cap - i - 1);         // Number of bytes to move up.
       memmove(& ctx->types[i], & ctx->types[i + 1], n2mu);
       if (type->alt) {
         freemem(ctx, type->alt);
       }
-      if (! (type->prop & cc_Static)) {
+      if (! (type->prop & t2c_Static)) {
         for (x = 0, m = type->Members; x < type->num; x++, m++) {
           if (m->nameisdup) {
             freemem(ctx, m->name);
@@ -337,12 +339,12 @@ static void freetype(ctx_t ctx, cctype_t type) {            // Internal function
 
 }
 
-cctype_t alloctype(ctx_t ctx, uint32_t num) {               // Allocate a type with the given number of members.
+type_t alloctype(ctx_t ctx, uint32_t num) {               // Allocate a type with the given number of members.
 
-  uint32_t   size = sizeof(ccType_t);
-  cctype_t   type;
+  uint32_t   size = sizeof(t2c_Type_t);
+  type_t   type;
   
-  size += sizeof(ccMember_t) * num;
+  size += sizeof(t2c_Member_t) * num;
   size += ctx->maxnamesize;
 
   type = getmem(ctx, size);
@@ -354,7 +356,7 @@ cctype_t alloctype(ctx_t ctx, uint32_t num) {               // Allocate a type w
       ctx->types[ctx->num++] = type;
     }
     else {
-      ctx->error = ccd_NoCapLeft;
+      ctx->error = t2c_NoCapLeft;
     }
   }
 
@@ -362,7 +364,7 @@ cctype_t alloctype(ctx_t ctx, uint32_t num) {               // Allocate a type w
 
 }
 
-static clust_t add2Cl(clctx_t ci, ccmember_t ref2size) {    // Add member to cluster, if not in there yet; return the cluster member.
+static clust_t add2Cl(clctx_t ci, member_t ref2size) {    // Add member to cluster, if not in there yet; return the cluster member.
 
   uint32_t x;
 
@@ -380,9 +382,9 @@ static clust_t add2Cl(clctx_t ci, ccmember_t ref2size) {    // Add member to clu
 
 }
 
-static ccmember_t finalref(ccmember_t ref2size) {           // Return the most size defining member, if any.
+static member_t finalref(member_t ref2size) {           // Return the most size defining member, if any.
 
-  ccmember_t final = ref2size;
+  member_t final = ref2size;
   
   while (final && final->ref2size) {                        // Go to the end of the chain. Careful since final can be NULL.
     final = final->ref2size;
@@ -414,15 +416,15 @@ static clctx_t allocluster(ctx_t ctx, uint32_t cap) {       // Allocate a tempor
 static int32_t mcmp(const void * r2a, const void * r2b, void * r2ctx) { // Member size compare for qsort.
 
   ctx_t              ctx = r2ctx;
-  const ccMember_t * a = r2a;
-  const ccMember_t * b = r2b;
+  const t2c_Member_t * a = r2a;
+  const t2c_Member_t * b = r2b;
   uint32_t           sz4a;
   uint32_t           sz4b;
 
   sz4a = a->numind ? ctx->size4ref : a->type->size;
   sz4b = b->numind ? ctx->size4ref : b->type->size;
 
-  return sz4b - sz4a;                                       // We want the largest members end up first.
+  return (int32_t) (sz4b - sz4a);                           // We want the largest members end up first.
 
 }
 
@@ -430,15 +432,15 @@ static void mk1Cl(ctx_t ctx, clctx_t clctx, uint32_t ci) {  // Create 1 clustere
 
   clust_t    clust = & clctx->Clust[ci];
   uint32_t   i;
-  cctype_t   type = alloctype(ctx, clust->size);            // New type created from the cluster info.
-  ccmember_t nm = type->Members;                            // New member.
-  ccmember_t om = clctx->orig->Members;                     // Original member.
+  type_t   type = alloctype(ctx, clust->size);            // New type created from the cluster info.
+  member_t nm = type->Members;                            // New member.
+  member_t om = clctx->orig->Members;                     // Original member.
 
   if (! type) { return; }                                   // Error set in context.
 
   sprintf(type->name, "C%u_%s", ci, clctx->orig->name);
 
-  type->prop = cc_Alt | cc_Struct | cc_Cluster;
+  type->prop = t2c_Alt | t2c_Struct | t2c_Cluster;
 
   for (i = 0; i < clctx->orig->num; i++, om++) {            // Copy relevant members from original type to new cluster type.
     if (clctx->M2C[i].cluster == clust) {
@@ -455,9 +457,9 @@ static void mk1Cl(ctx_t ctx, clctx_t clctx, uint32_t ci) {  // Create 1 clustere
     }
   }
 
-  qsort_r(type->Members, type->num, sizeof(ccMember_t), mcmp, ctx);
+  qsort_r(type->Members, type->num, sizeof(t2c_Member_t), mcmp, ctx);
 
-  cc_initype(ctx, type);
+  t2c_initype(ctx, type);
 
   clust->type = type;                                       // Save the new type in the cluster info.
 
@@ -492,7 +494,7 @@ static uint32_t mkClusters(ctx_t ctx, clctx_t clctx) {      // Create all requir
 
 }
 
-static char * mkMemberName(ctx_t ctx, cctype_t type) {      // Make a member name for the given type; drop the type extension.
+static char * mkMemberName(ctx_t ctx, type_t type) {      // Make a member name for the given type; drop the type extension.
 
   uint32_t size = strlen(type->name);
   char *   temp = alloca(size + 1);
@@ -519,19 +521,19 @@ static void freeCluster(ctx_t ctx, clctx_t cc) {            // Only called to cl
 
 }
 
-void cc_ana4cluster(ctx_t ctx, cctype_t type) {
+void t2c_ana4cluster(ctx_t ctx, type_t type) {
 
   clctx_t      ci = allocluster(ctx, type->num);
-  ccmember_t   m = type->Members;
+  member_t   m = type->Members;
   uint32_t     i;
   uint32_t     x;
   clust_t      cm;
-  cctype_t     ctype;                                       // New cluster type.
-  ccmember_t   newm;                                        // New member.
-  cctype_t   * fill;
+  type_t     ctype;                                       // New cluster type.
+  member_t   newm;                                        // New member.
+  type_t   * fill;
   alt_t        alt;
-  ccMember_t   M1;
-  ccMember_t   M2;
+  t2c_Member_t   M1;
+  t2c_Member_t   M2;
 
   if (! ci) { return; }                                     // Error set in context.
   if (! isStruct(type)) { return; }                         // This is only for structure types.
@@ -570,7 +572,7 @@ void cc_ana4cluster(ctx_t ctx, cctype_t type) {
   alt->types[0]->Cargo = type->Cargo;                       // Copy cargo.
   alt->num = 1;
   sprintf(alt->types[0]->name, "C_%s", type->name);
-  alt->types[0]->prop = cc_Alt | cc_Struct;
+  alt->types[0]->prop = t2c_Alt | t2c_Struct;
   fill = & alt->types[1];                                   // Start filling newly created cluster types here, after new base type.
   for (i = 0, cm = ci->Clust; i < ci->num; cm++, i++) {
     if (cm->type) { alt->num++; *fill++ = cm->type; }       // Add the newly created cluster type to the alternative info.
@@ -627,17 +629,17 @@ void cc_ana4cluster(ctx_t ctx, cctype_t type) {
     }
   }
 
-  qsort_r(ctype->Members, ctype->num - 1, sizeof(ccMember_t), mcmp, ctx); // Don't sort the last vtail member.
+  qsort_r(ctype->Members, ctype->num - 1, sizeof(t2c_Member_t), mcmp, ctx); // Don't sort the last vtail member.
 
-  cc_initype(ctx, ctype);
+  t2c_initype(ctx, ctype);
 
   ana4size(ctx, ctype);
 
-  uint8_t saved = ctx->cmpMemberNames;
+  uint8_t saved = ctx->cmpNames;
   
-  ctx->cmpMemberNames = 1;                                  // The following cc_typecmp we want with name comparison.
+  ctx->cmpNames = 1;                                  // The following t2c_typecmp we want with name comparison.
 
-  if (0 == cc_typecmp(ctype, type) && 1 == alt->num) {      // Both new and old are the same; so no alternative.
+  if (0 == t2c_typecmp(ctype, type) && 1 == alt->num) {      // Both new and old are the same; so no alternative.
     assert(ci->num == 0);                                   // No clusters should exist.
     assert(ctx->types[ctx->num - 1] == alt->types[0]);      // Should be the last one added.
     freemem(ctx, alt->types[0]);
@@ -646,23 +648,23 @@ void cc_ana4cluster(ctx_t ctx, cctype_t type) {
     type->alt = NULL;
   }
 
-  ctx->cmpMemberNames = saved;                              // Restore used set name comparison.
+  ctx->cmpNames = saved;                              // Restore used set name comparison.
 
   freemem(ctx, ci);
 
 }
 
-static void initbitset(ctx_t ctx, cctype_t bs) {
+static void initbitset(ctx_t ctx, type_t bs) {
 
-  cctype_t   base = bs->bstype;
+  type_t   base = bs->bstype;
   uint32_t   i;
-  ccmember_t m;
+  member_t m;
   uint32_t   remain = base->size * 8;                       // Number of bits remaining in the base type.
   uint32_t   offset = 0;
 
   if (! isPrim(base)) {
     ctxmsg(ctx, "Bitset [%s] basetype must be primitive.\n", bs->name);
-    ctx->error = ccd_BadBaseType;
+    ctx->error = t2c_BadBaseType;
     return;
   }
 
@@ -673,11 +675,11 @@ static void initbitset(ctx_t ctx, cctype_t bs) {
   for (m = bs->Members, i = 0; i < bs->num; i++, m++) {     // Check proper width and assign the offset.
     if (0 == m->width) {
       ctxmsg(ctx, "Can not have 0 width for [%s].\n", m->name);
-      ctx->error = ccd_ZeroWidth;
+      ctx->error = t2c_ZeroWidth;
     }
     if (remain < m->width) {
       ctxmsg(ctx, "Not enough bits left %u for [%s] width %u.\n", remain, m->name, m->width);
-      ctx->error = ccd_TooSmall;
+      ctx->error = t2c_TooSmall;
     }
     if (ctx->error) { break; }
     m->offset = offset;
@@ -690,9 +692,9 @@ static void initbitset(ctx_t ctx, cctype_t bs) {
 
 }
 
-void cc_initype(ctx_t ctx, cctype_t type) {
+void t2c_initype(ctx_t ctx, type_t type) {
 
-  ccMember_t Marker = {                                     // Prepare the marker.
+  t2c_Member_t Marker = {                                     // Prepare the marker.
     .type = type,
     .name = "<marker>",
   };
@@ -703,14 +705,14 @@ void cc_initype(ctx_t ctx, cctype_t type) {
   
   type->ctx = ctx;
   
-  type->prop |= cc_Comp;
+  type->prop |= t2c_Comp;
 
   if (isBitset(type)) {
     if (type->bstype) {
       initbitset(ctx, type);
     }
     else {
-      ctx->error = ccd_BadBaseType;
+      ctx->error = t2c_BadBaseType;
     }
   }
 
@@ -718,15 +720,15 @@ void cc_initype(ctx_t ctx, cctype_t type) {
   
 }
 
-cctype_t cc_mem2cont(const ccMember_t * mem, uint32_t mi[1]) {
+type_t t2c_mem2cont(const t2c_Member_t * mem, uint32_t mi[1]) {
 
-  const ccMember_t * cur;
+  const t2c_Member_t * cur;
 
   for (cur = mem; strcmp(cur->name, "<marker>"); cur--) {   // Always search up for the marker string set in initype.
     assert(mem - cur < 1024);                               // Have some kind of check.
   }
 
-  if (mi) { mi[0] = mem - cur - 1; }                        // Set member index if not passed NULL.
+  if (mi) { mi[0] = (uint32_t)(mem - cur - 1); }            // Set member index if not passed NULL.
   
   return cur->type;
 
@@ -741,9 +743,9 @@ do {                                                                 \
   }                                                                  \
 } while (0)
 
-static int32_t _typecmp(const ccType_t *a, const ccType_t *b, uint32_t r);
+static int32_t _typecmp(const t2c_Type_t *a, const t2c_Type_t *b, uint32_t r);
 
-static int32_t cmpMemb(const ccMember_t *a, const ccMember_t *b, uint32_t r) { // Compare 2 members if one could replace the other. Does not compare names.
+static int32_t cmpMemb(const t2c_Member_t *a, const t2c_Member_t *b, uint32_t r) { // Compare 2 members if one could replace the other. Does not compare names.
 
   int32_t d = 0;
 
@@ -784,7 +786,7 @@ static int32_t cmpMemb(const ccMember_t *a, const ccMember_t *b, uint32_t r) { /
 
 }
 
-static int32_t _typecmp(const ccType_t *a, const ccType_t *b, uint32_t r) {  // Compare 2 types. Does not compare the names.
+static int32_t _typecmp(const t2c_Type_t *a, const t2c_Type_t *b, uint32_t r) {  // Compare 2 types. Does not compare the names.
 
   int32_t  d = a->size - b->size;
   uint32_t i;
@@ -821,13 +823,13 @@ static int32_t _typecmp(const ccType_t *a, const ccType_t *b, uint32_t r) {  // 
     if (b->Members[i].ref2size) {
       ib = ioMNm(b, b->Members[i].ref2size->name);
     }
-    d = ia - ib;                                            // Difference in ref2size, if any.
+    d = (int32_t)(ia - ib);                                 // Difference in ref2size, if any.
     if (d) {
       DBG("%s differ in ref2size.\n", i4(r));
       return d;
     }
 
-    if (ctx->cmpMemberNames) {
+    if (ctx->cmpNames) {
       d = strcmp(a->Members[i].name, b->Members[i].name);
       if (d) {
         DBG("%s [%s] and [%s] differ.\n", i4(r), a->Members[i].name, b->Members[i].name);
@@ -852,34 +854,34 @@ static int32_t _typecmp(const ccType_t *a, const ccType_t *b, uint32_t r) {  // 
 
 }
 
-int32_t cc_typecmp(const ccType_t *a, const ccType_t *b) {  // Compare 2 types. Does not compare the context.
+int32_t t2c_typecmp(const t2c_Type_t *a, const t2c_Type_t *b) {  // Compare 2 types. Does not compare the context.
 
   return _typecmp(a, b, 0);
 
 }
 
-cctype_t cc_clone4type(ctx_t ctx, const ccType_t * type) {  // Clone a type (ensures it becomes a context member).
+type_t t2c_clone4type(ctx_t ctx, const t2c_Type_t * type) {  // Clone a type (ensures it becomes a context member).
 
-  const ccMember_t * m = type->Members;
+  const t2c_Member_t * m = type->Members;
   uint32_t           i;
-  cctype_t           clone = alloctype(ctx, type->num);
+  type_t           clone = alloctype(ctx, type->num);
 
-  memcpy(clone, type, sizeof(ccType_t));                    // Copy the bulk of the type (overwrites the name reference).
+  memcpy(clone, type, sizeof(t2c_Type_t));                    // Copy the bulk of the type (overwrites the name reference).
   clone->name = (char *) & clone->Members[type->num];       // Was overwritten by the memcpy; so re-assign it.
   strncpy(clone->name, type->name, ctx->maxnamesize - 1);   // Copy name contents.
-  clone->prop &= ~cc_Static;                                // Remove the static property, if any.
+  clone->prop &= (uint8_t) ~t2c_Static;                      // Remove the static property, if any.
 
   for (i = 0; i < type->num; i++, m++) {
-    memcpy(& clone->Members[i], m, sizeof(ccMember_t));
+    memcpy(& clone->Members[i], m, sizeof(t2c_Member_t));
   }
 
-  cc_initype(ctx, clone);                                   // Ensure the marker is set properly.
+  t2c_initype(ctx, clone);                                   // Ensure the marker is set properly.
 
   return clone;
 
 }
 
-uint32_t cc_clearmarks(ctx_t ctx) {                         // Set all the type marks to 0.
+uint32_t t2c_clearmarks(ctx_t ctx) {                         // Set all the type marks to 0.
 
   uint32_t i;
   uint32_t count;
@@ -895,7 +897,7 @@ uint32_t cc_clearmarks(ctx_t ctx) {                         // Set all the type 
   
 }
 
-void cc_scan4type(ctx_t ctx, cc_cb4t_t cb, void * arg) {    // Scan over all types in the context.
+void t2c_scan4type(ctx_t ctx, t2c_cb4t_t cb, void * arg) {    // Scan over all types in the context.
 
   uint32_t i;
   
@@ -907,10 +909,10 @@ void cc_scan4type(ctx_t ctx, cc_cb4t_t cb, void * arg) {    // Scan over all typ
 
 }
 
-void cc_scan4mem(ccCtx_t * ctx, cc_cb4m_t cb, void * arg) { // Scan over all members in the context.
+void t2c_scan4mem(ctx_t ctx, t2c_cb4m_t cb, void * arg) { // Scan over all members in the context.
 
-  cctype_t   ct;
-  ccmember_t cm;
+  type_t   ct;
+  member_t cm;
   uint32_t   x;
   uint32_t   i;
 
@@ -923,7 +925,7 @@ void cc_scan4mem(ccCtx_t * ctx, cc_cb4m_t cb, void * arg) { // Scan over all mem
 
 }
 
-static void check4type(ccCtx_t * ctx, ccmember_t m, void * arg) {
+static void check4type(ctx_t ctx, member_t m, void * arg) {
 
   xref_t xref = arg;
   
@@ -935,22 +937,22 @@ static void check4type(ccCtx_t * ctx, ccmember_t m, void * arg) {
 
 }
 
-void cc_xref4type(ccCtx_t * ctx, ccXRef_t * xref) {
+void t2c_xref4type(ctx_t ctx, xref_t xref) {
 
   xref->num = 0;
 
-  cc_scan4mem(ctx, check4type, xref);
+  t2c_scan4mem(ctx, check4type, xref);
 
 }
 
-void cc_xref4mem(ccCtx_t * ctx, ccXRef_t * xref) {
+void t2c_xref4mem(ctx_t ctx, xref_t xref) {
 
 }
 
-void cc_remove4type(ccCtx_t * ctx, ccXRef_t * xref) {
+void t2c_remove4type(ctx_t ctx, xref_t xref) {
 
   if (xref->type && ! isPrim(xref->type)) {                 // Don't remove primitives; they are not even in the table.
-    cc_xref4type(ctx, xref);                                // See if the type is used somewhere.
+    t2c_xref4type(ctx, xref);                                // See if the type is used somewhere.
     if (0 == xref->num) {
       freetype(ctx, xref->type);
     }
@@ -968,20 +970,20 @@ typedef struct UDA_t {            // Usage/Dependency Analysis
   uint32_t    refs2self;
 } UDA_t;
 
-static uint32_t isRef2Self(cctype_t t, ccmember_t m) {      // Return non zero when the member is a reference to self.
+static uint32_t isRef2Self(type_t t, member_t m) {      // Return non zero when the member is a reference to self.
 
   return ((m->type == t) && m->numind) ? 1 : 0;
 
 }
 
-static void clrweight(ccCtx_t * ctx, cctype_t t, void * arg) {
+static void clrweight(ctx_t ctx, type_t t, void * arg) {
   t->weight = 0;
 }
 
-static void check4forwards(ccCtx_t * ctx, cctype_t t, void * arg) {
+static void check4forwards(ctx_t ctx, type_t t, void * arg) {
 
   uint32_t   i;
-  ccmember_t m;
+  member_t m;
   
   for (m = t->Members, i = 0; i < t->num; i++, m++) {
     if (m->isForward && t->weight) { t->weight--; }         // Decuct 1 weight for each forward member.
@@ -989,10 +991,10 @@ static void check4forwards(ccCtx_t * ctx, cctype_t t, void * arg) {
 
 }
 
-static void setweight(ccCtx_t * ctx, ccmember_t m, void * arg) {
+static void setweight(ctx_t ctx, member_t m, void * arg) {
 
   UDA_t  * uda = arg;
-  cctype_t cont = cc_mem2cont(m, NULL);                     // Get containing type.
+  type_t cont = t2c_mem2cont(m, NULL);                     // Get containing type.
 
   if (isPrim(m->type)) { return; }                          // We don't weigh primitives.
 
@@ -1009,10 +1011,10 @@ static void setweight(ccCtx_t * ctx, ccmember_t m, void * arg) {
 
 }
 
-static void prunefwds(ccCtx_t * ctx, ccmember_t m, void * arg) {
+static void prunefwds(ctx_t ctx, member_t m, void * arg) {
 
   UDA_t  * uda = arg;
-  cctype_t cont = cc_mem2cont(m, NULL);
+  type_t cont = t2c_mem2cont(m, NULL);
 
   if (isPrim(m->type)) { return; }                          // We don't do primitives.
 
@@ -1032,38 +1034,38 @@ static void prunefwds(ccCtx_t * ctx, ccmember_t m, void * arg) {
 
 static int32_t weightcmp(const void * r2a, const void * r2b) {
 
-  const ccType_t * a = * (const ccType_t **) r2a;
-  const ccType_t * b = * (const ccType_t **) r2b;
+  const t2c_Type_t * a = * (const t2c_Type_t **) r2a;
+  const t2c_Type_t * b = * (const t2c_Type_t **) r2b;
 
   return b->weight - a->weight;                             // Highest should float to the top.
 
 }
 
-void cc_prep4gen(ccCtx_t * ctx) {                           // Prepare for generation; try to reduce forward references as much as possible.
+void t2c_prep4gen(ctx_t ctx) {                           // Prepare for generation; try to reduce forward references as much as possible.
 
   UDA_t UDA;
 
   memset(& UDA, 0x00, sizeof(UDA));
 
-  cc_scan4type(ctx, clrweight, NULL);
+  t2c_scan4type(ctx, clrweight, NULL);
 
   do {
     UDA.changes = 0;
     UDA.iteration++;
-    cc_scan4mem(ctx, setweight, & UDA);
+    t2c_scan4mem(ctx, setweight, & UDA);
   } while (UDA.changes && UDA.iteration <= ctx->num);       // Try to order according to usage as much as possible.
 
   if (UDA.forwards) {                                       // We had types refering to types not yet defined; i.e. forward references.
-    cc_scan4type(ctx, check4forwards, NULL);                // This should make the type using less forward members, move higher.
+    t2c_scan4type(ctx, check4forwards, NULL);                // This should make the type using less forward members, move higher.
   }
 
-  qsort(ctx->types, ctx->num, sizeof(cctype_t), weightcmp); // Make the most referred to type come first to reduce forward references.
+  qsort(ctx->types, ctx->num, sizeof(type_t), weightcmp); // Make the most referred to type come first to reduce forward references.
 
   for (uint32_t i = 0; i < ctx->num; i++) {                 // Set weight from high to low.
     ctx->types[i]->weight = ctx->num - i;
   }
 
-  cc_scan4mem(ctx, prunefwds, & UDA);                       // Get rid of unnecessary forwards and also set the isRef2Self properties.
+  t2c_scan4mem(ctx, prunefwds, & UDA);                       // Get rid of unnecessary forwards and also set the isRef2Self properties.
 
   DBG("%u types, %u forwards, %u pruned away, %u refs to self.\n", ctx->num, UDA.forwards, UDA.pruned, UDA.refs2self);
 

@@ -28,11 +28,12 @@ static void addstr(buf_t buf, const char * s, uint32_t n) { // Add the string 's
 }
 
 static uint32_t remain(buf_t b) {                           // Return remaining buffer space, but ensure we have a spot for the trailing \0
-  return (b->cur < b->end) ? (b->end - 1 - b->cur) : 0;
+  intptr_t r = b->end - b->cur;                             // This is negative or 0 when no space remains.
+  return (r > 0) ? (uint32_t) (r - 1) : 0;                  // -1 to ensure there's space for the trailing \0.
 }
 
 static uint32_t used(buf_t b) {                             // Return number of characters used in the buffer
-  return (b->cur - b->space);
+  return (uint32_t) (b->cur - b->space);
 }
 
 static void add2out(buf_t out, buf_t add) {                 // Add the given buffer to the output buffer, if space permits
