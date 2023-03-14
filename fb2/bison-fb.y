@@ -1,5 +1,7 @@
 %{
 
+// Copyright (c) 2023 Steven Buytaert
+
 #include <internal.h>
 
 #pragma GCC diagnostic ignored "-Wpadded" // Generated code below is not padding clean.

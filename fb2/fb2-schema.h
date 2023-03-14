@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Steven Buytaert
+
 #ifndef FB2_SCHEMA_H
 #define FB2_SCHEMA_H
 

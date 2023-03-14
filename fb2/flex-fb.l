@@ -1,5 +1,7 @@
 %{
 
+// Copyright (c) 2023 Steven Buytaert
+
 #include <internal.h>
 
 #include <tokens.h>

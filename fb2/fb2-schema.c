@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Steven Buytaert
+
 #include <stdio.h>
 #include <stddef.h>
 #include <stdarg.h>

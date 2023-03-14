@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Steven Buytaert
+
 #ifndef INTERNAL_H
 #define INTERNAL_H
 
