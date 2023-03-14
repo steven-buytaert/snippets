@@ -13,6 +13,7 @@ typedef struct t2c_XRef_t *   xref_t;
 typedef struct t2c_Type_t *   type_t;
 typedef struct t2c_Member_t * member_t;
 typedef struct t2c_Alt_t *    alt_t;
+typedef struct t2c_TGSpec_t * spec_t;
 
 //#define DEBUG
 
@@ -43,11 +44,11 @@ static const char * i4(uint32_t d) {                        // Return indendatio
 
 static void ctxmsg(ctx_t ctx, const char * format, ...) {
 
-  va_list ap;
+  va_list  ap;
+  uint32_t max = sizeof(ctx->msg) - 1;
 
   va_start(ap, format);
-  vprintf(format, ap);
-  vsnprintf(ctx->msg, sizeof(ctx->msg), format, ap);
+  vsnprintf(ctx->msg, max, format, ap);
   va_end(ap);
 
 }
@@ -64,6 +65,10 @@ static uint32_t isUnion(type_t type) {
   return (t2c_Union == (type->prop & t2c_Union)) ? 1 : 0;
 }
 
+uint32_t t2c_isEnum(const t2c_Type_t * type) {              // This one is public.
+  return (t2c_Enum == (type->prop & t2c_Enum)) ? 1 : 0;
+}
+
 static uint32_t isPrim(type_t type) {
   return (t2c_Prim == (type->prop & t2c_Prim)) ? 1 : 0;
 }
@@ -72,49 +77,69 @@ static uint32_t isBitset(type_t type) {
   return (t2c_Bitset == (type->prop & t2c_Bitset)) ? 1 : 0;
 }
 
+uint32_t t2c_isTypedef(const t2c_Type_t * type) {           // This one is public.
+  return (t2c_Typedef == (type->prop & t2c_Typedef)) ? 1 : 0;
+}
+
 typedef struct M2M_t     * m2m_t;
 typedef struct ClCtx_t   * clctx_t;
 typedef struct Clust_t   * clust_t;
 
 typedef struct Clust_t {   // Cluster member
-  member_t   ref2size;   // The reference to the size in the original type.
-  uint16_t     size;       // How many times it is used as ref2size.
-  uint16_t     mi;         // The cluster member is inserted at this member index in the new type.
-  uint8_t      move2tail;  // When non zero, move this clustered or single element to the tail.
-  uint8_t      done2outer; // When this cluster has been inserted as a member in the new type.
-  uint8_t      pad[2];
-  type_t     type;       // The newly clustered type created from this cluster.
+  member_t   ref2size;     // The reference to the size in the original type.
+  uint16_t   size;         // How many times it is used as ref2size.
+  uint16_t   mi;           // The cluster member is inserted at this member index in the new type.
+  uint8_t    move2tail;    // When non zero, move this clustered or single element to the tail.
+  uint8_t    done2outer;   // When this cluster has been inserted as a member in the new type.
+  uint8_t    pad[2];
+  type_t     type;         // The newly clustered type created from this cluster.
 } Clust_t;
 
 typedef struct M2C_t {     // Member to cluster mapping.
   struct {
-    uint16_t   orig;       // Member index in original type.
-    uint16_t   clui;       // Cluster member index.
+    uint16_t orig;         // Member index in original type.
+    uint16_t clui;         // Cluster member index.
   } MI;
-  Clust_t *    cluster;    // When not NULL, the member is mapped to this cluster.
+  Clust_t *  cluster;      // When not NULL, the member is mapped to this cluster.
 } M2C_t;
 
 typedef struct ClCtx_t {   // Cluster Context information
-  type_t     orig;       // Original type being cluster analyzed.
-  uint16_t     created;    // Number of clusters created.
-  uint16_t     largest;    // Index of the largest cluster; will be moved to the tail.
-  uint16_t     num;        // Number of Clust in use.
-  uint16_t     cap;
-  M2C_t *      M2C;        // Member map with cap members.
-  Clust_t      Clust[0];   // Tail with cap clusters.
+  type_t     orig;         // Original type being cluster analyzed.
+  uint16_t   created;      // Number of clusters created.
+  uint16_t   largest;      // Index of the largest cluster; will be moved to the tail.
+  uint16_t   num;          // Number of Clust in use.
+  uint16_t   cap;
+  M2C_t *    M2C;          // Member map with cap members.
+  Clust_t    Clust[0];     // Tail with cap clusters.
 } ClCtx_t;
 
 #define NUM(A) (uint32_t)(sizeof(A) / sizeof(A[0]))
 
-const t2c_Type_t t2c_Char = { .name = "char",     .prop = t2c_Prim, .size = 1, .align = 1 };
-const t2c_Type_t t2c_U64  = { .name = "uint64_t", .prop = t2c_Prim, .size = 8, .align = 8 };
-const t2c_Type_t t2c_U32  = { .name = "uint32_t", .prop = t2c_Prim, .size = 4, .align = 4 };
-const t2c_Type_t t2c_U16  = { .name = "uint16_t", .prop = t2c_Prim, .size = 2, .align = 2 };
-const t2c_Type_t t2c_U08  = { .name = "uint8_t",  .prop = t2c_Prim, .size = 1, .align = 1 };
-const t2c_Type_t t2c_S64  = { .name = "int64_t",  .prop = t2c_Prim, .size = 8, .align = 8 };
-const t2c_Type_t t2c_S32  = { .name = "int32_t",  .prop = t2c_Prim, .size = 4, .align = 4 };
-const t2c_Type_t t2c_S16  = { .name = "int16_t",  .prop = t2c_Prim, .size = 2, .align = 2 };
-const t2c_Type_t t2c_S08  = { .name = "int8_t",   .prop = t2c_Prim, .size = 1, .align = 1 };
+t2c_Type_t t2c_VoidRef = { .name = "void *",   .prop = t2c_Prim, .size = 4, .align = 4 };
+
+t2c_Type_t t2c_Char    = { .name = "char",     .prop = t2c_Prim, .size = 1, .align = 1 };
+t2c_Type_t t2c_U64     = { .name = "uint64_t", .prop = t2c_Prim, .size = 8, .align = 8 };
+t2c_Type_t t2c_U32     = { .name = "uint32_t", .prop = t2c_Prim, .size = 4, .align = 4 };
+t2c_Type_t t2c_U16     = { .name = "uint16_t", .prop = t2c_Prim, .size = 2, .align = 2 };
+t2c_Type_t t2c_U08     = { .name = "uint8_t",  .prop = t2c_Prim, .size = 1, .align = 1 };
+t2c_Type_t t2c_S64     = { .name = "int64_t",  .prop = t2c_Prim, .size = 8, .align = 8 };
+t2c_Type_t t2c_S32     = { .name = "int32_t",  .prop = t2c_Prim, .size = 4, .align = 4 };
+t2c_Type_t t2c_S16     = { .name = "int16_t",  .prop = t2c_Prim, .size = 2, .align = 2 };
+t2c_Type_t t2c_S08     = { .name = "int8_t",   .prop = t2c_Prim, .size = 1, .align = 1 };
+t2c_Type_t t2c_F32     = { .name = "float",    .prop = t2c_Prim, .size = 4, .align = 4 };
+
+const type_t t2c_prims[10] = {
+  & t2c_Char,
+  & t2c_U64,
+  & t2c_U32,
+  & t2c_U16,
+  & t2c_U08,
+  & t2c_S64,
+  & t2c_S32,
+  & t2c_S16,
+  & t2c_S08,
+  & t2c_F32,
+};
 
 static uint32_t roundup(uint32_t value, uint32_t powerOf2) {
   return (value + (powerOf2 - 1)) & ~(powerOf2 - 1);
@@ -136,21 +161,21 @@ static uint32_t ioMNm(const t2c_Type_t * t, const char * m) { // Return the memb
 
 }
 
-static void a4Sz(ctx_t ctx, type_t stack[], uint32_t d) { // Internal function for size and alignment calulcation.
+static void a4Sz(ctx_t ctx, type_t stack[], uint32_t d) {   // Internal function for size and alignment calulcation.
 
-  type_t   type = stack[d];                               // Type to calculate is at d.
+  type_t   type = stack[d];                                 // Type to calculate is at d.
   member_t m = type->Members;
-  uint32_t   i;
-  uint16_t   align = 0;
-  uint16_t   offset = 0;                                    // This is also the running size of the type.
-  uint32_t   size = 0;
-  uint16_t   padding;
+  uint32_t i;
+  uint16_t align = 0;
+  uint16_t offset = 0;                                      // This is also the running size of the type.
+  uint32_t size = 0;
+  uint16_t padding;
 
   assert(d < 31);                                           // See in caller.
 
   for (i = 0; i < d; i++) {
     if (stack[i] == type) {
-      ctxmsg(ctx, "Circularity involving type [%s].\n", stack[0]->name);
+      ctxmsg(ctx, "Circularity involving type [%s].", stack[0]->name);
       ctx->error = t2c_Circularity;
     }
   }
@@ -158,12 +183,14 @@ static void a4Sz(ctx_t ctx, type_t stack[], uint32_t d) { // Internal function f
   if (ctx->error) { return; }                               // Don't continue in error.
 
   if (isPrim(type) && isComp(type)) {
-    ctxmsg(ctx, "Type [%s] can't be both Comp and Prim.\n", type->name);
+    ctxmsg(ctx, "Type [%s] can't be both Comp and Prim.", type->name);
     ctx->error = t2c_BadProperties;
     return;
   }
 
-  if (isPrim(type) || isBitset(type)) { return; }           // Primitives have been done already.
+  if (isPrim(type) || isBitset(type) || t2c_isEnum(type) || t2c_isTypedef(type)) {     // Primitives have been done already.
+    return;
+  }
 
   type->size = 0;
   type->align = 0;
@@ -172,24 +199,24 @@ static void a4Sz(ctx_t ctx, type_t stack[], uint32_t d) { // Internal function f
 
   for (i = 0; ! ctx->error && i < type->num; i++, m++) {
     if (m->type == type && ! m->numind) {
-      ctxmsg(ctx, "Type [%s] includes itself without indirection.\n", type->name);
+      ctxmsg(ctx, "Type [%s] includes itself without indirection.", type->name);
       ctx->error = t2c_Circularity;
       break;
     }
     if (m->ref2size) {
       if (! m->isVTail && ! m->numind) {
-        ctxmsg(ctx, "Member [%s] ref2size [%s] implies either indirection or VTail.\n", m->name, m->ref2size->name);
+        ctxmsg(ctx, "Member [%s] ref2size [%s] implies either indirection or VTail.", m->name, m->ref2size->name);
         ctx->error = t2c_LoneRef2size;
         break;
       }
       if (m->isVTail && i + 1 < type->num) {
-        ctxmsg(ctx, "VTail [%s] can only apply to final member.\n", m->name);
+        ctxmsg(ctx, "VTail [%s] can only apply to final member.", m->name);
         ctx->error = t2c_VTailNotFinal;
         break;
       }
     }
     if (m->numind && m->isVTail) {
-      ctxmsg(ctx, "Member [%s] can never both be reference and VTail.\n", m->name);
+      ctxmsg(ctx, "Member [%s] can never both be reference and VTail.", m->name);
       ctx->error = t2c_RefAndVTail;
       break;
     }
@@ -202,8 +229,13 @@ static void a4Sz(ctx_t ctx, type_t stack[], uint32_t d) { // Internal function f
       size  = ctx->size4ref;
     }
     else {
+      if (! m->type) {
+        ctxmsg(ctx, "Member [%s] has a bad/no type.", m->name);
+        ctx->error = t2c_BadMemberType;
+        return;
+      }
       stack[d + 1] = m->type;
-      a4Sz(ctx, stack, d + 1);                              // Call ourselves.
+      a4Sz(ctx, stack, d + 1);                              // Call ourselves to analyze the type of the member.
       align = m->type->align;
       size = m->type->size;
     }
@@ -256,9 +288,9 @@ static void a4Sz(ctx_t ctx, type_t stack[], uint32_t d) { // Internal function f
 
 }
 
-void ana4size(ctx_t ctx, type_t type) {                   // Analyze for size and also alignment.
+void t2c_ana4size(ctx_t ctx, type_t type) {                 // Analyze for size and also alignment.
 
-  type_t stack[32];                                       // Max depth.
+  type_t stack[32];                                         // Max depth.
 
   stack[0] = type;
 
@@ -274,6 +306,9 @@ static void * _getmem(uint32_t ln, ctx_t ctx, uint32_t sz) {
 
   if (! mem) {
     ctx->error = t2c_AllocFailed;
+  }
+  else {
+    memset(mem, 0x00, sz);
   }
 
   return mem;
@@ -295,6 +330,20 @@ static void freemem(ctx_t ctx, void * mem) {                // Release memory vi
   ctx->mem(ctx, mem, 0);
 }
 
+void t2c_renam(t2c_ctx_t ctx, t2c_member_t m, const char * name) {
+
+  char * newname = ccstrdup(ctx, name);
+
+  if (newname) {
+    if (m->nameIsDup) {
+      freemem(ctx, (void *) m->name);
+    }
+    m->name = newname;
+    m->nameIsDup = 1;                                       // We allocated the name here.
+  }
+
+}
+
 static alt_t allocAlt(ctx_t ctx, uint32_t num) {            // Allocate and set up an alternative.
 
   uint32_t size = sizeof(t2c_Alt_t);
@@ -302,22 +351,21 @@ static alt_t allocAlt(ctx_t ctx, uint32_t num) {            // Allocate and set 
 
   size += num * sizeof(type_t);
   alt = getmem(ctx, size);
-  if (alt) { memset(alt, 0x00, size); }
 
   return alt;
 
 }
 
-static void freetype(ctx_t ctx, type_t type) {            // Internal function to free a type.
+static void freetype(ctx_t ctx, type_t type) {              // Internal function to free a type.
 
-  uint32_t   i;
-  uint32_t   x;
-  uint32_t   n2mu;
+  uint32_t i;
+  uint32_t x;
+  uint32_t n2mu;
   member_t m;
 
   for (i = 0; i < ctx->num; i++) {
     if (ctx->types[i] == type) {
-      n2mu = sizeof(type_t) * (ctx->cap - i - 1);         // Number of bytes to move up.
+      n2mu = sizeof(type_t) * (ctx->cap - i - 1);           // Number of bytes to move up.
       memmove(& ctx->types[i], & ctx->types[i + 1], n2mu);
       if (type->alt) {
         freemem(ctx, type->alt);
@@ -325,23 +373,46 @@ static void freetype(ctx_t ctx, type_t type) {            // Internal function t
       if (! (type->prop & t2c_Static)) {
         for (x = 0, m = type->Members; x < type->num; x++, m++) {
           if (m->nameisdup) {
-            freemem(ctx, m->name);
+            freemem(ctx, (char *) m->name);
           }
         }
         freemem(ctx, type);
       }
       ctx->num--;
-      break;
+      return;
     }
   }
 
-  assert(0 == ctx->num || i < ctx->num);                    // Should be found.
+  assert(0);                                                // Should have been found.
 
 }
 
-type_t alloctype(ctx_t ctx, uint32_t num) {               // Allocate a type with the given number of members.
+t2c_type_t t2c_name2type(t2c_ctx_t ctx, const char * name) {
 
-  uint32_t   size = sizeof(t2c_Type_t);
+  uint32_t   i;
+  t2c_type_t found = NULL;
+
+  for (i = 0; i < NUM(t2c_prims) && ! found; i++) {
+    if (0 == strcmp(name, t2c_prims[i]->name)) {
+      found = t2c_prims[i];
+    }
+  }
+
+  for (i = 0; ! found && i < ctx->num; i++) {
+    if (ctx->types[i]) {
+      if (0 == strcmp(ctx->types[i]->name, name)) {
+        found = ctx->types[i];
+      }
+    }
+  }
+
+  return found;
+
+}
+
+static type_t alloctype(ctx_t ctx, uint32_t num) {          // Allocate a type with the given number of members.
+
+  uint32_t size = sizeof(t2c_Type_t);
   type_t   type;
   
   size += sizeof(t2c_Member_t) * num;
@@ -349,14 +420,15 @@ type_t alloctype(ctx_t ctx, uint32_t num) {               // Allocate a type wit
 
   type = getmem(ctx, size);
   if (type) {
-    memset(type, 0x00, size);
     type->name = (char *) & type->Members[num];
 
     if (ctx->num + 1 < ctx->cap) {                          // Insert it into the table.
       ctx->types[ctx->num++] = type;
     }
     else {
+      ctxmsg(ctx, "No slots left for storing types; cap %u.", ctx->cap);
       ctx->error = t2c_NoCapLeft;
+      freemem(ctx, type);
     }
   }
 
@@ -364,7 +436,7 @@ type_t alloctype(ctx_t ctx, uint32_t num) {               // Allocate a type wit
 
 }
 
-static clust_t add2Cl(clctx_t ci, member_t ref2size) {    // Add member to cluster, if not in there yet; return the cluster member.
+static clust_t add2Cl(clctx_t ci, member_t ref2size) {      // Add member to cluster, if not in there yet; return the cluster member.
 
   uint32_t x;
 
@@ -382,7 +454,7 @@ static clust_t add2Cl(clctx_t ci, member_t ref2size) {    // Add member to clust
 
 }
 
-static member_t finalref(member_t ref2size) {           // Return the most size defining member, if any.
+static member_t finalref(member_t ref2size) {               // Return the most size defining member, if any.
 
   member_t final = ref2size;
   
@@ -404,7 +476,6 @@ static clctx_t allocluster(ctx_t ctx, uint32_t cap) {       // Allocate a tempor
 
   cluster = getmem(ctx, size); assert(cluster);
   if (cluster) {
-    memset(cluster, 0x00, size);
     cluster->cap = cap;
     cluster->M2C = (M2C_t *) & cluster->Clust[cap];
   }
@@ -430,11 +501,11 @@ static int32_t mcmp(const void * r2a, const void * r2b, void * r2ctx) { // Membe
 
 static void mk1Cl(ctx_t ctx, clctx_t clctx, uint32_t ci) {  // Create 1 clustered type from the original type, based upon the cluster info.
 
-  clust_t    clust = & clctx->Clust[ci];
-  uint32_t   i;
-  type_t   type = alloctype(ctx, clust->size);            // New type created from the cluster info.
-  member_t nm = type->Members;                            // New member.
-  member_t om = clctx->orig->Members;                     // Original member.
+  clust_t  clust = & clctx->Clust[ci];
+  uint32_t i;
+  type_t   type = alloctype(ctx, clust->size);              // New type created from the cluster info.
+  member_t nm = type->Members;                              // New member.
+  member_t om = clctx->orig->Members;                       // Original member.
 
   if (! type) { return; }                                   // Error set in context.
 
@@ -463,7 +534,7 @@ static void mk1Cl(ctx_t ctx, clctx_t clctx, uint32_t ci) {  // Create 1 clustere
 
   clust->type = type;                                       // Save the new type in the cluster info.
 
-  ana4size(ctx, type);
+  t2c_ana4size(ctx, type);
   
 }
 
@@ -494,7 +565,7 @@ static uint32_t mkClusters(ctx_t ctx, clctx_t clctx) {      // Create all requir
 
 }
 
-static char * mkMemberName(ctx_t ctx, type_t type) {      // Make a member name for the given type; drop the type extension.
+static char * mkMemberName(ctx_t ctx, type_t type) {        // Make a member name for the given type; drop the type extension.
 
   uint32_t size = strlen(type->name);
   char *   temp = alloca(size + 1);
@@ -524,16 +595,16 @@ static void freeCluster(ctx_t ctx, clctx_t cc) {            // Only called to cl
 void t2c_ana4cluster(ctx_t ctx, type_t type) {
 
   clctx_t      ci = allocluster(ctx, type->num);
-  member_t   m = type->Members;
+  member_t     m = type->Members;
   uint32_t     i;
   uint32_t     x;
   clust_t      cm;
-  type_t     ctype;                                       // New cluster type.
-  member_t   newm;                                        // New member.
-  type_t   * fill;
+  type_t       ctype;                                       // New cluster type.
+  member_t     newm;                                        // New member.
+  type_t *     fill;
   alt_t        alt;
-  t2c_Member_t   M1;
-  t2c_Member_t   M2;
+  t2c_Member_t M1;
+  t2c_Member_t M2;
 
   if (! ci) { return; }                                     // Error set in context.
   if (! isStruct(type)) { return; }                         // This is only for structure types.
@@ -633,13 +704,13 @@ void t2c_ana4cluster(ctx_t ctx, type_t type) {
 
   t2c_initype(ctx, ctype);
 
-  ana4size(ctx, ctype);
+  t2c_ana4size(ctx, ctype);
 
   uint8_t saved = ctx->cmpNames;
   
-  ctx->cmpNames = 1;                                  // The following t2c_typecmp we want with name comparison.
+  ctx->cmpNames = 1;                                        // The following t2c_typecmp we want with name comparison.
 
-  if (0 == t2c_typecmp(ctype, type) && 1 == alt->num) {      // Both new and old are the same; so no alternative.
+  if (0 == t2c_typecmp(ctype, type) && 1 == alt->num) {     // Both new and old are the same; so no alternative.
     assert(ci->num == 0);                                   // No clusters should exist.
     assert(ctx->types[ctx->num - 1] == alt->types[0]);      // Should be the last one added.
     freemem(ctx, alt->types[0]);
@@ -648,7 +719,7 @@ void t2c_ana4cluster(ctx_t ctx, type_t type) {
     type->alt = NULL;
   }
 
-  ctx->cmpNames = saved;                              // Restore used set name comparison.
+  ctx->cmpNames = saved;                                    // Restore used set name comparison.
 
   freemem(ctx, ci);
 
@@ -656,14 +727,14 @@ void t2c_ana4cluster(ctx_t ctx, type_t type) {
 
 static void initbitset(ctx_t ctx, type_t bs) {
 
-  type_t   base = bs->bstype;
-  uint32_t   i;
+  type_t   base = bs->boetype;
+  uint32_t i;
   member_t m;
-  uint32_t   remain = base->size * 8;                       // Number of bits remaining in the base type.
-  uint32_t   offset = 0;
+  uint32_t remain = base->size * 8;                         // Number of bits remaining in the base type.
+  uint32_t offset = 0;
 
   if (! isPrim(base)) {
-    ctxmsg(ctx, "Bitset [%s] basetype must be primitive.\n", bs->name);
+    ctxmsg(ctx, "Bitset [%s] basetype must be primitive.", bs->name);
     ctx->error = t2c_BadBaseType;
     return;
   }
@@ -674,14 +745,14 @@ static void initbitset(ctx_t ctx, type_t bs) {
 
   for (m = bs->Members, i = 0; i < bs->num; i++, m++) {     // Check proper width and assign the offset.
     if (0 == m->width) {
-      ctxmsg(ctx, "Can not have 0 width for [%s].\n", m->name);
+      ctxmsg(ctx, "Can not have 0 width for [%s].", m->name);
       ctx->error = t2c_ZeroWidth;
     }
     if (remain < m->width) {
-      ctxmsg(ctx, "Not enough bits left %u for [%s] width %u.\n", remain, m->name, m->width);
+      ctxmsg(ctx, "Not enough bits left %u for [%s] width %u.", remain, m->name, m->width);
       ctx->error = t2c_TooSmall;
     }
-    if (ctx->error) { break; }
+    if (ctx->error) { return; }
     m->offset = offset;
     remain -= m->width;
     offset += m->width;
@@ -692,12 +763,50 @@ static void initbitset(ctx_t ctx, type_t bs) {
 
 }
 
+static void initenum(ctx_t ctx, type_t et) {
+
+  type_t   base = et->boetype;
+  uint32_t i;
+  member_t m;
+  uint32_t x;
+
+  if (! isPrim(base)) {
+    ctxmsg(ctx, "Enum [%s] basetype must be primitive.", et->name);
+    ctx->error = t2c_BadBaseType;
+    return;
+  }
+
+  for (m = et->Members, i = 0; i < et->num; i++, m++) {     // Ensure all members have the proper base type.
+    m->type = base;
+    for (x = 0; x < et->num; x++) {
+      if (x == i) continue;                                 // Don't the member with itself.
+      if (m->enumval == et->Members[x].enumval) {
+        ctxmsg(ctx, "Members [%s] [%s] are duplicates.", m->name, et->Members[x].name), 
+        ctx->error = t2c_Duplicate;
+      }
+      if (ctx->error) { return; }
+    }
+  }
+
+  et->size = base->size;
+  et->align = base->align;
+
+}
+
 void t2c_initype(ctx_t ctx, type_t type) {
 
-  t2c_Member_t Marker = {                                     // Prepare the marker.
+  t2c_Member_t Marker = {                                   // Prepare the marker.
     .type = type,
     .name = "<marker>",
   };
+
+  static uint32_t initialized = 0;
+  
+  if (! initialized) {                                      // Perform some initialization stuff.
+    t2c_VoidRef.size  = ctx->size4ref;
+    t2c_VoidRef.align = ctx->align4ref;
+    initialized = 1;
+  }
 
   assert(& type->Marker == (& type->Members[0]) - 1);       // Marker must come just before the members VTail.
 
@@ -708,15 +817,33 @@ void t2c_initype(ctx_t ctx, type_t type) {
   type->prop |= t2c_Comp;
 
   if (isBitset(type)) {
-    if (type->bstype) {
+    if (type->boetype) {
       initbitset(ctx, type);
     }
     else {
+      ctxmsg(ctx, "Bitset [%s] has no basetype.\n", type->name);
       ctx->error = t2c_BadBaseType;
     }
   }
+  else if (t2c_isEnum(type)) {
+    if (type->boetype) {
+      initenum(ctx, type);
+    }
+    else {
+      ctxmsg(ctx, "Enum [%s] has no basetype.\n", type->name);
+      ctx->error = t2c_BadBaseType;
+    }
+  }
+  else if (t2c_isTypedef(type)) {
+    if (1 != type->num) {                         // Typedefs should have exactly one member.
+      if (! type->Members[0].type) {
+        ctxmsg(ctx, "Typedef [%s] has no basetype.\n", type->name);
+        ctx->error = t2c_BadBaseType;
+      }
+    }
+  }
 
-  ana4size(ctx, type);
+  t2c_ana4size(ctx, type);
   
 }
 
@@ -724,7 +851,7 @@ type_t t2c_mem2cont(const t2c_Member_t * mem, uint32_t mi[1]) {
 
   const t2c_Member_t * cur;
 
-  for (cur = mem; strcmp(cur->name, "<marker>"); cur--) {   // Always search up for the marker string set in initype.
+  for (cur = mem; strcmp(cur->name, "<marker>"); cur--) {   // Always search up for the marker type set in initype.
     assert(mem - cur < 1024);                               // Have some kind of check.
   }
 
@@ -802,7 +929,7 @@ static int32_t _typecmp(const t2c_Type_t *a, const t2c_Type_t *b, uint32_t r) { 
   }
 
   if (a->ctx != b->ctx) {
-    ctxmsg(a->ctx, "WARNING [%s] %p and [%s] %p have a different context.\n", a->name, a->ctx, b->name, b->ctx);
+    ctxmsg(a->ctx, "WARNING [%s] %p and [%s] %p have a different context.", a->name, a->ctx, b->name, b->ctx);
   }
 
   DBG("%s Compare [%s s %u a %u m %u] [%s s %u a %u m %u].\n", i4(r), a->name, a->size, a->align, a->num, b->name, b->size, b->align, b->num);
@@ -860,35 +987,145 @@ int32_t t2c_typecmp(const t2c_Type_t *a, const t2c_Type_t *b) {  // Compare 2 ty
 
 }
 
-type_t t2c_clone4type(ctx_t ctx, const t2c_Type_t * type) {  // Clone a type (ensures it becomes a context member).
+type_t t2c_clone4type(ctx_t ctx, const t2c_Type_t * type) { // Clone a type (ensures it becomes a context member).
 
   const t2c_Member_t * m = type->Members;
-  uint32_t           i;
-  type_t           clone = alloctype(ctx, type->num);
+  uint32_t             i;
+  type_t               clone = alloctype(ctx, type->num);
 
-  memcpy(clone, type, sizeof(t2c_Type_t));                    // Copy the bulk of the type (overwrites the name reference).
+  if (! clone) { return NULL; }                             // Probably 'no capacity left'; error set by alloctype.
+
+  memcpy(clone, type, sizeof(t2c_Type_t));                  // Copy the bulk of the type (overwrites the name reference).
   clone->name = (char *) & clone->Members[type->num];       // Was overwritten by the memcpy; so re-assign it.
   strncpy(clone->name, type->name, ctx->maxnamesize - 1);   // Copy name contents.
-  clone->prop &= (uint8_t) ~t2c_Static;                      // Remove the static property, if any.
+  clone->prop &= (uint8_t) ~t2c_Static;                     // Remove the static property, if any.
 
   for (i = 0; i < type->num; i++, m++) {
     memcpy(& clone->Members[i], m, sizeof(t2c_Member_t));
   }
 
-  t2c_initype(ctx, clone);                                   // Ensure the marker is set properly.
+  t2c_initype(ctx, clone);                                  // Ensure the marker is set properly.
+
+  if (ctx->error) {                                         // Something went wrong, remove the bad type.
+    freetype(ctx, clone);
+    clone = NULL;
+  }
 
   return clone;
 
 }
 
-uint32_t t2c_clearmarks(ctx_t ctx) {                         // Set all the type marks to 0.
+typedef struct RepCtx_t {         // Replacement context.
+  t2c_type_t tdtype;
+  uint32_t   count;
+} RepCtx_t;
+
+static void rep4td(t2c_ctx_t ctx, t2c_member_t m, void * arg) {
+
+  RepCtx_t * rep = arg;
+
+  if (t2c_mem2cont(m, NULL) == rep->tdtype) { return; }     // We shouldn't replace ourselves.
+
+  if (m->type == rep->tdtype->Members[0].type && m->numind) {
+//    printf("REPLACE [%s*] with [%s] in [%s]\n", m->type->name, rep->tdtype->name, t2c_mem2cont(m, NULL)->name);
+    m->type = rep->tdtype;
+    m->numind--;
+    rep->count++;
+  }
+
+}
+
+uint32_t t2c_reptypedefs(t2c_ctx_t ctx) {
+
+  RepCtx_t   Rep;
+  uint32_t   i;
+  t2c_type_t type;
+
+  memset(& Rep, 0x00, sizeof(Rep));
+
+  for (i = 0; i < ctx->num; i++) {
+    type = ctx->types[i];
+    if ((type->prop & t2c_Typedef) == t2c_Typedef) {
+      Rep.tdtype = type;
+      t2c_scan4mem(ctx, rep4td, & Rep);
+    }
+  }
+
+  return Rep.count;
+
+}
+
+typedef struct Stack_t {
+  uint16_t       cap;
+  uint16_t       top;
+  type_t         types[0];
+} Stack_t;
+
+typedef struct Stack_t * stack_t;
+
+uint32_t t2c_mark4use(t2c_ctx_t ctx, const t2c_Type_t * root) {
+
+  uint32_t     i;
+  uint32_t     size = sizeof(type_t) * ctx->num;
+  stack_t      stack = getmem(ctx, sizeof(Stack_t) + size);
+  t2c_type_t   type;
+  t2c_member_t m;
+  uint32_t     count = 0;
+  
+  if (! stack) { return 0; }                                // Error set by getmem.
+
+  if (root->mark4use) { return 0; }                         // It is already marked.
+
+  stack->cap = ctx->num;
+  stack->types[stack->top++] = (t2c_type_t) root;
+  
+  while (stack->top) {
+    type = stack->types[--stack->top];                      // Pop the top element.
+    if (type->mark4use) { continue; }                       // Already marked; go to next, if any.
+    type->mark4use = 1; count++;
+    m = type->Members;
+    for (i = 0; i < type->num; i++, m++) {                  // Now check all its members; push unmarked ones.
+      if (! m->type->mark4use) {
+        assert(stack->top < stack->cap);
+        stack->types[stack->top++] = m->type;               // Push it on the stack for later processing.
+      }
+    }
+  }
+
+  freemem(ctx, stack);
+
+  return count;
+
+}
+
+t2c_type_t t2c_td4type(t2c_ctx_t ctx, t2c_type_t type, const char * name) {
+
+  struct {
+    t2c_Type_t   Type;
+    t2c_Member_t Member[1];
+  } TD;
+
+  memset(& TD, 0x00, sizeof(TD));
+  
+  TD.Type.prop = t2c_Typedef;
+  TD.Type.num = 1;
+  TD.Type.name = (char *) name;
+  TD.Member[0].type = type;
+  TD.Member[0].numind = 1;
+  TD.Member[0].name = "";                                   // Can not be NULL; would upset t2c_mem2cont().
+
+  return t2c_clone4type(ctx, & TD.Type);
+
+}
+
+uint32_t t2c_clearmark4scan(ctx_t ctx) {                    // Set all the type marks to 0.
 
   uint32_t i;
   uint32_t count;
   
   for (count = 0, i = 0; i < ctx->num; i++) {
     if (ctx->types[i]) {
-      ctx->types[i]->mark = 0;
+      ctx->types[i]->mark4scan = 0;
       count++;
     }
   }
@@ -897,7 +1134,7 @@ uint32_t t2c_clearmarks(ctx_t ctx) {                         // Set all the type
   
 }
 
-void t2c_scan4type(ctx_t ctx, t2c_cb4t_t cb, void * arg) {    // Scan over all types in the context.
+void t2c_scan4type(ctx_t ctx, t2c_cb4t_t cb, void * arg) {  // Scan over all types in the context.
 
   uint32_t i;
   
@@ -909,7 +1146,7 @@ void t2c_scan4type(ctx_t ctx, t2c_cb4t_t cb, void * arg) {    // Scan over all t
 
 }
 
-void t2c_scan4mem(ctx_t ctx, t2c_cb4m_t cb, void * arg) { // Scan over all members in the context.
+void t2c_scan4mem(ctx_t ctx, t2c_cb4m_t cb, void * arg) {   // Scan over all members in the context.
 
   type_t   ct;
   member_t cm;
@@ -952,7 +1189,7 @@ void t2c_xref4mem(ctx_t ctx, xref_t xref) {
 void t2c_remove4type(ctx_t ctx, xref_t xref) {
 
   if (xref->type && ! isPrim(xref->type)) {                 // Don't remove primitives; they are not even in the table.
-    t2c_xref4type(ctx, xref);                                // See if the type is used somewhere.
+    t2c_xref4type(ctx, xref);                               // See if the type is used somewhere.
     if (0 == xref->num) {
       freetype(ctx, xref->type);
     }
@@ -970,7 +1207,11 @@ typedef struct UDA_t {            // Usage/Dependency Analysis
   uint32_t    refs2self;
 } UDA_t;
 
-static uint32_t isRef2Self(type_t t, member_t m) {      // Return non zero when the member is a reference to self.
+static uint32_t isRef2Self(type_t t, member_t m) {         // Return non zero when the member is a reference to self.
+
+  if (t2c_isTypedef(m->type)) {                            // For a member, referring to a typedef, use the typedef'ed type.
+    m = & m->type->Members[0];
+  }
 
   return ((m->type == t) && m->numind) ? 1 : 0;
 
@@ -1041,7 +1282,7 @@ static int32_t weightcmp(const void * r2a, const void * r2b) {
 
 }
 
-void t2c_prep4gen(ctx_t ctx) {                           // Prepare for generation; try to reduce forward references as much as possible.
+void t2c_prep4gen(ctx_t ctx) {                              // Prepare for generation; try to reduce forward references as much as possible.
 
   UDA_t UDA;
 
@@ -1056,17 +1297,217 @@ void t2c_prep4gen(ctx_t ctx) {                           // Prepare for generati
   } while (UDA.changes && UDA.iteration <= ctx->num);       // Try to order according to usage as much as possible.
 
   if (UDA.forwards) {                                       // We had types refering to types not yet defined; i.e. forward references.
-    t2c_scan4type(ctx, check4forwards, NULL);                // This should make the type using less forward members, move higher.
+    t2c_scan4type(ctx, check4forwards, NULL);               // This should make the type using less forward members, move higher.
   }
 
-  qsort(ctx->types, ctx->num, sizeof(type_t), weightcmp); // Make the most referred to type come first to reduce forward references.
+  qsort(ctx->types, ctx->num, sizeof(type_t), weightcmp);   // Make the most referred to type come first to reduce forward references.
 
   for (uint32_t i = 0; i < ctx->num; i++) {                 // Set weight from high to low.
     ctx->types[i]->weight = ctx->num - i;
   }
 
-  t2c_scan4mem(ctx, prunefwds, & UDA);                       // Get rid of unnecessary forwards and also set the isRef2Self properties.
+  t2c_scan4mem(ctx, prunefwds, & UDA);                      // Get rid of unnecessary forwards and also set the isRef2Self properties.
 
   DBG("%u types, %u forwards, %u pruned away, %u refs to self.\n", ctx->num, UDA.forwards, UDA.pruned, UDA.refs2self);
+
+}
+
+typedef struct Line_t {           // Internal structure to build up a line.
+  char *   start;
+  uint16_t off;
+} Line_t;
+
+typedef struct Line_t * line_t;
+
+static void out(spec_t spec, line_t line, const char * format, ...) {
+
+  va_list ap;
+  int32_t ss;
+
+  if (spec->overflow) { return; }
+
+  va_start(ap, format);
+  ss = vsnprintf(line->start + line->off, spec->Buf.rem, format, ap);
+  va_end(ap);
+
+  if (ss >= spec->Buf.rem) {                                // Buffer overflown.
+    spec->overflow = 1;
+    spec->Buf.rem  = 0;                                     // By definition.
+  }
+  else {
+    spec->Buf.rem -= ss;
+    line->off     += ss;
+  }
+
+}
+
+static void add2spec(spec_t spec, line_t line) {            // Add the line to the type spec.
+
+  if (spec->overflow) { return; }
+
+  if (spec->Lines.num + 1 < spec->Lines.cap && ! spec->overflow) {
+    spec->Line[spec->Lines.num++].start = line->start;
+    line->start += line->off + 1;                           // Account for the trailing \0.
+    line->off = 0;                                          // Reset for next line.
+    spec->Buf.rem -= 1;                                     // Account for the \0 at the end, not yet accounted for.
+  }
+  else {
+    spec->overflow = 1;
+  }
+
+}
+
+static void pad(spec_t spec, line_t line, uint32_t ts) {    // Fill with space until tab stop or overflow.
+
+  while (line->off + 1 < ts && ! spec->overflow) {
+    out(spec, line, " ");
+  }
+
+}
+
+static uint32_t prop2ti(uint32_t prop) {                    // Return a type index based upon the property.
+
+  if (t2c_Prim    == (t2c_Prim    & prop)) return 1;
+  if (t2c_Bitset  == (t2c_Bitset  & prop)) return 2;
+  if (t2c_Struct  == (t2c_Struct  & prop)) return 3;
+  if (t2c_Union   == (t2c_Union   & prop)) return 4;
+  if (t2c_Enum    == (t2c_Enum    & prop)) return 5;
+  if (t2c_Typedef == (t2c_Typedef & prop)) return 6;
+  
+  return 0;                                                 // Unknown type.
+  
+}
+
+void t2c_fmttype(t2c_ctx_t ctx, t2c_type_t type, spec_t spec) {
+
+  Line_t       L;
+  uint32_t     i;
+  t2c_member_t m = type->Members;
+  uint32_t     ti = prop2ti(type->prop);
+  uint32_t     mti;
+  uint32_t     isBitset = (ti == 2);
+  uint32_t     isEnum   = (ti == 5);
+  char         evfmt[32];
+  char         eol[32];
+
+  static const char * ti2name[] = {
+    "",
+    "", 
+    "struct", // Bitsets are rendered as struct.
+    "struct",
+    "union",
+    "enum",
+    "typedef",
+  };
+
+  spec->overflow  = 0;
+  spec->Lines.num = 0;
+  spec->Buf.rem   = spec->Buf.cap;
+  
+  memset(spec->Buf.buf, 0x00, spec->Buf.cap);
+
+  L.start = spec->Buf.buf;
+  L.off   = 0;
+
+  if (1 == ti || 0 == ti) {                                 // We don't format primitive or unknown types.
+    return;
+  }
+
+  if (spec->evfmt) {                                        // Create the format string for the enumeration value.
+    sprintf(evfmt, "= %s", spec->evfmt);
+  }
+  else {
+    sprintf(evfmt, "= %%u");                                // Not specified, create a default.
+  }
+
+  if (spec->addEOLComments) {
+    sprintf(eol, "//");
+  }
+  else {
+    sprintf(eol, "");
+  }
+
+  if (6 == ti) {                                            // A typedef.
+    assert(1 == type->num);                                 // Should have exactly 1 member.
+    m = & type->Members[0];
+    out(spec, & L, "typedef %s ", ti2name[prop2ti(m->type->prop)]);
+    pad(spec, & L, spec->Tab.typedef_1);
+    out(spec, & L, "%s ", m->type->name);
+    for (i = 0; i < m->numind; i++) {
+      out(spec, & L, "*");
+    }
+    pad(spec, & L, spec->Tab.typedef_2);
+    out(spec, & L, "%s;", type->name);
+    pad(spec, & L, spec->Tab.comment);
+    out(spec, & L, eol);
+    pad(spec, & L, spec->Tab.ends);
+    add2spec(spec, & L);
+    assert(1 == spec->Lines.num);
+  }
+  else {                                                    // A compound type.
+    if (spec->useTypedef) {                                 // Create the declaration header.
+      out(spec, & L, "typedef ");
+    }
+    out(spec, & L, "%s ", ti2name[ti]);
+    if (spec->useTypedef) {
+      out(spec, & L, "%s ", type->name);
+    }
+    out(spec, & L, "{");
+    pad(spec, & L, spec->Tab.comment);
+    out(spec, & L, eol);
+    pad(spec, & L, spec->Tab.ends);
+    add2spec(spec, & L);                                    // Add declaration header line.
+
+    for (i = 0; i < type->num; i++, m++) {                  // Now do all members.
+      pad(spec, & L, spec->Tab.type);
+
+      if (m->isConst) {
+        out(spec, & L, "const ");
+      }
+
+      if (! isEnum) {
+        mti = prop2ti(m->type->prop);                       // Member type index.
+        if (spec->useFwDec && (3 == mti || 4 == mti)) {     // When a struct or a union and we need to use forwarding declarations.
+          out(spec, & L, "%s ", ti2name[mti]);
+        }
+        out(spec, & L, "%s ", m->type->name);
+      }
+
+      for (uint32_t x = 0; x < m->numind; x++) {
+        out(spec, & L, "*");
+      }
+
+      if (! isEnum) {                                       // Enumeration values are filled out later.
+        pad(spec, & L, spec->Tab.member);
+      }
+
+      out(spec, & L, "%s", m->name);
+
+      if (isBitset) {
+        pad(spec, & L, spec->Tab.bits);
+        out(spec, & L, ": %2u", m->width);
+      }
+      else if (isEnum) {
+        pad(spec, & L, spec->Tab.member);                   // Enumeration values start where the member would start.
+        out(spec, & L, evfmt, m->enumval);
+      }
+      else if (m->fxdsize) {
+        out(spec, & L, "[%u]", m->fxdsize);
+      }
+      else if (m->isVTail) {
+        out(spec, & L, "[0]");
+      }
+
+      out(spec, & L, "%c", isEnum ? ',' : ';');
+      pad(spec, & L, spec->Tab.comment);
+      out(spec, & L, eol);
+      pad(spec, & L, spec->Tab.ends);
+      if (spec->overflow) { return; }                       // No need to continue
+      add2spec(spec, & L);
+    }
+
+    out(spec, & L, "} %s;", type->name);  
+    add2spec(spec, & L);
+  }
 
 }
