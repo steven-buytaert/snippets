@@ -47,3 +47,10 @@ Container repo with very simple code snippets.
   tools. Can cluster fields that are governed by the same member for size,
   together. Can optimize a type to avoid padding as much as possible, by
   reordering members. No sample code.
+
+* fb2: the very early start of a flatbuffer schema parser. It parses a
+  flatbuffer schema into an internal format that can be used for further
+  processing (tool creation, code generation, ...). Uses the above mentioned
+  snset for processing and generating the internal schema. Requires
+  flex (>= 2.6.4) and bison (>= 3.6.0) for scanner and parser generation.
+  No sample code or documentation yet.
