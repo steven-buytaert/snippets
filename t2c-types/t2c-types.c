@@ -1114,7 +1114,9 @@ t2c_type_t t2c_td4type(t2c_ctx_t ctx, t2c_type_t type, const char * name) {
   TD.Member[0].numind = 1;
   TD.Member[0].name = "";                                   // Can not be NULL; would upset t2c_mem2cont().
 
-  return t2c_clone4type(ctx, & TD.Type);
+  type->ref2type = t2c_clone4type(ctx, & TD.Type);
+
+  return type->ref2type;
 
 }
 

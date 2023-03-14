@@ -108,7 +108,7 @@ typedef struct t2c_Type_t {
   uint8_t            mark4scan;
   uint8_t            mark4use;    // Will be set by t2c_mark4use() traversal.
   uint8_t            marks[4];    // Marks the user can use freely.
-  t2c_type_t         ref2type;    // When not NULL, a typedef reference to the type; must be explicitely set by the user.
+  t2c_type_t         ref2type;    // When not NULL, a typedef reference to the type; assigned by calling t2c_td4type().
   const t2c_Member_t Marker;      // Marker to find back the container type for a member (name is NULL, type is container).
   t2c_Member_t       Members[0];  // Type members.
 } t2c_Type_t;
