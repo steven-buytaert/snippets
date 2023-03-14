@@ -290,7 +290,7 @@ void end4type(ctx_t ctx) {
 
   if ((T.type->kind & KoT_ENUM) == KoT_ENUM) {              // For an enum, we still need to attach the typetoken.
     assert(ctx->TUC.enumtype);
-    memset(& Val, 0x00, sizeof(Val));                       // Enums start at 0 unless overriden below.
+    memset(& Val, 0x00, sizeof(Val));                       // Enum members start at 0 unless overriden below.
     T.meta->typetoken = ctx->TUC.enumtype;
     for (i = ctx->TUC.tidx; i <= ctx->TUC.midx; i++) {      // Now assign proper values to all enum members.
       meta = ctx->Meta.set[i];
@@ -300,7 +300,7 @@ void end4type(ctx_t ctx) {
           token2Value(ctx, meta->value, & Val);
         }
         memcpy(& E.member->Default, & Val, sizeof(Val));
-        printf("ENUM MEM [%s] value %ld %s\n", meta->id->text, Val.i64, meta->value ? meta->value->text : "<no val>");
+//        printf("ENUM MEM [%s] value %ld %s\n", meta->id->text, Val.i64, meta->value ? meta->value->text : "<no val>");
         Val.i64++;                                          // Default value for next member, if any, unless overriden.
       }
     }

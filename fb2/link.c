@@ -134,6 +134,7 @@ static void member2type(ctx_t ctx, meta_t meta) {           // Link the member w
       if (find(ctx, Con.meta->typetoken, TYPE, & ToM)) {
         meta->membertype = ToM.meta->index;
         ToM.meta->used++;
+        Con.type->type4enum = ToM.type;
       }
       else {
         error(ctx, "Type of enum '%s' '%s' not found.", Con.meta->id->text, Con.meta->typetoken->text);

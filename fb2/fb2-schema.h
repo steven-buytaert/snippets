@@ -89,7 +89,10 @@ typedef struct fb2_Type_t {
   uint8_t        numattr;         // Number of type attributes in attrs[] array.
   uint8_t        canontype;       // For a primitive type, the type number of the canonical name.
   uint16_t       nummem;          // Number of members in the members[] array, after the attributes.
-  uint8_t        pad[8];
+  union{ 
+    fb2_type_t   type4enum;       // When an enum, the primitive type of the enum.
+    int64_t      type4enum_a;
+  };
   union {
     fb2_member_t members[0];      // members[nummem] that make up this type.
     int64_t      addresses[0];
