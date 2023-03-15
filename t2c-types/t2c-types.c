@@ -335,11 +335,11 @@ void t2c_renam(t2c_ctx_t ctx, t2c_member_t m, const char * name) {
   char * newname = ccstrdup(ctx, name);
 
   if (newname) {
-    if (m->nameIsDup) {
+    if (m->nameisdup) {
       freemem(ctx, (void *) m->name);
     }
     m->name = newname;
-    m->nameIsDup = 1;                                       // We allocated the name here.
+    m->nameisdup = 1;                                       // We allocated the name here.
   }
 
 }
@@ -367,6 +367,7 @@ static void freetype(ctx_t ctx, type_t type) {              // Internal function
     if (ctx->types[i] == type) {
       n2mu = sizeof(type_t) * (ctx->cap - i - 1);           // Number of bytes to move up.
       memmove(& ctx->types[i], & ctx->types[i + 1], n2mu);
+      ctx->num--;                                           // One less member.
       if (type->alt) {
         freemem(ctx, type->alt);
       }
@@ -376,9 +377,8 @@ static void freetype(ctx_t ctx, type_t type) {              // Internal function
             freemem(ctx, (char *) m->name);
           }
         }
-        freemem(ctx, type);
+        freemem(ctx, type);                                 // Only now release the memory.
       }
-      ctx->num--;
       return;
     }
   }
@@ -999,6 +999,7 @@ type_t t2c_clone4type(ctx_t ctx, const t2c_Type_t * type) { // Clone a type (ens
   clone->name = (char *) & clone->Members[type->num];       // Was overwritten by the memcpy; so re-assign it.
   strncpy(clone->name, type->name, ctx->maxnamesize - 1);   // Copy name contents.
   clone->prop &= (uint8_t) ~t2c_Static;                     // Remove the static property, if any.
+  clone->ref2type = NULL;                                   // This field is never cloned.
 
   for (i = 0; i < type->num; i++, m++) {
     memcpy(& clone->Members[i], m, sizeof(t2c_Member_t));
@@ -1098,7 +1099,7 @@ uint32_t t2c_mark4use(t2c_ctx_t ctx, const t2c_Type_t * root) {
 
 }
 
-t2c_type_t t2c_td4type(t2c_ctx_t ctx, t2c_type_t type, const char * name) {
+t2c_type_t t2c_tdref4type(t2c_ctx_t ctx, t2c_type_t type, const char * name) {
 
   struct {
     t2c_Type_t   Type;

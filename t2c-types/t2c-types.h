@@ -87,7 +87,6 @@ typedef struct t2c_Member_t {     // Member of a composite type.
   uint8_t            nameisdup;   // Name of the member is a strdup'ed name (internal purposes only).
   uint8_t            isForward;   // This member refers to a composite type, defined later (can't use the typedef'ed type yet).
   uint8_t            isRef2Self;  // This member refers to itself as type, e.g. a linked list; implies isForward.
-  uint8_t            nameIsDup;   // Set to non zero when the name is an internal stringdump; the rename function will not release it.
   t2c_Cargo_t        Cargo;       // User defined cargo; is copied when relevant (e.g. moving to cluster).
 } t2c_Member_t;
 
@@ -108,7 +107,7 @@ typedef struct t2c_Type_t {
   uint8_t            mark4scan;
   uint8_t            mark4use;    // Will be set by t2c_mark4use() traversal.
   uint8_t            marks[4];    // Marks the user can use freely.
-  t2c_type_t         ref2type;    // When not NULL, a typedef reference to the type; assigned by calling t2c_td4type().
+  t2c_type_t         ref2type;    // Typedef reference to this type, when not NULL. Not copied during a clone. Assigned by t2c_tdref4type.
   const t2c_Member_t Marker;      // Marker to find back the container type for a member (name is NULL, type is container).
   t2c_Member_t       Members[0];  // Type members.
 } t2c_Type_t;
@@ -146,7 +145,7 @@ int32_t    t2c_typecmp(const t2c_Type_t *a, const t2c_Type_t *b);
 void       t2c_renam(t2c_ctx_t ctx, t2c_member_t m, const char * name); // Rename the member.
 t2c_type_t t2c_mem2cont(const t2c_Member_t * mem, uint32_t mi[1]);      // From a member, return the container; set mi if not NULL.
 t2c_type_t t2c_clone4type(t2c_ctx_t ctx, const t2c_Type_t * type);      // Allocate and clone the given type in the context.
-t2c_type_t t2c_td4type(t2c_ctx_t ctx, t2c_type_t t, const char *n);     // Create a typedef'ed *reference*; e.g. typedef Foo_t * foo_t;
+t2c_type_t t2c_tdref4type(t2c_ctx_t ctx, t2c_type_t t, const char *n);  // Create a typedef'ed *reference*; e.g. typedef Foo_t * foo_t;
 uint32_t   t2c_clearmark4scan(t2c_ctx_t ctx);                           // Set all type mark4scan to 0, return number cleared.
 void       t2c_scan4type(t2c_ctx_t ctx, t2c_cb4t_t cb, void * arg);     // Only call cb on unmarked types.
 void       t2c_scan4mem(t2c_ctx_t ctx, t2c_cb4m_t cb, void * arg);
