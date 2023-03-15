@@ -21,11 +21,13 @@ typedef struct fb2_Type_t      Type_t;    // Internal shorthands to public types
 typedef struct fb2_Type_t *    type_t;
 typedef struct fb2_Member_t    Member_t;
 typedef struct fb2_Member_t *  member_t;
-typedef struct fb2_Attr_t      Attr_t;
-typedef struct fb2_Attr_t *    attr_t;
+typedef struct fb2_KeyVal_t    KeyVal_t;
+typedef struct fb2_KeyVal_t *  keva_t;
 typedef struct fb2_Tag_t       Tag_t;
 typedef struct fb2_Tag_t *     tag_t;
 typedef struct fb2_BSchema_t * schema_t;
+typedef union  fb2_Value_t     Value_t;
+typedef union  fb2_Any_t       Any_t;
 
 typedef struct Ctx_t *         ctx_t;
 typedef struct Token_t *       token_t;
@@ -33,6 +35,7 @@ typedef void *                 yyscan_t;
 typedef struct Tok2Type_t *    tok2type_t;
 typedef struct Meta_t *        meta_t;
 typedef struct Tup_t *         tup_t;
+typedef struct Hdr_t *         hdr_t;
 
 typedef enum Const_t {            // Constant type identification.
   NONE            = 0,
@@ -61,9 +64,8 @@ typedef enum {
   TAG             = 3,
   TYPE_ATTR       = 4,
   MEMBER_ATTR     = 5,
-  ATTR_DEFINITION = 6,
-  KEYVAL          = 7,
-  HEADER          = 8,
+  KEYVAL          = 6,
+  HEADER          = 7,
 } MetaTag_t;
 
 typedef struct Meta_t {           // Information on an entry in the TMA set. Each index in TMA has a Meta structure at the same index.
@@ -88,7 +90,7 @@ typedef struct Hdr_t {            // This is the common header for types/members
     int64_t       name_a;
   };
   uint16_t        o2n;            // Offset to next structure, in increments of 8 bytes.
-  uint16_t        kind;
+  uint16_t        fb2ti;
   uint8_t         pad[4];
 } Hdr_t;                          // We check with asserts that all structures conform.
 
@@ -97,7 +99,7 @@ typedef struct Tup_t {            // The combination of meta information and the
   union {
     type_t        type;
     member_t      member;
-    attr_t        attr;
+    keva_t        attr;
     tag_t         tag;
     Hdr_t *       hdr;
     void *        any;
@@ -130,7 +132,7 @@ typedef struct Ctx_t {            // Context for lexing and parsing.
 } Ctx_t;
 
 token_t  tok2next(token_t tok);
-fb2_type_t anf4type(ctx_t ctx, uint32_t kind, token_t name);
+type_t   anf4type(ctx_t ctx, uint32_t ti, token_t name);
 void     member(ctx_t ctx, token_t name, token_t type, uint32_t array, token_t val);
 void     nselement(ctx_t ctx, token_t comp);
 void     attr(ctx_t ctx, token_t name, token_t value);

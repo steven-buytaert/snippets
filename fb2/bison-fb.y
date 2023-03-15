@@ -42,11 +42,6 @@ SchemaElement:
       | TypeDefinition 
       ;
 
-Value: %empty                                { $$ = NULL; }
-      | '=' CONST                            { $$ = $2;   }
-      | '=' ID                               { $$ = $2;   }
-      ;
-
 OneAttr:
         ID                                   { attr(ctx, $1, NULL); }
       | ID ':' CONST                         { attr(ctx, $1,   $3); }
@@ -61,7 +56,13 @@ Attr: %empty
       | '(' ListOfAttr ')'
       ;
 
-Member: ID ':'     ID     Value     Attr ';' { member(ctx, $1, $3, 0,   $4); }
+Default:
+        '=' CONST                            { $$ = $2;   }
+      | '=' ID                               { $$ = $2;   }
+      ;
+
+Member: ID ':'     ID               Attr ';' { member(ctx, $1, $3, 0, NULL); }
+      | ID ':'     ID     Default   Attr ';' { member(ctx, $1, $3, 0,   $4); }
       | ID ':' '[' ID ']'           Attr ';' { member(ctx, $1, $4, 1, NULL); }
       | ID ':' '[' ID ':' CONST ']' Attr ';' { member(ctx, $1, $4, 1,   $6); }
       ;
@@ -70,23 +71,23 @@ Members: %empty
       | Members Member
       ;
 
-//EnumType: %empty // pass a default here or is a type mandatory?
-//      | ':' ID                               { enumtype(ctx, $2); }
-//      ;
-EnumType: ':' ID                             { enumtype(ctx, $2); }
+EnumType:
+        ':' ID                               { enumtype(ctx, $2);   }
+      ;
 
 EnumMember: ID                               { member(ctx, $1, NULL, 0, NULL); }
-      |    ID ','                            { member(ctx, $1, NULL, 0, NULL); }
-      |    ID '=' CONST                      { member(ctx, $1, NULL, 0,   $3); }
-      |    ID '=' CONST ','                  { member(ctx, $1, NULL, 0,   $3); }
+      |     ID ','                           { member(ctx, $1, NULL, 0, NULL); }
+      |     ID '=' CONST                     { member(ctx, $1, NULL, 0,   $3); }
+      |     ID '=' CONST ','                 { member(ctx, $1, NULL, 0,   $3); }
       ;
 
 EnumMembers: EnumMember
       | EnumMembers EnumMember
       ;
 
-UnionMember: ID                               { member(ctx, $1, NULL, 0, NULL); }
+UnionMember: ID                              { member(ctx, $1, NULL, 0, NULL); }
       | ID ','                               { member(ctx, $1, NULL, 0, NULL); }
+      | ID ':' ID ','                        { member(ctx, $1,   $3, 0, NULL); }
       ;
 
 UnionMembers: UnionMember
@@ -94,10 +95,10 @@ UnionMembers: UnionMember
       ;
 
 TypeDefinition: 
-        STRUCT ID          Attr { anf4type(ctx, KoT_STRUCT, $2); } '{' Members      '}' { end4type(ctx); }
-      | ENUM   ID EnumType Attr { anf4type(ctx, KoT_ENUM,   $2); } '{' EnumMembers  '}' { end4type(ctx); }
-      | UNION  ID          Attr { anf4type(ctx, KoT_UNION,  $2); } '{' UnionMembers '}' { end4type(ctx); }
-      | TABLE  ID          Attr { anf4type(ctx, KoT_TABLE,  $2); } '{' Members      '}' { end4type(ctx); }
+        STRUCT ID          Attr { anf4type(ctx, fb2e_Struct, $2); } '{' Members      '}' { end4type(ctx); }
+      | ENUM   ID EnumType Attr { anf4type(ctx, fb2e_Enum,   $2); } '{' EnumMembers  '}' { end4type(ctx); }
+      | UNION  ID          Attr { anf4type(ctx, fb2e_Union,  $2); } '{' UnionMembers '}' { end4type(ctx); }
+      | TABLE  ID          Attr { anf4type(ctx, fb2e_Table,  $2); } '{' Members      '}' { end4type(ctx); }
       ;
 
 %%

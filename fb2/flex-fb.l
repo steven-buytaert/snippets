@@ -73,13 +73,13 @@ attribute         { adv(__LINE__, yytext, yyleng); token(yyextra, NULL, yyleng, 
 root_type         { adv(__LINE__, yytext, yyleng); token(yyextra, NULL, yyleng, ROOT);                 }
 "///".*           { adv(__LINE__, yytext, yyleng); } // TODO keep as comment for next token
 "//".*            { adv(__LINE__, yytext, yyleng); }
+{FALSE}           { adv(__LINE__, yytext, yyleng); token(yyextra, yytext, yyleng, CONST)->cti = FALSE; }
+{TRUE}            { adv(__LINE__, yytext, yyleng); token(yyextra, yytext, yyleng, CONST)->cti = TRUE;  }
 {IDENTIFIER}      { adv(__LINE__, yytext, yyleng); token(yyextra, yytext, yyleng, ID);                 }
 {FLOAT}           { adv(__LINE__, yytext, yyleng); token(yyextra, yytext, yyleng, CONST)->cti = FLOAT; }
 0[xX][a-fA-F0-9]+ { adv(__LINE__, yytext, yyleng); token(yyextra, yytext, yyleng, CONST)->cti = HEX;   }
 [0-9]+            { adv(__LINE__, yytext, yyleng); token(yyextra, yytext, yyleng, CONST)->cti = DEC;   }
 0[bB][01]+        { adv(__LINE__, yytext, yyleng); token(yyextra, yytext, yyleng, CONST)->cti = BIN;   }
-{FALSE}           { adv(__LINE__, yytext, yyleng); token(yyextra, yytext, yyleng, CONST)->cti = FALSE; }
-{TRUE}            { adv(__LINE__, yytext, yyleng); token(yyextra, yytext, yyleng, CONST)->cti = TRUE;  }
 [\t\v\f\r ]+      { adv(__LINE__, yytext, yyleng);                                                     }
 \n                { adv(__LINE__, yytext, yyleng);                                                     }
 .                 { adv(__LINE__, yytext, yyleng); token(yyextra, yytext, yyleng, CHAR);               }

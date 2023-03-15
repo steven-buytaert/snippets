@@ -9,6 +9,17 @@
 static const Type_t Builtin[] = {
   { .name = "none",     .canontype =  0 },
 
+  { .name = "uint8_t",  .canontype =  1 }, // The first ones refer to themselves as canonical.
+  { .name = "int8_t",   .canontype =  2 },
+  { .name = "uint16_t", .canontype =  3 },
+  { .name = "int16_t",  .canontype =  4 },
+  { .name = "int32_t",  .canontype =  5 },
+  { .name = "uint32_t", .canontype =  6 },
+  { .name = "int64_t",  .canontype =  7 },
+  { .name = "uint64_t", .canontype =  8 },
+  { .name = "float",    .canontype =  9 },
+  { .name = "double",   .canontype = 10 },
+
   { .name = "uint8",    .canontype =  1 },
   { .name = "int8",     .canontype =  2 },
   { .name = "uint16",   .canontype =  3 },
@@ -17,7 +28,8 @@ static const Type_t Builtin[] = {
   { .name = "uint32",   .canontype =  6 },
   { .name = "int64",    .canontype =  7 },
   { .name = "uint64",   .canontype =  8 },
-  { .name = "float",    .canontype =  9 },
+  { .name = "float32",  .canontype =  9 },
+  { .name = "float64",  .canontype = 10 },
   
   { .name = "ubyte",    .canontype =  1 },
   { .name = "byte",     .canontype =  2 },
@@ -27,11 +39,8 @@ static const Type_t Builtin[] = {
   { .name = "int",      .canontype =  6 },
   { .name = "ulong",    .canontype =  7 },
   { .name = "long",     .canontype =  8 },
-  { .name = "float32",  .canontype =  9 },
 
   { .name = "bool",     .canontype =  1 },
-  { .name = "double",   .canontype =  0 },
-  { .name = "float64",  .canontype =  0 },
   { .name = "string",   .canontype =  0 },
 };
 
@@ -123,7 +132,7 @@ static void refresh(ctx_t ctx, tup_t tup) {                 // Refresh a tuple a
 
 static void addany(ctx_t ctx, tup_t tup, uint32_t size, uint32_t a4t, uint8_t tom) {
 
-  a4t = roundup(a4t, 8);                                    // Always round up to an 8 byte alignment.
+  a4t = roundup(a4t, 8);                                    // Always round up to an 8 byte alignment for o2n to work later.
 
   assert(! ctx->TMA.Grow.locked);
   assert(! ctx->Meta.Grow.locked);
@@ -137,23 +146,14 @@ static void addany(ctx_t ctx, tup_t tup, uint32_t size, uint32_t a4t, uint8_t to
   tup->meta->index = ctx->Meta.num - 1;
   tup->meta->tom = tom;
 
-  if (TYPE_ATTR == tom || MEMBER_ATTR == tom || ATTR_DEFINITION == tom) {
-    tup->hdr->kind = KoT_ATTR;
-  }
-  else if (TYPE == tom) {
-    tup->hdr->kind = KoT_TYPE;
-  }
-  else if (MEMBER == tom) {
-    tup->hdr->kind = KoT_MEMBER;
-  }
-  else if (TAG == tom) {
-    tup->hdr->kind = KoT_TAG;
-  }
-  else if (KEYVAL == tom) {
-    tup->hdr->kind = KoT_KEYVAL;
-  }
-  else {
-    error(ctx, "Unknown kind %u\n", tom);
+  switch(tom) {
+    case TYPE_ATTR:
+    case MEMBER_ATTR: tup->hdr->fb2ti = fb2e_Attr;    break;
+    case TYPE:                                        break;// Don't assign here; proper kind will be assigned in anf4type.
+    case MEMBER:      tup->hdr->fb2ti = fb2e_Member;  break;
+    case TAG:         tup->hdr->fb2ti = fb2e_Tag;     break;
+    case KEYVAL:      tup->hdr->fb2ti = fb2e_KeyVal;  break;
+    default: error(ctx, "Unknown type %u\n", tom); break;
   }
 
   assert(ctx->TMA.num == ctx->Meta.num);                    // Both sets should always contain the same number of elements.
@@ -165,7 +165,7 @@ static void addmember(ctx_t ctx, tup_t tup, uint32_t sz) {  // Add a member type
 }
 
 static void addattr(ctx_t ctx, tup_t tup, uint8_t type) {   // Add an attribute type tuple to the TMA and Meta set.
-  addany(ctx, tup, sizeof(Attr_t), alignof(Attr_t), type);
+  addany(ctx, tup, sizeof(KeyVal_t), alignof(KeyVal_t), type);
 }
 
 static void addtype(ctx_t ctx, tup_t tup) {                 // Add a type tuple to the TMA and Meta set.
@@ -195,7 +195,8 @@ static void s4tag(ctx_t ctx, tup_t tup, const char * str) { // Find an existing 
   
   for (i = 0; i < ctx->TMA.num; i++) {
     tag = ctx->TMA.set[i];
-    if (KoT_TAG == tag->kind) {
+
+    if (fb2e_Tag == tag->fb2ti) {
       if (0 == strcmp(tag->chars, str)) {
         break;
       }
@@ -216,25 +217,25 @@ static void s4tag(ctx_t ctx, tup_t tup, const char * str) { // Find an existing 
 
 static void addkeyval(ctx_t ctx, const char * key, const char * value) {
 
-  Tup_t Key;
-  Tup_t Value;
-  Tup_t Attr;
+  Tup_t Key_Tag;
+  Tup_t Value_Tag;
+  Tup_t KeyValue;
 
-  s4tag(ctx, & Key, key);                                   // Ensure we have the key tag created or found.
-  s4tag(ctx, & Value, value);
+  s4tag(ctx, & Key_Tag, key);                               // Ensure we have the key tag created or found.
+  s4tag(ctx, & Value_Tag, value);
 
-  addattr(ctx, & Attr, KEYVAL);                             // Add the value attribute.
+  addattr(ctx, & KeyValue, KEYVAL);                         // Add the value attribute.
   
-  Attr.meta->container = Key.meta->index;                   // Couple key and value; meta->container = key   (tag)
-  Attr.meta->tag       = Value.meta->index;                 //                       meta-tag        = value (tag)
+  KeyValue.meta->container = Key_Tag.meta->index;           // Couple key and value; meta->container = key   (tag)
+  KeyValue.meta->tag       = Value_Tag.meta->index;         //                       meta-tag        = value (tag)
 
   if (value && 0 == strcmp(key, rootkey)) {                 // The name of the root type.
-    ctx->meta4hdr->tag = Value.meta->index;                 // The meta->tag for the header contains the root type name tag.
+    ctx->meta4hdr->tag = Value_Tag.meta->index;             // The meta->tag for the header contains the root type name tag.
   }
   
 }
 
-type_t anf4type(ctx_t ctx, uint32_t kind, token_t name) {
+type_t anf4type(ctx_t ctx, uint32_t ti, token_t name) {
 
   Tup_t    T;
   Tup_t    Tag;
@@ -250,7 +251,8 @@ type_t anf4type(ctx_t ctx, uint32_t kind, token_t name) {
     refresh(ctx, & Tag);                                    // Refresh since addtype might have changed the set.
     T.meta->tag = Tag.meta->index;
     T.meta->id = name;
-    T.type->kind = kind;
+    T.type->fb2ti = ti;
+
     ctx->TUC.tidx = T.meta->index;
     printf("\nDefining type [%s] type idx %u", name->text, ctx->TUC.tidx);
     for (i = 0; i < ctx->TUC.tidx; i++) {                   // Assign proper type index to all outstanding non assigned type attributes, if any.
@@ -258,7 +260,7 @@ type_t anf4type(ctx_t ctx, uint32_t kind, token_t name) {
       if (TYPE_ATTR == meta->tom) {                         // Only for TYPE_ATTR ...
         if (none == meta->container) {                      // ... that don't have a container yet.
           meta->container = ctx->TUC.tidx;
-          tma->stretch(tma, T.meta->index, sizeof(attr_t)); // Make room for an attribute in the type.
+          tma->stretch(tma, T.meta->index, sizeof(keva_t)); // Make room for an attribute in the type.
           refresh(ctx, & T);
           meta->idx4cont = T.type->numattr++;               // Assign it the proper slot in the type.
           printf(" ATTR{%s}", meta->id->text);
@@ -288,7 +290,7 @@ void end4type(ctx_t ctx) {
   
   idx2tup(ctx, ctx->TUC.tidx, & T);
 
-  if ((T.type->kind & KoT_ENUM) == KoT_ENUM) {              // For an enum, we still need to attach the typetoken.
+  if (fb2e_Enum == T.type->fb2ti) {                         // For an enum, we still need to attach the typetoken.
     assert(ctx->TUC.enumtype);
     memset(& Val, 0x00, sizeof(Val));                       // Enum members start at 0 unless overriden below.
     T.meta->typetoken = ctx->TUC.enumtype;
@@ -338,7 +340,7 @@ void member(ctx_t ctx, token_t name, token_t typetoken, uint32_t isArray, token_
 
   assert(TYPE == Con.meta->tom);
 
-  size += ctx->TUC.numMAttr * sizeof(Attr_t);
+  size += ctx->TUC.numMAttr * sizeof(KeyVal_t);
 
   addmember(ctx, & M, size);
 
@@ -363,7 +365,7 @@ void member(ctx_t ctx, token_t name, token_t typetoken, uint32_t isArray, token_
       meta->container = ctx->TUC.midx;                      // The attribute is contained by this member.
       meta->idx4cont = M.member->numattr++;                 // The index in Member.attr[] for this attribute.
 
-      tma->stretch(tma, M.meta->index, sizeof(attr_t));     // Stretch the member to include the attribute slot ...
+      tma->stretch(tma, M.meta->index, sizeof(keva_t));     // Stretch the member to include the attribute key value slot ...
       refresh(ctx, & M);                                    // ... and reload since the reference could have changed.
 
       printf("ATTR{%s} ", meta->id->text);
@@ -401,12 +403,12 @@ void member(ctx_t ctx, token_t name, token_t typetoken, uint32_t isArray, token_
 
 void enumtype(ctx_t ctx, token_t type) {
 
-//  Tup_t E;
+  Tup_t ET;
   
-//  find(ctx, type, TYPE, & E);
+  if (! find(ctx, type, TYPE, & ET)) {
+    error(ctx, "Enum type '%s' not found.\n", type->text);
+  }
   
-//  printf("ENUM TYPE [%s] reffed %u\n", type->text, E.meta ? E.meta->used : 0);
-
   ctx->TUC.enumtype = type;
 
 }
@@ -432,9 +434,9 @@ void attr(ctx_t ctx, token_t name, token_t value) {         // Create an attribu
 
   s4tag(ctx, & T, name->text);                              // Find or create the name tag.
 
-  refresh(ctx, & A);                                        // Reload attribute tuple, since it could have been changed by search4tag.
+  refresh(ctx, & A);                                        // Reload attribute tuple, since it could have been changed by s4tag.
 
-  A.attr->name = name->text;                                // This is a temporary string; the tag->chars will be assigned at the link stage.
+  A.attr->key = name->text;                                 // This is a temporary string; the tag->chars will be assigned at the link stage.
   A.meta->tag = T.meta->index;                              // For now record the tag index in the meta info for the attribute. 
 
   if (none == ctx->TUC.aidx) {                              // First of the set of attributes for the current member?
@@ -480,9 +482,9 @@ static void builtins(ctx_t ctx) {                           // Add the builtin t
     if (token) {
       token->size = strlen(t->name);
       memcpy(token->text, t->name, token->size);
-      type = anf4type(ctx, KoT_PRIM, token);
+      type = anf4type(ctx, fb2e_Prim, token);
       type->canontype = t->canontype;
-      if (ctx->numtypes <= 10) {
+      if (ctx->numtypes <= 11) {
         assert(ctx->numtypes - 1 == t->canontype);          // For the first 10 types, the canontype should be the type number in the set.
       }
       end4type(ctx);
@@ -517,35 +519,35 @@ extern int fbpyydebug;
 
 void fb2_parse(fb2_ctx_t ctx, const char * schema, uint32_t size) {
 
-  assert(offsetof(Hdr_t, name) == offsetof(Member_t, name));
-  assert(offsetof(Hdr_t, kind) == offsetof(Member_t, kind));
-  assert(offsetof(Hdr_t,  o2n) == offsetof(Member_t,  o2n));
+  assert(offsetof(Hdr_t,  name) == offsetof(Member_t,    name));
+  assert(offsetof(Hdr_t, fb2ti) == offsetof(Member_t,   fb2ti));
+  assert(offsetof(Hdr_t,   o2n) == offsetof(Member_t,     o2n));
 
-  assert(offsetof(Hdr_t, name) == offsetof(Type_t,   name));
-  assert(offsetof(Hdr_t, kind) == offsetof(Type_t,   kind));
-  assert(offsetof(Hdr_t,  o2n) == offsetof(Type_t,    o2n));
+  assert(offsetof(Hdr_t,  name) == offsetof(Type_t,      name));
+  assert(offsetof(Hdr_t, fb2ti) == offsetof(Type_t,     fb2ti));
+  assert(offsetof(Hdr_t,   o2n) == offsetof(Type_t,       o2n));
 
-  assert(offsetof(Hdr_t, name) == offsetof(Attr_t,   name));
-  assert(offsetof(Hdr_t, kind) == offsetof(Attr_t,   kind));
-  assert(offsetof(Hdr_t,  o2n) == offsetof(Attr_t,    o2n));
+  assert(offsetof(Hdr_t,  name) == offsetof(KeyVal_t,     key));
+  assert(offsetof(Hdr_t, fb2ti) == offsetof(KeyVal_t,   fb2ti));
+  assert(offsetof(Hdr_t,   o2n) == offsetof(KeyVal_t,     o2n));
 
-  assert(offsetof(Hdr_t, name) == offsetof(Tag_t,   string));
-  assert(offsetof(Hdr_t, kind) == offsetof(Tag_t,     kind));
-  assert(offsetof(Hdr_t,  o2n) == offsetof(Tag_t,      o2n));
+  assert(offsetof(Hdr_t,  name) == offsetof(Tag_t,     string));
+  assert(offsetof(Hdr_t, fb2ti) == offsetof(Tag_t,      fb2ti));
+  assert(offsetof(Hdr_t,   o2n) == offsetof(Tag_t,        o2n));
 
-  assert(offsetof(Hdr_t, name) == offsetof(fb2_Any_t, Type.name));
-  assert(offsetof(Hdr_t, kind) == offsetof(fb2_Any_t, Type.kind));
-  assert(offsetof(Hdr_t,  o2n) == offsetof(fb2_Any_t, Type.o2n));
+  assert(offsetof(Hdr_t,  name) == offsetof(Any_t,  Type.name));
+  assert(offsetof(Hdr_t, fb2ti) == offsetof(Any_t, Type.fb2ti));
+  assert(offsetof(Hdr_t,   o2n) == offsetof(Any_t,   Type.o2n));
   
   assert((offsetof(fb2_BSchema_t, bytes) & 0b111) == 0);    // First element should start on an 8 byte address.
 
   assert(sizeof(fb2_Type_t)    == 24);                      // Ensure we have fixed width types on all machines.
-  assert(sizeof(fb2_Attr_t)    == 24);
+  assert(sizeof(fb2_KeyVal_t)  == 24);
   assert(sizeof(fb2_Member_t)  == 32);
   assert(sizeof(fb2_Tag_t)     == 16);
   assert(sizeof(fb2_BSchema_t) == 40);
 
-  Ctx_t   Ctx;                                              // Internal context.
+  Ctx_t Ctx;                                                // Internal context.
   
   memset(& Ctx, 0x00, sizeof(Ctx));
 
@@ -617,7 +619,7 @@ void fb2_parse(fb2_ctx_t ctx, const char * schema, uint32_t size) {
   fb2link(& Ctx);                                           // Create the binary schema by linking all together.
 
   if (ctx->schema) {
-    ctx->schema->Num.canonical = 10;                        // Up to and including float.
+    ctx->schema->Num.canonical = 11;                        // Up to and including double.
   }
 
   printf("alignof(Token_t) %zu\n", alignof(Token_t));

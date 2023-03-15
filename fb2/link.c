@@ -42,7 +42,7 @@ printf("VALUE NUMBER [%s]\n", number);
         
     case TRUE:
     case FALSE: {
-      val->i08 = token->cti == FALSE ? 0 : 1;
+      val->i64 = token->cti == FALSE ? 0 : 1;
       break;
     }
       
@@ -63,42 +63,37 @@ printf("VALUE NUMBER [%s]\n", number);
 static void attr2member(ctx_t ctx, meta_t meta) {           // Link the attribute into the proper member slot.
 
   member_t member = ctx->TMA.set[meta->container];
-  attr_t   attr   = ctx->TMA.set[meta->index];
+  keva_t   attr   = ctx->TMA.set[meta->index];
 
-  assert(member->kind == KoT_MEMBER);
-  assert(attr->kind == KoT_ATTR);
+  assert(member->fb2ti == fb2e_Member);
+  assert(attr->fb2ti == fb2e_Attr);
   assert(meta->idx4cont < member->numattr);
 
   member->attr[meta->idx4cont] = attr;
 
 }
 
-static uint32_t isaTypeKind(uint8_t kind) {                 // Return 1 when the kind is a type.
-  return (kind & KoT_TYPE) ? 1 : 0;
+static uint32_t isaTypeKind(uint8_t ti) {                   // Return 1 when the kind is a type.
+  return (ti >= fb2e_Prim && ti <= fb2e_Struct) ? 1 : 0;
 }
 
 static void attr2type(ctx_t ctx, meta_t meta) {             // Link the attribute into the proper type slot.
 
   type_t   type = ctx->TMA.set[meta->container];
-  attr_t   attr = ctx->TMA.set[meta->index];
-  attr_t * ta = (attr_t *) & type->members[type->nummem];   // Type attribute array just behind the member slots.
+  keva_t   attr = ctx->TMA.set[meta->index];
+  keva_t * ta = (keva_t *) & type->members[type->nummem];   // Type attribute array just behind the member slots.
 
-  assert(isaTypeKind(type->kind));
-  assert(attr->kind == KoT_ATTR);
+  assert(isaTypeKind(type->fb2ti));
+  assert(attr->fb2ti == fb2e_Attr);
   assert(meta->idx4cont < type->numattr);
 
   ta[meta->idx4cont] = attr;
 
 }
 
-static uint32_t isaCompound(uint8_t kind) {                 // Return 1 if a compound type.
+static uint32_t isaCompound(uint8_t ti) {                   // Return 1 if a compound type.
 
-  if ((kind & KoT_STRUCT) == KoT_STRUCT) return 1;
-  if ((kind & KoT_ENUM)   == KoT_ENUM)   return 1;
-  if ((kind & KoT_UNION)  == KoT_UNION)  return 1;
-  if ((kind & KoT_TABLE)  == KoT_TABLE)  return 1;
-
-  return 0;
+  return (ti >= fb2e_Table && ti <= fb2e_Struct) ? 1 : 0;
 
 }
 
@@ -129,7 +124,7 @@ static void member2type(ctx_t ctx, meta_t meta) {           // Link the member w
     }
   }
   else {                                                    // No typetoken, see if it's an enum or union member, based on the parent type.
-    if (Con.type->kind == KoT_ENUM) {                       // An enum, the type is the type of the enum itself.
+    if (fb2e_Enum == Con.type->fb2ti) {                     // An enum, the type is the type of the enum itself.
       assert(Con.meta->typetoken);                          // So it must have a typetoken.
       if (find(ctx, Con.meta->typetoken, TYPE, & ToM)) {
         meta->membertype = ToM.meta->index;
@@ -140,7 +135,7 @@ static void member2type(ctx_t ctx, meta_t meta) {           // Link the member w
         error(ctx, "Type of enum '%s' '%s' not found.", Con.meta->id->text, Con.meta->typetoken->text);
       }
     }
-    else if(Con.type->kind == KoT_UNION) {                  // A union, the member name itself *is* a type.
+    else if(fb2e_Union == Con.type->fb2ti) {                // A union, the member name itself *is* a type.
       if (find(ctx, meta->id, TYPE, & ToM)) {
         meta->membertype = ToM.meta->index;
         ToM.meta->used++;
@@ -155,76 +150,86 @@ static void member2type(ctx_t ctx, meta_t meta) {           // Link the member w
     }
   }
 
-  // printf("MEMBER [%s] kind %x\n", meta->id->text, ToM.type->kind); fflush(stdout);
+  // printf("MEMBER [%s] ti %x\n", meta->id->text, ToM.type->fb2ti); fflush(stdout);
 
-  assert(isaTypeKind(ToM.type->kind));
-  assert(isaCompound(Con.type->kind));                      // Members can only be part of a compound type.
+  assert(isaTypeKind(ToM.type->fb2ti));
+  assert(isaCompound(Con.type->fb2ti));                        // Members can only be part of a compound type.
   
   member->type = ToM.type;                                  // We can now give the member the proper type ...
   Con.type->members[meta->idx4cont] = member;               // ... and assign it to the proper slot in the containing type.
   
 }
 
-uint32_t fb2_isPrimitive(void * any) {
+uint32_t fb2_ti(void const * e) {
 
-  type_t e = any;
+  Hdr_t const * hdr = e;
 
-  return (e && KoT_PRIM == (e->kind & KoT_TYPE));
-
-}
-
-uint32_t fb2_isStruct(void * any) {
-
-  type_t e = any;
-
-  return (e && KoT_STRUCT == (e->kind & KoT_TYPE));
+  return hdr ? (hdr->fb2ti & fb2e_Mask) : 0;
 
 }
 
-uint32_t fb2_isEnum(void * any) {
+uint32_t fb2_isPrimitive(void const * any) {
 
-  type_t e = any;
+  Hdr_t const * e = any;
 
-  return (e && KoT_ENUM == (e->kind & KoT_TYPE));
-
-}
-
-uint32_t fb2_isUnion(void * any) {
-
-  type_t e = any;
-
-  return (e && KoT_UNION == (e->kind & KoT_TYPE));
+  return (e && e->fb2ti == fb2e_Prim);
 
 }
 
-uint32_t fb2_isTable(void * any) {
+uint32_t fb2_isStruct(void const * any) {
 
-  type_t e = any;
+  Hdr_t const * e = any;
 
-  return (e && KoT_TABLE == (e->kind & KoT_TYPE));
+  return (e && e->fb2ti == fb2e_Struct);
 
 }
 
-fb2_Any_t * fb2_go2next(void * cur) {                       // Go to the next element; return NULL when no next element.
+uint32_t fb2_isEnum(void const * any) {
 
-  Hdr_t *     here = cur;
-  fb2_Any_t * next;
+  Hdr_t const * e = any;
+
+  return (e && e->fb2ti == fb2e_Enum);
+
+}
+
+uint32_t fb2_isUnion(void const * any) {
+
+  Hdr_t const * e = any;
+
+  return (e && e->fb2ti == fb2e_Union);
+
+}
+
+uint32_t fb2_isTable(void const * any) {
+
+  Hdr_t const * e = any;
+
+  return (e && e->fb2ti == fb2e_Table);
+
+}
+
+fb2_Any_t * fb2_go2next(void const * cur) {                 // Go to the next element; return NULL when no next element.
+
+  Hdr_t const * here = cur;
+  fb2_Any_t *   next;
+
+  if (! cur) { return NULL; }
   
-  assert((here->kind & 0b0000000011000000) == 0);           // Small check.
+  assert((here->fb2ti & 0b1111111111110000) == 0);             // Small check.
 
   if (0 == here->o2n) { return NULL; }                      // No more next element.
 
   next = (fb2_Any_t *) ((char *) here + (8 * here->o2n));
   
-  assert((next->Type.kind & 0b0000000011000000) == 0);
+  assert((next->Type.fb2ti & 0b1111111111110000) == 0);
   
   return next;
   
 }
 
-static uint32_t couldBeRoot(ctx_t ctx, uint16_t kind) {     // Return true when the kind could be a root type.
+static uint32_t couldBeRoot(ctx_t ctx, uint16_t ti) {     // Return true when the kind could be a root type.
 
-  if ((kind & KoT_TABLE) == KoT_TABLE) return 1;
+  if (ti == fb2e_Table) return 1;
 
 //  KoT_STRUCT     = 0b00000010, // these could also be root types but are not allowed by the standard
 //  KoT_UNION      = 0b00000100,
@@ -241,7 +246,7 @@ void fb2link(ctx_t ctx) {
   meta_t    meta;
   tag_t     tag;
   tag_t     key;
-  attr_t    attr;
+  keva_t    attr;
   type_t    type;
   Hdr_t *   cur;
   Hdr_t *   prev = NULL;
@@ -276,7 +281,7 @@ void fb2link(ctx_t ctx) {
     }
     else if (meta->tom == TAG) {                            // Assign the tag string field to the chars array.
       tag = tma->set[i];
-      assert(KoT_TAG == tag->kind);
+      assert(fb2e_Tag == tag->fb2ti);
       tag->string = tag->chars;
       if (i == ctx->meta4hdr->tag) {                        // If this is the tag for the root type, save it.
         Root.name = tag->string;
@@ -284,9 +289,9 @@ void fb2link(ctx_t ctx) {
     }
     else if (meta->tom == TYPE) {                           // Assign the type its proper name tag.
       tag = tma->set[meta->tag];
-      assert(KoT_TAG == tag->kind);
+      assert(fb2e_Tag == tag->fb2ti);
       type = tma->set[meta->index];
-      assert(isaTypeKind(type->kind));
+      assert(isaTypeKind(type->fb2ti));
       type->name = tag->chars;
       schema->Num.types++;
       if (schema->Num.maxmem < type->nummem) {              // Keep track of the maximums.
@@ -303,9 +308,9 @@ void fb2link(ctx_t ctx) {
       tag->string = tag->chars;
       key->string = key->chars;
       attr = tma->set[meta->index];
-      attr->name = key->chars;
+      attr->key = key->chars;
       attr->Value.tag = tag;
-      printf("KEYVAL %s:%s\n", attr->name, attr->Value.tag->chars);
+      printf("KEYVAL %s:%s\n", attr->key, attr->Value.tag->chars);
     }
     else if (meta->tom == HEADER) {
       // Do nothing.
@@ -318,7 +323,7 @@ void fb2link(ctx_t ctx) {
   for (i = 1; i < tma->num; i++) {                          // Set the proper offset to next for all elements in the TMA set. Skip the header.
     cur = tma->set[i];
     assert(0 == ((uintptr_t) cur & 0b111));                 // Must be 8 byte aligned since we set wca to 8 in the TMA set at the start.
-    if (couldBeRoot(ctx, cur->kind)) {
+    if (couldBeRoot(ctx, cur->fb2ti)) {
       if (0 == strcmp(Root.name, cur->name)) {              // Found the root type.
         Root.type = tma->set[i];
         schema->root = (uint32_t)((uint8_t *) Root.type - schema->bytes);
@@ -333,7 +338,7 @@ void fb2link(ctx_t ctx) {
   }
 
 //  for (cur = tma->set[1], i = 1; cur; cur = fb2_go2next(cur), i++) { // Go over all types, members and attributes collected so far.
-//    printf("Cur %p type %u\n", cur, cur->kind);
+//    printf("Cur %p type %u\n", cur, cur->fb2ti);
 //    printf("%12s '%s' used %u\n", t2a[meta->tom], meta->id ? meta->id->text : "<tag>", meta->used);
 //  }
 
