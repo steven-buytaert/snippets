@@ -5,11 +5,11 @@
 
 #include <stdint.h>
 
-typedef struct fb2_Ctx_t *    fb2_ctx_t;
-typedef struct fb2_Member_t * fb2_member_t;
-typedef struct fb2_Type_t *   fb2_type_t;
-typedef struct fb2_KeyVal_t * fb2_keyval_t;
-typedef struct fb2_Tag_t *    fb2_tag_t;
+typedef struct fb2_SchemaCtx_t * fb2_schemaCtx_t;
+typedef struct fb2_Member_t *    fb2_member_t;
+typedef struct fb2_Type_t *      fb2_type_t;
+typedef struct fb2_KeyVal_t *    fb2_keyval_t;
+typedef struct fb2_Tag_t *       fb2_tag_t;
 
 typedef union fb2_Value_t {       // Member or KeyVal value.
   int64_t        i64;
@@ -134,14 +134,14 @@ typedef struct fb2_BSchema_t {    // Binary schema format header.
   };
 } fb2_BSchema_t;
 
-typedef void * (* fb2_mem_t)(fb2_ctx_t ctx, void * mem, uint32_t sz);
-typedef void   (* fb2_out_t)(fb2_ctx_t ctx, char buf[], uint32_t sz);
+typedef void * (* fb2_mem_t)(fb2_schemaCtx_t ctx, void * mem, uint32_t sz);
+typedef void   (* fb2_out_t)(fb2_schemaCtx_t ctx, char buf[], uint32_t sz);
 
-typedef struct fb2_Ctx_t {
+typedef struct fb2_SchemaCtx_t {
   fb2_mem_t       mem;            // Memory allocation and release.
   fb2_out_t       out;            // Output a line of code.
   fb2_BSchema_t * schema;         // After parsing, the schema in binary form.
-} fb2_Ctx_t;
+} fb2_SchemaCtx_t;
 
 fb2_Any_t * fb2_go2next(void const * cur);
 uint32_t    fb2_ti(void const * e);
@@ -150,6 +150,6 @@ uint32_t    fb2_isStruct(void const * e);
 uint32_t    fb2_isEnum(void const * e);
 uint32_t    fb2_isUnion(void const * e);
 uint32_t    fb2_isTable(void const * e);
-void        fb2_parse(fb2_ctx_t ctx, const char * schema, uint32_t size);
+void        fb2_parse(fb2_schemaCtx_t ctx, const char * schema, uint32_t size);
 
 #endif // FB2_SCHEMA_H

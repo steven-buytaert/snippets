@@ -86,7 +86,7 @@ root_type         { adv(__LINE__, yytext, yyleng); token(yyextra, NULL, yyleng, 
 
 %%
 
-int fbsyywrap(yyscan_t yyscanner) {
+int fb2_syywrap(yyscan_t yyscanner) {
 
   return 1; // We're done
 
@@ -98,20 +98,20 @@ void flutscan(ctx_t ctx, const char * schema, uint32_t size) {
 
   line = schema;
 
-  fbsyylex_init_extra(ctx, & ctx->scanner);
+  fb2_syylex_init_extra(ctx, & ctx->scanner);
 
-  fbs = fbsyy_scan_bytes(schema, (int32_t) size, ctx->scanner);
+  fbs = fb2_syy_scan_bytes(schema, (int32_t) size, ctx->scanner);
 
-  fbsyy_switch_to_buffer(fbs, ctx->scanner);
+  fb2_syy_switch_to_buffer(fbs, ctx->scanner);
 
-  while(fbsyylex(ctx->scanner) > 0) {
+  while(fb2_syylex(ctx->scanner) > 0) {
     // doit
   }
 
-  fbsyylex_destroy(ctx->scanner);
+  fb2_syylex_destroy(ctx->scanner);
 
 #ifdef YYDEBUG
-  fbpyydebug = 0;
+  fb2_pyydebug = 0;
 #endif
 
 }
@@ -125,7 +125,7 @@ void dummy_yyunput(void) {                                  // To avoid we have 
 
 }
 
-int32_t fbpyylex(token_t tr[1], ctx_t ctx) {                // Called by the parser to get a token or a character.
+int32_t fb2_pyylex(token_t tr[1], ctx_t ctx) {                // Called by the parser to get a token or a character.
 
   token_t tok = NULL;
 //  int32_t rv = ctx->error ? YYerror : YYEOF;                // Return value; prepare with EOF when not in error.

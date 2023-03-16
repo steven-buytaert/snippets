@@ -107,7 +107,7 @@ typedef struct Tup_t {            // The combination of meta information and the
 } Tup_t;
 
 typedef struct Ctx_t {            // Context for lexing and parsing.
-  fb2_ctx_t       fb2_ctx;
+  fb2_schemaCtx_t fb2_ctx;
   SNSet_t         Tokens;
   meta_t          meta4hdr;       // Meta information for the header.
   token_t         nexttoken;      // Next token to process.
@@ -140,8 +140,8 @@ void     enumtype(ctx_t ctx, token_t type);
 void     keyval(ctx_t ctx, const char * key, token_t value);
 void     end4type(ctx_t ctx);
 void     flutscan(ctx_t ctx, const char * schema, uint32_t size);
-int32_t  fbpyylex(token_t * tok, ctx_t ctx);
-uint32_t fbpyyerror(ctx_t ctx, const char * msg);
+int32_t  fb2_pyylex(token_t * tok, ctx_t ctx);
+uint32_t fb2_pyyerror(ctx_t ctx, const char * msg);
 uint32_t find(ctx_t ctx, token_t token, uint8_t type, tup_t tup); // find a type/member/attr by its token; when found, fill the tup.
 void     idx2tup(ctx_t ctx, uint32_t idx, tup_t tup);
 void     token2Value(ctx_t ctx, token_t token, Value_t * val);

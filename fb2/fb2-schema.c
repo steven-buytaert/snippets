@@ -497,9 +497,9 @@ static void builtins(ctx_t ctx) {                           // Add the builtin t
 
 }
 
-void fbpyyparse(ctx_t ctx);                                 // Defined by bison in fb-parser.c.
+void fb2_pyyparse(ctx_t ctx);                               // Defined by bison in fb-parser.c.
 
-uint32_t fbpyyerror(ctx_t ctx, const char * msg) {          // Also see yyreport_syntax_error() in bison-fb.y.
+uint32_t fb2_pyyerror(ctx_t ctx, const char * msg) {        // Also see yyreport_syntax_error() in bison-fb.y.
 
   error(ctx, "ERROR: %s", msg);
 
@@ -517,7 +517,7 @@ static void * mem4set(snset_t set, void * mem, uint32_t sz) {
 
 extern int fbpyydebug;
 
-void fb2_parse(fb2_ctx_t ctx, const char * schema, uint32_t size) {
+void fb2_parse(fb2_schemaCtx_t ctx, const char * schema, uint32_t size) {
 
   assert(offsetof(Hdr_t,  name) == offsetof(Member_t,    name));
   assert(offsetof(Hdr_t, fb2ti) == offsetof(Member_t,   fb2ti));
@@ -606,7 +606,7 @@ void fb2_parse(fb2_ctx_t ctx, const char * schema, uint32_t size) {
 
 //  fbpyydebug = 1; // Enable for debugging
 
-  fbpyyparse(& Ctx);                                        // Now start the parsing.
+  fb2_pyyparse(& Ctx);                                      // Now start the parsing.
 
   while ('_' == Ctx.nmspace[strlen(Ctx.nmspace) - 1]) {     // Strip any trailing underscores.
     Ctx.nmspace[strlen(Ctx.nmspace) - 1] = 0;
