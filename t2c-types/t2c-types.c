@@ -1,6 +1,6 @@
 // Copyright 2023 Steven Buytaert
 
-#define _GNU_SOURCE
+#define  _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -1056,6 +1056,11 @@ uint32_t t2c_reptypedefs(t2c_ctx_t ctx) {
 
 }
 
+static void clear4mark(ctx_t ctx, type_t t, void * arg) {
+  t->weight = 0;
+  t->mark4use = 0;
+}
+
 typedef struct Stack_t {
   uint16_t       cap;
   uint16_t       top;
@@ -1075,18 +1080,29 @@ uint32_t t2c_mark4use(t2c_ctx_t ctx, const t2c_Type_t * root) {
   
   if (! stack) { return 0; }                                // Error set by getmem.
 
-  if (root->mark4use) { return 0; }                         // It is already marked.
+  t2c_scan4type(ctx, clear4mark, NULL);
 
   stack->cap = ctx->num;
   stack->types[stack->top++] = (t2c_type_t) root;
   
-  while (stack->top) {
+  while (stack->top) {                                      // Start marking; [W] comments only related to weight.
     type = stack->types[--stack->top];                      // Pop the top element.
+    type->weight++;
     if (type->mark4use) { continue; }                       // Already marked; go to next, if any.
     type->mark4use = 1; count++;
     m = type->Members;
     for (i = 0; i < type->num; i++, m++) {                  // Now check all its members; push unmarked ones.
+
+      m->type->weight++;                                    // [W] 1 Increment, because it is touched by the containing type, even if already marked.
+      if (t2c_Typedef == m->type->prop) {                   // [W]
+        m->type->weight += 2;                               // [W] A typedef weighs more (should be declared earlier) ...
+        if (root != m->type->Members[0].type) {
+          m->type->Members[0].type->weight++;               // [W] ... than the the type it refers to ...
+        }                                                   // [W] ... but only if it is not the root type. That should come last, if possible.
+      }
+
       if (! m->type->mark4use) {
+        m->type->weight++;                                  // [W] 2 Increment again, because it was not yet marked.
         assert(stack->top < stack->cap);
         stack->types[stack->top++] = m->type;               // Push it on the stack for later processing.
       }
@@ -1202,13 +1218,19 @@ void t2c_remove4type(ctx_t ctx, xref_t xref) {
 
 }
 
-typedef struct UDA_t {            // Usage/Dependency Analysis
-  uint32_t    iteration;
-  uint32_t    changes;
-  uint32_t    forwards;           // Non zero when there are forward members.
-  uint32_t    pruned;
-  uint32_t    refs2self;
-} UDA_t;
+static int32_t wcmp(const void * r2a, const void * r2b, void * m) {
+
+  uint32_t * max = m;
+
+  const t2c_Type_t * a = * (const t2c_Type_t **) r2a;
+  const t2c_Type_t * b = * (const t2c_Type_t **) r2b;
+
+  if (a->weight > max[0]) { max[0] = a->weight; }
+  if (b->weight > max[0]) { max[0] = b->weight; }
+
+  return b->weight - a->weight;                             // Highest should float to the top.
+
+}
 
 static uint32_t isRef2Self(type_t t, member_t m) {         // Return non zero when the member is a reference to self.
 
@@ -1220,98 +1242,51 @@ static uint32_t isRef2Self(type_t t, member_t m) {         // Return non zero wh
 
 }
 
-static void clrweight(ctx_t ctx, type_t t, void * arg) {
-  t->weight = 0;
-}
+static void check4Fwds(ctx_t ctx, member_t m, void * arg) { // Check for forwards and references to self.
 
-static void check4forwards(ctx_t ctx, type_t t, void * arg) {
-
-  uint32_t   i;
-  member_t m;
-  
-  for (m = t->Members, i = 0; i < t->num; i++, m++) {
-    if (m->isForward && t->weight) { t->weight--; }         // Decuct 1 weight for each forward member.
-  }
-
-}
-
-static void setweight(ctx_t ctx, member_t m, void * arg) {
-
-  UDA_t  * uda = arg;
-  type_t cont = t2c_mem2cont(m, NULL);                     // Get containing type.
-
-  if (isPrim(m->type)) { return; }                          // We don't weigh primitives.
-
-  if (! isRef2Self(cont, m)) {
-    m->type->weight++;
-    if (uda->iteration == ctx->num && m->numind) {          // But not until eternity.
-      m->isForward = 1;                                     // We mark it as a forward ref.
-      uda->forwards++;
-    }
-    else {
-      uda->changes++;
-    }
-  }
-
-}
-
-static void prunefwds(ctx_t ctx, member_t m, void * arg) {
-
-  UDA_t  * uda = arg;
   type_t cont = t2c_mem2cont(m, NULL);
+  type_t t2check = m->type;
 
-  if (isPrim(m->type)) { return; }                          // We don't do primitives.
+  if (isPrim(m->type)) { return; }                          // We never check against primitive type members; declared in <stdint.h>.
 
-  if (! isRef2Self(cont, m)) {
-    if (m->isForward && m->type->weight > cont->weight) {   // The type the member refers to is defined earlier.
-      m->isForward = 0;                                     // We can remove the forward property.
-      uda->pruned++;
+  if (isRef2Self(cont, m)) {
+    m->isRef2Self = 1;
+  }
+
+  if (t2c_isTypedef(m->type)) {                             // If the membertype is a reference to a type ...
+    t2check = m->type->Members[0].type;                     // ... we check against the type it refers to.
+  }
+
+  if (t2check != m->type) {                                 // A type referring to itself is never a forward.
+    if (t2check->weight < cont->weight) {
+      m->isForward = 1;
+    }
+    else if (t2check->weight == cont->weight) {             // Equal weights, the position in the Ctx.types array will determine.
+      if (t2check->ti > cont->ti) {                         // The type we refer to comes later, so it's a forward.
+        m->isForward = 1;
+      }
     }
   }
-  else {                                                    // A reference to self is always a forward reference.
-    m->isForward = 1;
-    m->isRef2Self = 1;
-    uda->refs2self++;
-  }
-
-}
-
-static int32_t weightcmp(const void * r2a, const void * r2b) {
-
-  const t2c_Type_t * a = * (const t2c_Type_t **) r2a;
-  const t2c_Type_t * b = * (const t2c_Type_t **) r2b;
-
-  return b->weight - a->weight;                             // Highest should float to the top.
 
 }
 
 void t2c_prep4gen(ctx_t ctx) {                              // Prepare for generation; try to reduce forward references as much as possible.
 
-  UDA_t UDA;
+  uint32_t M = 0;
 
-  memset(& UDA, 0x00, sizeof(UDA));
+  qsort_r(ctx->types, ctx->num, sizeof(type_t), wcmp, & M); // Make the most referred to type come first to reduce forward references.
 
-  t2c_scan4type(ctx, clrweight, NULL);
+  printf("// Max weight %u\n", M);
 
-  do {
-    UDA.changes = 0;
-    UDA.iteration++;
-    t2c_scan4mem(ctx, setweight, & UDA);
-  } while (UDA.changes && UDA.iteration <= ctx->num);       // Try to order according to usage as much as possible.
-
-  if (UDA.forwards) {                                       // We had types refering to types not yet defined; i.e. forward references.
-    t2c_scan4type(ctx, check4forwards, NULL);               // This should make the type using less forward members, move higher.
+  if (0 == M) {
+    ctxmsg(ctx, "No weights set; run mark4use first?\n");
   }
 
-  qsort(ctx->types, ctx->num, sizeof(type_t), weightcmp);   // Make the most referred to type come first to reduce forward references.
-
-  for (uint32_t i = 0; i < ctx->num; i++) {                 // Set weight from high to low.
-    ctx->types[i]->weight = ctx->num - i;
+  for (int32_t i = 0; i < ctx->num; i++) {                  // Set type index.
+    ctx->types[i]->ti = i;
   }
 
-  t2c_scan4mem(ctx, prunefwds, & UDA);                      // Get rid of unnecessary forwards and also set the isRef2Self properties.
-
-  DBG("%u types, %u forwards, %u pruned away, %u refs to self.\n", ctx->num, UDA.forwards, UDA.pruned, UDA.refs2self);
+  t2c_scan4mem(ctx, check4Fwds, NULL);
 
 }
 

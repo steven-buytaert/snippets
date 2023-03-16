@@ -24,16 +24,17 @@ typedef enum {
 typedef struct t2c_Alt_t {        // Alternative for ...
   t2c_type_t         orig;        // ... this original type.
   uint32_t           num;         // Number of (new) types in the following array.
+  uint8_t            pad[4];
   t2c_type_t         types[0];    // Array with new types; types[0] is new type, any other are new clustered types.
 } t2c_Alt_t;
 
 typedef union t2c_Cargo_t {       // User defined cargo. Is copied and moved with other member/type parts.
-  void *             ref;         // To store a reference, if the cargo space is too small.
   uint32_t           cookie;
   uint8_t            u08[8];
   uint16_t           u16[4];
   uint32_t           u32[2];
   uint64_t           u64[1];      // Also to ensure proper alignment.
+  void *             refs[2];     // To store references to associated data.
 } t2c_Cargo_t;
 
 typedef struct t2c_Ctx_t * t2c_ctx_t;
@@ -87,6 +88,7 @@ typedef struct t2c_Member_t {     // Member of a composite type.
   uint8_t            nameisdup;   // Name of the member is a strdup'ed name (internal purposes only).
   uint8_t            isForward;   // This member refers to a composite type, defined later (can't use the typedef'ed type yet).
   uint8_t            isRef2Self;  // This member refers to itself as type, e.g. a linked list; implies isForward.
+  uint8_t            pad[1];
   t2c_Cargo_t        Cargo;       // User defined cargo; is copied when relevant (e.g. moving to cluster).
 } t2c_Member_t;
 
@@ -104,9 +106,10 @@ typedef struct t2c_Type_t {
   uint16_t           align;       // Alignment requirement.
   uint16_t           num;         // Members in use at tail.
   uint16_t           weight;      // Number representing usage; the higher, the earlier the type must be declared.
+  uint16_t           ti;          // Type index in Ctx.types; only set after prep4gen.
   uint8_t            mark4scan;
   uint8_t            mark4use;    // Will be set by t2c_mark4use() traversal.
-  uint8_t            marks[4];    // Marks the user can use freely.
+  uint8_t            marks[8];    // Marks the user can use freely.
   t2c_type_t         ref2type;    // Typedef reference to this type, when not NULL. Not copied during a clone. Assigned by t2c_tdref4type.
   const t2c_Member_t Marker;      // Marker to find back the container type for a member (name is NULL, type is container).
   t2c_Member_t       Members[0];  // Type members.
@@ -117,6 +120,7 @@ typedef struct t2c_XRef_t {       // Cross reference result (searching for type 
   const char *       name;        // Member name searched for, if any (otherwise NULL).
   uint16_t           cap;         // Number of members at the tail.
   uint16_t           num;         // Number of slots used at the tail.
+  uint8_t            pad[4];
   t2c_member_t       used[0];
 } t2c_XRef_t;
 
@@ -164,6 +168,7 @@ typedef struct t2c_TGSpec_t {     // Type generation specification.
   struct {
     uint16_t   cap;               // Capacity of the buffer.
     uint16_t   rem;               // Remaining capacity.
+    uint8_t    pad[4];
     char *     buf;               // Buffer itself.
   } Buf;
   const char * evfmt;             // Enumeration value format.
@@ -179,6 +184,7 @@ typedef struct t2c_TGSpec_t {     // Type generation specification.
     uint8_t    typedef_2;         // For where the typedef struct/union/enum starts.
     uint8_t    comment;           // Where the end of line comment starts.
     uint8_t    ends;              // End of line; padded with spaces, no \n added.
+    uint8_t    pad[1];
   } Tab;
   struct {
     uint16_t   cap;               // Line capacity at the tail.
