@@ -9,16 +9,17 @@ typedef struct t2c_Type_t *   t2c_type_t;
 typedef struct t2c_Member_t * t2c_member_t;
 
 typedef enum {
-  t2c_Prim     = 0b0000000001,    // Primitive type.
-  t2c_Comp     = 0b0000000010,    // Composite type.
-  t2c_Bitset   = 0b0000000110,    // A primitive type but chopped up in bitfields.
-  t2c_Struct   = 0b0000001010,
-  t2c_Union    = 0b0000010010,
-  t2c_Enum     = 0b0000100010,
-  t2c_Typedef  = 0b0001000010,
-  t2c_Static   = 0b0010000000,    // Type is statically allocated; don't free.
-  t2c_Alt      = 0b0100000000,    // Type was created as an alternative.
-  t2c_Cluster  = 0b1000000000,    // Type was created as a cluster out an other type.
+  t2c_Prim     = 0b00000000001,   // Primitive type.
+  t2c_Comp     = 0b00000000010,   // Composite type.
+  t2c_Bitset   = 0b00000000110,   // A primitive type but chopped up in bitfields.
+  t2c_Struct   = 0b00000001010,
+  t2c_Union    = 0b00000010010,
+  t2c_Enum     = 0b00000100010,
+  t2c_Typedef  = 0b00001000010,
+  t2c_Signed   = 0b00010000000,   // Implies t2c_Prim, signed type.
+  t2c_Static   = 0b00100000000,   // Type is statically allocated; don't free.
+  t2c_Alt      = 0b01000000000,   // Type was created as an alternative.
+  t2c_Cluster  = 0b10000000000,   // Type was created as a cluster out an other type.
 } t2c_Prop_t;
 
 typedef struct t2c_Alt_t {        // Alternative for ...
@@ -57,7 +58,11 @@ typedef enum {                    // Diagnostics that can be assigned to the con
   t2c_BadMemberType  = 12,        // Member has a bad type (or no type set).
 } t2c_DiagInfo_t;
 
+static const uint32_t t2ccookie;  // Value for the context cookie.
+
 typedef struct t2c_Ctx_t {
+  const uint32_t     cookie;      // Set by t2c_initype; should always have t2ccookie value.
+  uint8_t            pad[4];
   const char *       typeExt;     // Extension given to types.
   t2c_Cargo_t        Cargo;       // User defined cargo.
   t2c_mem_t          mem;         // To (re)allocate/free memory; realloc semantics.
@@ -109,7 +114,7 @@ typedef struct t2c_Type_t {
   uint16_t           ti;          // Type index in Ctx.types; only set after prep4gen.
   uint8_t            mark4scan;
   uint8_t            mark4use;    // Will be set by t2c_mark4use() traversal.
-  uint8_t            marks[8];    // Marks the user can use freely.
+  uint16_t           marks[4];    // Marks the user can use freely.
   t2c_type_t         ref2type;    // Typedef reference to this type, when not NULL. Not copied during a clone. Assigned by t2c_tdref4type.
   const t2c_Member_t Marker;      // Marker to find back the container type for a member (name is NULL, type is container).
   t2c_Member_t       Members[0];  // Type members.
@@ -134,8 +139,9 @@ extern t2c_Type_t t2c_S32;
 extern t2c_Type_t t2c_S16;
 extern t2c_Type_t t2c_S08;
 extern t2c_Type_t t2c_F32;
+extern t2c_Type_t t2c_F64;
 
-extern const t2c_type_t t2c_prims[10];
+extern const t2c_type_t t2c_prims[11];
 
 extern t2c_Type_t t2c_VoidRef;    // A 'void *' type, for e.g. stubbing.
 

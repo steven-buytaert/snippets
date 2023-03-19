@@ -117,28 +117,30 @@ typedef struct ClCtx_t {   // Cluster Context information
 
 t2c_Type_t t2c_VoidRef = { .name = "void *",   .prop = t2c_Prim, .size = 4, .align = 4 };
 
-t2c_Type_t t2c_Char    = { .name = "char",     .prop = t2c_Prim, .size = 1, .align = 1 };
-t2c_Type_t t2c_U64     = { .name = "uint64_t", .prop = t2c_Prim, .size = 8, .align = 8 };
-t2c_Type_t t2c_U32     = { .name = "uint32_t", .prop = t2c_Prim, .size = 4, .align = 4 };
-t2c_Type_t t2c_U16     = { .name = "uint16_t", .prop = t2c_Prim, .size = 2, .align = 2 };
-t2c_Type_t t2c_U08     = { .name = "uint8_t",  .prop = t2c_Prim, .size = 1, .align = 1 };
-t2c_Type_t t2c_S64     = { .name = "int64_t",  .prop = t2c_Prim, .size = 8, .align = 8 };
-t2c_Type_t t2c_S32     = { .name = "int32_t",  .prop = t2c_Prim, .size = 4, .align = 4 };
-t2c_Type_t t2c_S16     = { .name = "int16_t",  .prop = t2c_Prim, .size = 2, .align = 2 };
-t2c_Type_t t2c_S08     = { .name = "int8_t",   .prop = t2c_Prim, .size = 1, .align = 1 };
-t2c_Type_t t2c_F32     = { .name = "float",    .prop = t2c_Prim, .size = 4, .align = 4 };
+t2c_Type_t t2c_Char    = { .name = "char",     .prop = t2c_Prim,              .size = 1, .align = 1 };
+t2c_Type_t t2c_U64     = { .name = "uint64_t", .prop = t2c_Prim,              .size = 8, .align = 8 };
+t2c_Type_t t2c_U32     = { .name = "uint32_t", .prop = t2c_Prim,              .size = 4, .align = 4 };
+t2c_Type_t t2c_U16     = { .name = "uint16_t", .prop = t2c_Prim,              .size = 2, .align = 2 };
+t2c_Type_t t2c_U08     = { .name = "uint8_t",  .prop = t2c_Prim,              .size = 1, .align = 1 };
+t2c_Type_t t2c_S64     = { .name = "int64_t",  .prop = t2c_Prim | t2c_Signed, .size = 8, .align = 8 };
+t2c_Type_t t2c_S32     = { .name = "int32_t",  .prop = t2c_Prim | t2c_Signed, .size = 4, .align = 4 };
+t2c_Type_t t2c_S16     = { .name = "int16_t",  .prop = t2c_Prim | t2c_Signed, .size = 2, .align = 2 };
+t2c_Type_t t2c_S08     = { .name = "int8_t",   .prop = t2c_Prim | t2c_Signed, .size = 1, .align = 1 };
+t2c_Type_t t2c_F32     = { .name = "float",    .prop = t2c_Prim | t2c_Signed, .size = 4, .align = 4 };
+t2c_Type_t t2c_F64     = { .name = "double",   .prop = t2c_Prim | t2c_Signed, .size = 8, .align = 8 };
 
-const type_t t2c_prims[10] = {
-  & t2c_Char,
-  & t2c_U64,
-  & t2c_U32,
-  & t2c_U16,
-  & t2c_U08,
-  & t2c_S64,
-  & t2c_S32,
-  & t2c_S16,
+const type_t t2c_prims[11] = {    // Keep the primitive canonicals in this order.
+  & t2c_Char, // Corresponds to 'none' in FB2.
   & t2c_S08,
+  & t2c_U08,
+  & t2c_S16,
+  & t2c_U16,
+  & t2c_S32,
+  & t2c_U32,
+  & t2c_S64,
+  & t2c_U64,
   & t2c_F32,
+  & t2c_F64,
 };
 
 static uint32_t roundup(uint32_t value, uint32_t powerOf2) {
@@ -805,6 +807,7 @@ void t2c_initype(ctx_t ctx, type_t type) {
   if (! initialized) {                                      // Perform some initialization stuff.
     t2c_VoidRef.size  = ctx->size4ref;
     t2c_VoidRef.align = ctx->align4ref;
+    memcpy((void *) & ctx->cookie, & t2ccookie, sizeof(t2ccookie));
     initialized = 1;
   }
 
