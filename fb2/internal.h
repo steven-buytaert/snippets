@@ -17,16 +17,16 @@ static const uint32_t none = 0xffffffff;  // Set index equivalent for NULL.
 
 static const char * rootkey = "I:root-type";
 
-typedef struct fb2_Type_t      Type_t;    // Internal shorthands to public types.
+typedef struct fb2_Type_t      IType_t;    // Internal shorthands to public types.
 typedef struct fb2_Type_t *    type_t;
-typedef struct fb2_Member_t    Member_t;
+typedef struct fb2_Member_t    IMember_t;
 typedef struct fb2_Member_t *  member_t;
 typedef struct fb2_KeyVal_t    KeyVal_t;
 typedef struct fb2_KeyVal_t *  keva_t;
 typedef struct fb2_Tag_t       Tag_t;
 typedef struct fb2_Tag_t *     tag_t;
 typedef struct fb2_BSchema_t * schema_t;
-typedef union  fb2_Value_t     Value_t;
+typedef struct fb2_Value_t     Value_t;
 typedef union  fb2_Any_t       Any_t;
 
 typedef struct Ctx_t *         ctx_t;
@@ -38,7 +38,7 @@ typedef struct Tup_t *         tup_t;
 typedef struct Hdr_t *         hdr_t;
 
 typedef enum Const_t {            // Constant type identification.
-  NONE            = 0,
+  CONST_NONE      = 0,
   FLOAT           = 1,
   DEC             = 2,
   HEX             = 3,

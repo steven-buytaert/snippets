@@ -14,7 +14,7 @@
 %parse-param { ctx_t ctx }
 %define api.value.type { token_t }
 
-%token CONST CHAR ATTRIBUTE NAMESPACE ROOT FILEID FILEEXT STRUCT ENUM UNION TABLE ID
+%token CONST CHAR ATTRIBUTE NAMESPACE ROOT FILEID FILEEXT Struct Enum Union Table ID
 
 %%
 
@@ -95,10 +95,10 @@ UnionMembers: UnionMember
       ;
 
 TypeDefinition: 
-        STRUCT ID          Attr { anf4type(ctx, fb2e_Struct, $2); } '{' Members      '}' { end4type(ctx); }
-      | ENUM   ID EnumType Attr { anf4type(ctx, fb2e_Enum,   $2); } '{' EnumMembers  '}' { end4type(ctx); }
-      | UNION  ID          Attr { anf4type(ctx, fb2e_Union,  $2); } '{' UnionMembers '}' { end4type(ctx); }
-      | TABLE  ID          Attr { anf4type(ctx, fb2e_Table,  $2); } '{' Members      '}' { end4type(ctx); }
+        Struct ID          Attr { anf4type(ctx, fb2e_Struct, $2); } '{' Members      '}' { end4type(ctx); }
+      | Enum   ID EnumType Attr { anf4type(ctx, fb2e_Enum,   $2); } '{' EnumMembers  '}' { end4type(ctx); }
+      | Union  ID          Attr { anf4type(ctx, fb2e_Union,  $2); } '{' UnionMembers '}' { end4type(ctx); }
+      | Table  ID          Attr { anf4type(ctx, fb2e_Table,  $2); } '{' Members      '}' { end4type(ctx); }
       ;
 
 %%

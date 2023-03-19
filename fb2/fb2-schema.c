@@ -6,42 +6,42 @@
 
 #include <internal.h>
 
-static const Type_t Builtin[] = {
-  { .name = "none",     .canontype =  0 },
+static const fb2_Type_t Builtin[] = {
+  { .name = "none",     .canontype =  0, .fbtype =  0 },
 
-  { .name = "uint8_t",  .canontype =  1 }, // The first ones refer to themselves as canonical.
-  { .name = "int8_t",   .canontype =  2 },
-  { .name = "uint16_t", .canontype =  3 },
-  { .name = "int16_t",  .canontype =  4 },
-  { .name = "int32_t",  .canontype =  5 },
-  { .name = "uint32_t", .canontype =  6 },
-  { .name = "int64_t",  .canontype =  7 },
-  { .name = "uint64_t", .canontype =  8 },
-  { .name = "float",    .canontype =  9 },
-  { .name = "double",   .canontype = 10 },
+  { .name = "int8_t",   .canontype =  1, .fbtype = 21 },
+  { .name = "uint8_t",  .canontype =  2, .fbtype = 22 }, // The first ones refer to themselves as canonical.
+  { .name = "int16_t",  .canontype =  3, .fbtype = 23 },
+  { .name = "uint16_t", .canontype =  4, .fbtype = 24 },
+  { .name = "int32_t",  .canontype =  5, .fbtype = 25 },
+  { .name = "uint32_t", .canontype =  6, .fbtype = 26 },
+  { .name = "int64_t",  .canontype =  7, .fbtype = 27 },
+  { .name = "uint64_t", .canontype =  8, .fbtype = 28 },
+  { .name = "float",    .canontype =  9, .fbtype = 19 },
+  { .name = "double",   .canontype = 10, .fbtype = 20 },
 
-  { .name = "uint8",    .canontype =  1 },
-  { .name = "int8",     .canontype =  2 },
-  { .name = "uint16",   .canontype =  3 },
-  { .name = "int16",    .canontype =  4 },
-  { .name = "int32",    .canontype =  5 },
-  { .name = "uint32",   .canontype =  6 },
-  { .name = "int64",    .canontype =  7 },
-  { .name = "uint64",   .canontype =  8 },
-  { .name = "float32",  .canontype =  9 },
-  { .name = "float64",  .canontype = 10 },
+  { .name = "int8",     .canontype =  1, .fbtype = 21 },
+  { .name = "uint8",    .canontype =  2, .fbtype = 22 },
+  { .name = "int16",    .canontype =  3, .fbtype = 23 },
+  { .name = "uint16",   .canontype =  4, .fbtype = 24 },
+  { .name = "int32",    .canontype =  5, .fbtype = 25 },
+  { .name = "uint32",   .canontype =  6, .fbtype = 26 },
+  { .name = "int64",    .canontype =  7, .fbtype = 27 },
+  { .name = "uint64",   .canontype =  8, .fbtype = 28 },
+  { .name = "float32",  .canontype =  9, .fbtype = 19 },
+  { .name = "float64",  .canontype = 10, .fbtype = 20 },
   
-  { .name = "ubyte",    .canontype =  1 },
-  { .name = "byte",     .canontype =  2 },
-  { .name = "ushort",   .canontype =  3 },
-  { .name = "short",    .canontype =  4 },
-  { .name = "uint",     .canontype =  5 },
-  { .name = "int",      .canontype =  6 },
-  { .name = "ulong",    .canontype =  7 },
-  { .name = "long",     .canontype =  8 },
+  { .name = "byte",     .canontype =  1, .fbtype = 21 },
+  { .name = "ubyte",    .canontype =  2, .fbtype = 22 },
+  { .name = "short",    .canontype =  3, .fbtype = 23 },
+  { .name = "ushort",   .canontype =  4, .fbtype = 24 },
+  { .name = "int",      .canontype =  5, .fbtype = 25 },
+  { .name = "uint",     .canontype =  6, .fbtype = 26 },
+  { .name = "long",     .canontype =  7, .fbtype = 27 },
+  { .name = "ulong",    .canontype =  8, .fbtype = 28 },
 
-  { .name = "bool",     .canontype =  1 },
-  { .name = "string",   .canontype =  0 },
+  { .name = "bool",     .canontype =  1, .fbtype = 21 },
+  { .name = "string",   .canontype =  0, .fbtype = 30 },
 };
 
 void error(ctx_t ctx, const char * fmt, ...) {
@@ -161,7 +161,7 @@ static void addany(ctx_t ctx, tup_t tup, uint32_t size, uint32_t a4t, uint8_t to
 }
 
 static void addmember(ctx_t ctx, tup_t tup, uint32_t sz) {  // Add a member type tuple to the TMA and Meta set.
-  addany(ctx, tup, sz, alignof(Member_t), MEMBER);
+  addany(ctx, tup, sz, alignof(IMember_t), MEMBER);
 }
 
 static void addattr(ctx_t ctx, tup_t tup, uint8_t type) {   // Add an attribute type tuple to the TMA and Meta set.
@@ -169,7 +169,7 @@ static void addattr(ctx_t ctx, tup_t tup, uint8_t type) {   // Add an attribute 
 }
 
 static void addtype(ctx_t ctx, tup_t tup) {                 // Add a type tuple to the TMA and Meta set.
-  addany(ctx, tup, sizeof(Type_t), alignof(Type_t), TYPE);
+  addany(ctx, tup, sizeof(IType_t), alignof(IType_t), TYPE);
 }
 
 static void addtag(ctx_t ctx, tup_t tup, const char * str) {// Add a tag tuple to the TMA and Meta set.
@@ -327,7 +327,7 @@ void member(ctx_t ctx, token_t name, token_t typetoken, uint32_t isArray, token_
   meta_t   meta;
   uint32_t i;
   snset_t  tma = & ctx->TMA;
-  uint32_t size = sizeof(Member_t);
+  uint32_t size = sizeof(IMember_t);
 
   assert(name);
   assert(ctx->TUC.tidx != none);                            // Must be while parsing a type.
@@ -375,6 +375,9 @@ void member(ctx_t ctx, token_t name, token_t typetoken, uint32_t isArray, token_
   assert(M.member->numattr == ctx->TUC.numMAttr);           // Should give an exact match.
 
   if (valOrSize) { 
+    if (valOrSize->cti) {                                   // A numeric constant, set the member value.
+      token2Value(ctx, valOrSize, & M.member->Default);
+    }
     if (! isArray) {
       printf("MEMBER [%s] = %s", name->text, valOrSize->text);
     }
@@ -466,11 +469,11 @@ void nselement(ctx_t ctx, token_t comp) {                   // Process a name sp
 
 static void builtins(ctx_t ctx) {                           // Add the builtin types to the set of tokens.
 
-  uint32_t       i;
-  Type_t const * t = & Builtin[0];
-  type_t         type;
-  token_t        token;
-  uint32_t       size = NUM(Builtin) * 64;                  // Worst case number of bytes we'll add.
+  uint32_t        i;
+  IType_t const * t = & Builtin[0];
+  type_t          type;
+  token_t         token;
+  uint32_t        size = NUM(Builtin) * 64;                 // Worst case number of bytes we'll add.
 
   ctx->Tokens.ensure(& ctx->Tokens, NUM(Builtin), size);    // We don't want reallocations on the token set anymore.
 
@@ -517,15 +520,17 @@ static void * mem4set(snset_t set, void * mem, uint32_t sz) {
 
 extern int fbpyydebug;
 
+const uint8_t fb2sid[7] = { 0x34, 0x65, 0x14, 0x51, 0x22, 0x51, 0x17 };
+
 void fb2_parse(fb2_schemaCtx_t ctx, const char * schema, uint32_t size) {
 
-  assert(offsetof(Hdr_t,  name) == offsetof(Member_t,    name));
-  assert(offsetof(Hdr_t, fb2ti) == offsetof(Member_t,   fb2ti));
-  assert(offsetof(Hdr_t,   o2n) == offsetof(Member_t,     o2n));
+  assert(offsetof(Hdr_t,  name) == offsetof(IMember_t,   name));
+  assert(offsetof(Hdr_t, fb2ti) == offsetof(IMember_t,  fb2ti));
+  assert(offsetof(Hdr_t,   o2n) == offsetof(IMember_t,    o2n));
 
-  assert(offsetof(Hdr_t,  name) == offsetof(Type_t,      name));
-  assert(offsetof(Hdr_t, fb2ti) == offsetof(Type_t,     fb2ti));
-  assert(offsetof(Hdr_t,   o2n) == offsetof(Type_t,       o2n));
+  assert(offsetof(Hdr_t,  name) == offsetof(IType_t,     name));
+  assert(offsetof(Hdr_t, fb2ti) == offsetof(IType_t,    fb2ti));
+  assert(offsetof(Hdr_t,   o2n) == offsetof(IType_t,      o2n));
 
   assert(offsetof(Hdr_t,  name) == offsetof(KeyVal_t,     key));
   assert(offsetof(Hdr_t, fb2ti) == offsetof(KeyVal_t,   fb2ti));
@@ -541,9 +546,9 @@ void fb2_parse(fb2_schemaCtx_t ctx, const char * schema, uint32_t size) {
   
   assert((offsetof(fb2_BSchema_t, bytes) & 0b111) == 0);    // First element should start on an 8 byte address.
 
-  assert(sizeof(fb2_Type_t)    == 24);                      // Ensure we have fixed width types on all machines.
-  assert(sizeof(fb2_KeyVal_t)  == 24);
-  assert(sizeof(fb2_Member_t)  == 32);
+  assert(sizeof(fb2_Type_t)    == 32);                      // Ensure we have fixed width types on all machines.
+  assert(sizeof(fb2_KeyVal_t)  == 32);
+  assert(sizeof(fb2_Member_t)  == 48);
   assert(sizeof(fb2_Tag_t)     == 16);
   assert(sizeof(fb2_BSchema_t) == 40);
 
@@ -583,21 +588,24 @@ void fb2_parse(fb2_schemaCtx_t ctx, const char * schema, uint32_t size) {
   flutscan(& Ctx, schema, size);
 
 //--
+/*
   uint32_t i;
-
   token_t tok;
   token_t prev = NULL;
+
 
   tok = Ctx.Tokens.set[0];
 
   printf("Number of tokens %u, %u reallocations.\n", Ctx.Tokens.num, Ctx.Tokens.reallocs);
 
+
   for (i = 0; i < Ctx.Tokens.num; i++, prev = tok, tok = tok2next(tok)) {
     if (prev &&  prev->row < tok->row) printf("\n");
-    if (tok->size) printf("%s ", tok->text);
+    if (tok->size) printf("%s (%u)", tok->text, tok->type);
     else printf("[%u:%u] ", tok->type, tok->cti);
 //    printf("%p\n", tok);
   }
+*/
 //--
 
   builtins(& Ctx);                                          // Add the builtin types.
@@ -621,6 +629,8 @@ void fb2_parse(fb2_schemaCtx_t ctx, const char * schema, uint32_t size) {
   if (ctx->schema) {
     ctx->schema->Num.canonical = 11;                        // Up to and including double.
   }
+
+  memcpy(ctx->schema->magic, fb2sid, sizeof(ctx->schema->magic));
 
   printf("alignof(Token_t) %zu\n", alignof(Token_t));
 

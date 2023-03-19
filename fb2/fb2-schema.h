@@ -3,19 +3,13 @@
 #ifndef FB2_SCHEMA_H
 #define FB2_SCHEMA_H
 
-#include <stdint.h>
+#include <fb2-types.h>
 
 typedef struct fb2_SchemaCtx_t * fb2_schemaCtx_t;
 typedef struct fb2_Member_t *    fb2_member_t;
 typedef struct fb2_Type_t *      fb2_type_t;
 typedef struct fb2_KeyVal_t *    fb2_keyval_t;
 typedef struct fb2_Tag_t *       fb2_tag_t;
-
-typedef union fb2_Value_t {       // Member or KeyVal value.
-  int64_t        i64;
-  double         f64;
-  fb2_tag_t      tag;
-} fb2_Value_t;
 
 typedef enum {
   fb2e_None      =       0,       // Should never occur.
@@ -65,11 +59,14 @@ typedef struct fb2_Member_t {
   };
   uint16_t       o2n;             // Offset to next structure, in increments of 8 bytes.
   uint16_t       fb2ti;           // fb2e_Member.
+  uint16_t       nti;             // Name table index.
+  uint16_t       tti;             // Type table index.
+  uint16_t       ctoff;           // Constant table offset (if not zero); for enum value or default value.
 
   uint8_t        numattr;         // Number of attributes.
-  uint8_t        pad[1];
   uint8_t        isString;        // Non zero for a string member.
   uint8_t        isArray;         // Non zero when an array.
+  uint8_t        pad[3];
   union {
     fb2_type_t   type;            // The type of the member; when isArray, the type of the element.
     int64_t      type_a;
@@ -88,10 +85,15 @@ typedef struct fb2_Type_t {
   };
   uint16_t       o2n;             // Offset to next structure, in increments of 8 bytes.
   uint16_t       fb2ti;           // fb2e_Table, fb2e_Union, fb2e_Enum or fb2e_Struct.
+  uint16_t       nti;             // Name table index (set and used by code generator only).
+  uint16_t       tti;             // Type table index (set and used by code generator only).
+  uint16_t       vtti;            // VTab table index (set and used by code generator only).
 
   uint8_t        numattr;         // Number of type attributes in attrs[] array.
   uint8_t        canontype;       // For a primitive type, the type number of the canonical name.
   uint16_t       nummem;          // Number of members in the members[] array, after the attributes.
+  uint8_t        fbtype;          // For the primitives, the index to the flatbuffer name, e.g. byte, ubyte, short, ...
+  uint8_t        pad[1];
   union{ 
     fb2_type_t   type4enum;       // When an enum, the primitive type of the enum.
     int64_t      type4enum_a;
@@ -110,8 +112,10 @@ typedef union fb2_Any_t {
   fb2_Tag_t      Tag;
 } fb2_Any_t;
 
+extern const uint8_t fb2sid[7];   // The schema id.
+
 typedef struct fb2_BSchema_t {    // Binary schema format header.
-  uint8_t        magic[7];        // File id 0x34651451225117.
+  uint8_t        magic[7];        // File id 0x34651451225117 (see fb2sid).
   uint8_t        version;         // Major and minor, each 4 bits.
   union {
     uint8_t *    base;            // When NULL, it is freezedried.
@@ -135,12 +139,12 @@ typedef struct fb2_BSchema_t {    // Binary schema format header.
 } fb2_BSchema_t;
 
 typedef void * (* fb2_mem_t)(fb2_schemaCtx_t ctx, void * mem, uint32_t sz);
-typedef void   (* fb2_out_t)(fb2_schemaCtx_t ctx, char buf[], uint32_t sz);
 
 typedef struct fb2_SchemaCtx_t {
   fb2_mem_t       mem;            // Memory allocation and release.
-  fb2_out_t       out;            // Output a line of code.
   fb2_BSchema_t * schema;         // After parsing, the schema in binary form.
+  uint32_t        cookie;         // Internal use (leave blank).
+  uint8_t         pad[4];
 } fb2_SchemaCtx_t;
 
 fb2_Any_t * fb2_go2next(void const * cur);

@@ -62,10 +62,10 @@ IDENTIFIER [a-zA-Z_][a-zA-Z0-9_]*
 
 %%
 
-struct            { adv(__LINE__, yytext, yyleng); token(yyextra, NULL, yyleng, STRUCT);               }
-enum              { adv(__LINE__, yytext, yyleng); token(yyextra, NULL, yyleng, ENUM);                 }
-union             { adv(__LINE__, yytext, yyleng); token(yyextra, NULL, yyleng, UNION);                }
-table             { adv(__LINE__, yytext, yyleng); token(yyextra, NULL, yyleng, TABLE);                }
+struct            { adv(__LINE__, yytext, yyleng); token(yyextra, NULL, yyleng, Struct);               }
+enum              { adv(__LINE__, yytext, yyleng); token(yyextra, NULL, yyleng, Enum);                 }
+union             { adv(__LINE__, yytext, yyleng); token(yyextra, NULL, yyleng, Union);                }
+table             { adv(__LINE__, yytext, yyleng); token(yyextra, NULL, yyleng, Table);                }
 file_identifier   { adv(__LINE__, yytext, yyleng); token(yyextra, NULL, yyleng, FILEID);               }
 file_extension    { adv(__LINE__, yytext, yyleng); token(yyextra, NULL, yyleng, FILEEXT);              }
 namespace         { adv(__LINE__, yytext, yyleng); token(yyextra, NULL, yyleng, NAMESPACE);            } 
