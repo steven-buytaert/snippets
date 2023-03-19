@@ -53,4 +53,6 @@ Container repo with very simple code snippets.
   processing (tool creation, code generation, ...). Uses the above mentioned
   snset for processing and generating the internal schema. Requires
   flex (>= 2.6.4) and bison (>= 3.6.0) for scanner and parser generation.
-  No sample code or documentation yet.
+  The code generation part will create the control structures necessary for
+  walking over and creating a flatbuffer from a graph. No sample code or
+  documentation (yet).
