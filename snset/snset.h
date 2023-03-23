@@ -54,6 +54,7 @@ typedef struct SNSet_t {
   uint16_t       wca;             // Current worst case alignment encounter.
   uint16_t       padgrowth;       // How many times the padding area was used to grow.
   uint32_t       reallocs;        // How many reallocations have been done.
+  void        (* padCb)(snset_t set, void * padding, uint32_t size);
 } SNSet_t;
 
 void snset_init(snset_t set, snsetmem_t memrealloc);

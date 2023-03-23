@@ -4,7 +4,12 @@
 #include <assert.h>
 #include <string.h>
 
+#include <stdio.h>
+
 /*
+
+  Terminology: 'growing' the set means asking for more memory for growing both Set and set
+  memory; 'stretching' means enlarging an existing object.
 
   Memory layout of the SNSet structure.
   
@@ -60,10 +65,12 @@ static uint32_t padding(uint8_t * addr, uint32_t a4o) {     // Calculate number 
   Ref_t    mask = { .addr = NULL };                         // Alignment requirement as a mask.
   uint32_t padding = 0;                                     // Padding bytes; preset with value when addr == NULL.
 
+  if (1 == a4o) { return 0; }                               // By definition, doesn't need any padding.
+
   assert(a4o == roundup(a4o, 2));                           // It must be a power of two.
 
   if (addr) {  
-    mask.uref = a4o - 1;                                   // Prepare the mask.
+    mask.uref = a4o - 1;                                    // Prepare the mask.
     oadd.uref &= mask.uref;
     padding = (a4o - oadd.uref) & mask.uref;
   }
@@ -212,6 +219,8 @@ static void * ensure(snset_t set, uint32_t nos, uint32_t nob) {
 
 }
 
+static void padCb(snset_t set, void * b, uint32_t size) { } // Dummy padding callback.
+
 static void * obj(snset_t set, uint32_t sze, uint32_t a4o) {
 
   void *   obj = NULL;
@@ -219,7 +228,9 @@ static void * obj(snset_t set, uint32_t sze, uint32_t a4o) {
 
   assert(set->addr4next + set->avail == set->addr4set);     // At the end of the free object space, the set array starts.
 
-  a4o = roundup(a4o, 2);                                    // Ensure alignment it is really a power of two.
+  assert(sze);                                              // If not, we would give back the same address as previous object.
+  
+  a4o = (a4o == 1) ? 1 : roundup(a4o, 2);                   // Ensure alignment it is really a power of two or 1.
 
   assert(set->wca);                                         // Worst case alignment can never be 0.
   if (set->wca < a4o) { set->wca = a4o; }                   // Track worst case alignment.
@@ -236,6 +247,7 @@ static void * obj(snset_t set, uint32_t sze, uint32_t a4o) {
   if (set->freeslots && set->avail > sze + pad) {
     assert(set->addr4next + pad + sze < set->addr4set);     // Should never run into the reference array.
     memset(set->addr4next, 0x00, pad);                      // Clear the padding area, might be used by grow later.
+    set->padCb(set, set->addr4next, pad);                   // Let padding callback know about this gap.
     set->addr4next += pad;                                  // Apply proper padding before we ...
     obj = set->next;                                        // ... allocate the object.
     memset(obj, 0x00, sze);
@@ -249,13 +261,13 @@ static void * obj(snset_t set, uint32_t sze, uint32_t a4o) {
   
 }
 
-static void * grow(snset_t set, uint32_t x, uint32_t add) { // Grow set->set[x] object, possibly in the middle of the set, with 'add' bytes.
+static void * stretch(snset_t set, uint32_t x, uint32_t add) { // Stretch set->set[x] object, possibly in the middle of the set, with 'add' bytes.
 
   void *    obj = NULL;
   Ref_t     Item;
   uint32_t  i;
   uint32_t  last = (x + 1 == set->num) ? 1 : 0;
-  uint8_t * next;                                           // First byte after the grown object.
+  uint8_t * next;                                           // First byte after the stretched object.
   int32_t   bytes2move;
 
   assert(x < set->num);                                     // Must be inside the set.
@@ -272,17 +284,21 @@ static void * grow(snset_t set, uint32_t x, uint32_t add) { // Grow set->set[x] 
     obj = set->set[x];
     set->avail -= add;
 
-    if (last) {                                             // We need to grow the last object in the set; nothing needs moving.
+    if (last) {                                             // We need to stretch the last object in the set; nothing needs moving.
       next = set->addr4next;
     }
     else {
       next = set->set[x + 1];
-      bytes2move = set->addr4next - next;                   // Bytes of following objects we need to move down to grow this object.
+
+//TODO check if the growth is covered by the gap between this and next then we don't need to do anything.
+// but we would need to keep track to the start of the gaps...
+
+      bytes2move = set->addr4next - next;                   // Bytes of following objects we need to move down to stretch this object.
       assert(bytes2move >= 0);                              // So we can guarantee the next cast of bytes2move.
-      memmove(add + next, next, (uint32_t) bytes2move);     // Make room for the grown object by moving bytes down.
+      memmove(add + next, next, (uint32_t) bytes2move);     // Make room for the stretched object by moving bytes down.
     }
 
-    memset(next, 0x00, add);                                // Clear the grown area, after the potential memmove.
+    memset(next, 0x00, add);                                // Clear the stretched area, after the potential memmove.
 
     for (i = x + 1; i < set->num; i++) {                    // Now adjust all lower reference slots, if any.
       Item.any    = set->set[i];
@@ -305,8 +321,9 @@ void snset_init(snset_t set, snsetmem_t mem) {
   set->mem = mem;
   set->obj = obj;
   set->ensure = ensure;
-  set->stretch = grow;
+  set->stretch = stretch;
   set->seal = seal;
   set->wca = 1;                                             // Smallest alignment possible.
+  set->padCb = padCb;                                       // The padding callback.
 
 }
