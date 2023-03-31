@@ -56,3 +56,11 @@ Container repo with very simple code snippets.
   The code generation part will create the control structures necessary for
   walking over and creating a flatbuffer from a graph. No sample code or
   documentation (yet).
+
+* avalanche: a hash avalanche test. The sample code uses the avalanche test
+  to compare 3 different hashes; murmur3, lookup3 and a buzhash added for
+  comparison. The murmur3 and lookup3 source code files contain the original
+  copyrights. Only the lookup3 source code file was slightly modified so it
+  could be included in the sample code. Compile with
+  clang -I . -Wall -Os -o sample sample.c lookup3.c sbtbuz1.c murmurhash.c avalanche.c
+  and run ./sample.
