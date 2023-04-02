@@ -1,47 +1,48 @@
 // Copyright (c) 2023 Steven Buytaert
 
 #include <stdio.h>
+#include <errno.h>
 #include <stddef.h>
 #include <stdarg.h>
 
-#include <internal.h>
+#include <fb2-common.h>
 
 static const fb2_Type_t Builtin[] = {
-  { .name = "none",     .canontype =  0, .fbtype =  0 },
+  { .name = "none",     .canontype =  0, .ct_type = ct_none               },
 
-  { .name = "int8_t",   .canontype =  1, .fbtype = 21 },
-  { .name = "uint8_t",  .canontype =  2, .fbtype = 22 }, // The first ones refer to themselves as canonical.
-  { .name = "int16_t",  .canontype =  3, .fbtype = 23 },
-  { .name = "uint16_t", .canontype =  4, .fbtype = 24 },
-  { .name = "int32_t",  .canontype =  5, .fbtype = 25 },
-  { .name = "uint32_t", .canontype =  6, .fbtype = 26 },
-  { .name = "int64_t",  .canontype =  7, .fbtype = 27 },
-  { .name = "uint64_t", .canontype =  8, .fbtype = 28 },
-  { .name = "float",    .canontype =  9, .fbtype = 19 },
-  { .name = "double",   .canontype = 10, .fbtype = 20 },
+  { .name = "int8_t",   .canontype =  1, .ct_type = ct_int8,   .signd = 1 },
+  { .name = "uint8_t",  .canontype =  2, .ct_type = ct_uint8,             }, // The first ones refer to themselves as canonical.
+  { .name = "int16_t",  .canontype =  3, .ct_type = ct_int16,  .signd = 1 },
+  { .name = "uint16_t", .canontype =  4, .ct_type = ct_uint16,            },
+  { .name = "int32_t",  .canontype =  5, .ct_type = ct_int32,  .signd = 1 },
+  { .name = "uint32_t", .canontype =  6, .ct_type = ct_uint32,            },
+  { .name = "int64_t",  .canontype =  7, .ct_type = ct_int64,  .signd = 1 },
+  { .name = "uint64_t", .canontype =  8, .ct_type = ct_uint64,            },
+  { .name = "float",    .canontype =  9, .ct_type = ct_float,  .signd = 1 },
+  { .name = "double",   .canontype = 10, .ct_type = ct_double, .signd = 1 },
 
-  { .name = "int8",     .canontype =  1, .fbtype = 21 },
-  { .name = "uint8",    .canontype =  2, .fbtype = 22 },
-  { .name = "int16",    .canontype =  3, .fbtype = 23 },
-  { .name = "uint16",   .canontype =  4, .fbtype = 24 },
-  { .name = "int32",    .canontype =  5, .fbtype = 25 },
-  { .name = "uint32",   .canontype =  6, .fbtype = 26 },
-  { .name = "int64",    .canontype =  7, .fbtype = 27 },
-  { .name = "uint64",   .canontype =  8, .fbtype = 28 },
-  { .name = "float32",  .canontype =  9, .fbtype = 19 },
-  { .name = "float64",  .canontype = 10, .fbtype = 20 },
+  { .name = "int8",     .canontype =  1, .ct_type = ct_int8,   .signd = 1 },
+  { .name = "uint8",    .canontype =  2, .ct_type = ct_uint8,             },
+  { .name = "int16",    .canontype =  3, .ct_type = ct_int16,  .signd = 1 },
+  { .name = "uint16",   .canontype =  4, .ct_type = ct_uint16,            },
+  { .name = "int32",    .canontype =  5, .ct_type = ct_int32,  .signd = 1 },
+  { .name = "uint32",   .canontype =  6, .ct_type = ct_uint32,            },
+  { .name = "int64",    .canontype =  7, .ct_type = ct_int64,  .signd = 1 },
+  { .name = "uint64",   .canontype =  8, .ct_type = ct_uint64,            },
+  { .name = "float32",  .canontype =  9, .ct_type = ct_float,  .signd = 1 },
+  { .name = "float64",  .canontype = 10, .ct_type = ct_double, .signd = 1 },
   
-  { .name = "byte",     .canontype =  1, .fbtype = 21 },
-  { .name = "ubyte",    .canontype =  2, .fbtype = 22 },
-  { .name = "short",    .canontype =  3, .fbtype = 23 },
-  { .name = "ushort",   .canontype =  4, .fbtype = 24 },
-  { .name = "int",      .canontype =  5, .fbtype = 25 },
-  { .name = "uint",     .canontype =  6, .fbtype = 26 },
-  { .name = "long",     .canontype =  7, .fbtype = 27 },
-  { .name = "ulong",    .canontype =  8, .fbtype = 28 },
+  { .name = "byte",     .canontype =  1, .ct_type = ct_int8,   .signd = 1 },
+  { .name = "ubyte",    .canontype =  2, .ct_type = ct_uint8,             },
+  { .name = "short",    .canontype =  3, .ct_type = ct_int16,  .signd = 1 },
+  { .name = "ushort",   .canontype =  4, .ct_type = ct_uint16,            },
+  { .name = "int",      .canontype =  5, .ct_type = ct_int32,  .signd = 1 },
+  { .name = "uint",     .canontype =  6, .ct_type = ct_uint32,            },
+  { .name = "long",     .canontype =  7, .ct_type = ct_int64,  .signd = 1 },
+  { .name = "ulong",    .canontype =  8, .ct_type = ct_uint64, .signd = 1 },
 
-  { .name = "bool",     .canontype =  1, .fbtype = 21 },
-  { .name = "string",   .canontype =  0, .fbtype = 30 },
+  { .name = "bool",     .canontype =  1, .ct_type = ct_int8               },
+  { .name = "string",   .canontype =  0, .ct_type = ct_string             },
 };
 
 void error(ctx_t ctx, const char * fmt, ...) {
@@ -88,7 +89,9 @@ token_t tok2next(token_t tok) {                             // To go from one to
 
 }
 
-uint32_t find(ctx_t ctx, token_t token, uint8_t tom, tup_t tup) { // See if the token is already associated with a type. Return non zero if found.
+// find a type/member/attr by its token and type of meta; when found, fill the tuple.
+
+static uint32_t find(ctx_t ctx, token_t token, uint8_t tom, tup_t tup) {
 
   snset_t  set = & ctx->Meta;
   uint32_t i;
@@ -115,7 +118,7 @@ uint32_t find(ctx_t ctx, token_t token, uint8_t tom, tup_t tup) { // See if the 
 
 }
 
-void idx2tup(ctx_t ctx, uint32_t idx, tup_t tup) {          // Fill a tuple with the type and meta information of the given index.
+static void idx2tup(ctx_t ctx, uint32_t idx, tup_t tup) {   // Fill a tuple with the type and meta information of the given index.
 
   assert(idx < ctx->Meta.num && idx != none);
 
@@ -182,7 +185,7 @@ static void addtag(ctx_t ctx, tup_t tup, const char * str) {// Add a tag tuple t
   
   addany(ctx, tup, size, alignof(Tag_t), TAG);
 
-  tup->tag->size = size;
+  tup->tag->size = strlen(str) + 1;
 
   memcpy(tup->tag->chars, str, strlen(str));                // Is automatically 0 terminated.
 
@@ -275,6 +278,65 @@ type_t anf4type(ctx_t ctx, uint32_t ti, token_t name) {
   }
   
   return T.type;
+
+}
+
+static void token2Value(ctx_t ctx, token_t token, Value_t * val) {
+                                                            // Convert a token to a value; note that we only convert here and determine if there
+                                                            // is a minus sign in front of the decimal or the float. We don't try to categorize
+  const char * number = NULL;                               // here yet. Convert to a 64 bit type. Further refining done in setMemberType(). Also
+  int32_t      base = 0;                                    // note that STRING constants are NOT handled here; they yield an error.
+
+  assert(val);
+  
+  val->minus = ('-' == token->text[0]) ? 1 : 0;             // Only applies to floats and decimals.
+
+  switch (token->cti) {                                     // Find what type of value we need, create the proper search token and search.
+    case FLOAT: {                                           // Could be float32 or float64.
+      val->f64 = strtod(token->text, NULL);
+      if (errno) {
+        error(ctx ,"strtod(%s) failed: %s.", token->text, strerror(errno));
+      }
+      break;
+    }
+      
+    case HEX: {
+      base = 16;
+      number = & token->text[2];                            // Skip 0x
+      break;
+    }
+      
+    case BIN: {
+      base = 2;
+      number = & token->text[2];                            // Skip 0b
+      break;
+    }
+      
+    case DEC: {
+      base = 10;
+      number = token->text;
+      break;
+    }
+        
+    case TRUE:
+    case FALSE: {
+      val->i64 = token->cti == FALSE ? 0 : 1;
+      break;
+    }
+
+    default: {
+      error(ctx, "Unknown CTI %u.", token->cti);
+    }
+  }
+    
+  if (number) {                                             // Do we need to convert a number?
+    val->u64 = strtoull(number, NULL, base);
+    if (errno) {
+      error(ctx, "strtoull(%s) failed: %s.", token->text, strerror(errno));
+    }
+  }
+
+  assert(! ctx->error); // for now
 
 }
 
@@ -375,11 +437,18 @@ void member(ctx_t ctx, token_t name, token_t typetoken, uint32_t isArray, token_
   assert(M.member->numattr == ctx->TUC.numMAttr);           // Should give an exact match.
 
   if (valOrSize) { 
-    if (valOrSize->cti) {                                   // A numeric constant, set the member value.
-      token2Value(ctx, valOrSize, & M.member->Default);
+    if (valOrSize->cti) {
+      if (STRING == valOrSize->cti) {                       // A string constant; save it as a tag.
+        s4tag(ctx, & Tag, valOrSize->text);                 // Create the tag with the constant.
+        refresh(ctx, & M);                                  // Refresh the member tuple as it might have changed.
+        M.meta->stringConst = Tag.meta->index;
+      }
+      else {                                                // A numerical constant; set the member value.
+        token2Value(ctx, valOrSize, & M.member->Default);
+      }
     }
     if (! isArray) {
-      printf("MEMBER [%s] = %s", name->text, valOrSize->text);
+      printf("MEMBER [%s] = %s (default)", name->text, valOrSize->text);
     }
     else {
       // In structs, the 'array' size must be fixed, since structs are fixed.
@@ -487,6 +556,8 @@ static void builtins(ctx_t ctx) {                           // Add the builtin t
       memcpy(token->text, t->name, token->size);
       type = anf4type(ctx, fb2e_Prim, token);
       type->canontype = t->canontype;
+      type->signd = t->signd;
+      type->ct_type = t->ct_type;
       if (ctx->numtypes <= 11) {
         assert(ctx->numtypes - 1 == t->canontype);          // For the first 10 types, the canontype should be the type number in the set.
       }
@@ -517,6 +588,318 @@ static void * mem4set(snset_t set, void * mem, uint32_t sz) {
   return ctx->fb2_ctx->mem(ctx->fb2_ctx, mem, sz);
 
 }
+
+
+static void attr2member(ctx_t ctx, meta_t meta) {           // Link the attribute into the proper member slot.
+
+  member_t member = ctx->TMA.set[meta->container];
+  keva_t   attr   = ctx->TMA.set[meta->index];
+
+  assert(member->fb2ti == fb2e_Member);
+  assert(attr->fb2ti == fb2e_Attr);
+  assert(meta->idx4cont < member->numattr);
+
+  member->attr[meta->idx4cont] = attr;
+
+}
+
+static uint32_t isaTypeKind(uint8_t ti) {                   // Return 1 when the kind is a type.
+  return (ti >= fb2e_Prim && ti <= fb2e_Struct) ? 1 : 0;
+}
+
+static void attr2type(ctx_t ctx, meta_t meta) {             // Link the attribute into the proper type slot.
+
+  type_t   type = ctx->TMA.set[meta->container];
+  keva_t   attr = ctx->TMA.set[meta->index];
+  keva_t * ta = (keva_t *) & type->members[type->nummem];   // Type attribute array just behind the member slots.
+
+  assert(isaTypeKind(type->fb2ti));
+  assert(attr->fb2ti == fb2e_Attr);
+  assert(meta->idx4cont < type->numattr);
+
+  ta[meta->idx4cont] = attr;
+
+}
+
+static uint32_t isaCompound(uint8_t ti) {                   // Return 1 if a compound type.
+
+  return (ti >= fb2e_Table && ti <= fb2e_Struct) ? 1 : 0;
+
+}
+
+// Return the value associated with the given enum member token.
+
+static fb2_Value_t enumm2val(ctx_t ctx, type_t etype, token_t member) {
+
+  uint32_t    i;
+  fb2_Value_t NotFound = { .u64 = 0 };
+  
+  for (i = 0; i < etype->nummem; i++) {
+    if (! strcmp(etype->members[i]->name, member->text)) {
+      return etype->members[i]->Default;
+    }
+  }
+
+  error(ctx, "Member '%s' not found in enum '%s'\n", member->text, etype->name);
+
+  return NotFound;
+
+}
+
+static void setMemberType(ctx_t ctx, meta_t meta) {         // Determine the proper type for the member and also the default value, if any.
+
+  Tup_t    ToM;                                             // Type of the member.
+  Tup_t    Con;                                             // Type that contains the member.
+  tag_t    tag = ctx->TMA.set[meta->tag];
+  member_t member = ctx->TMA.set[meta->index];
+  type_t   type;
+
+  assert(memset(& ToM, 0x00, sizeof(ToM)));
+  assert(memset(& Con, 0x00, sizeof(Con)));
+  assert(none == meta->membertype);                         // Membertype should not be set yet.
+  assert(none != meta->container);
+
+  idx2tup(ctx, meta->container, & Con);                     // Get the enclosing/parent type in our tuple.
+  assert(Con.meta->tom == TYPE);
+
+  member->name = tag->chars;
+  
+  if (meta->typetoken) {
+    assert(meta->typetoken);
+    if (find(ctx, meta->typetoken, TYPE, & ToM)) {
+      meta->membertype = ToM.meta->index;
+    }
+    else {
+      error(ctx, "member type '%s' of '%s' not found.", meta->typetoken->text, meta->id->text);
+    }
+  }
+  else {                                                    // No typetoken, see if it's an enum or union member, based on the parent type.
+    if (fb2e_Enum == Con.type->fb2ti) {                     // An enum, the type is the type of the enum itself.
+      assert(Con.meta->typetoken);                          // So it must have a typetoken.
+      if (find(ctx, Con.meta->typetoken, TYPE, & ToM)) {
+        assert(fb2e_Prim == ToM.type->fb2ti);               // Must be a primitive. Careful: we are setting the type on the enum *member* itself!
+        member->Default.signd = ToM.type->signd;            // NOT on any other member that has this enum as type. That is done below, at the AA note.
+        member->Default.type = ToM.type->ct_type;
+        meta->membertype = ToM.meta->index;
+        ToM.meta->used++;
+        Con.type->type4enum = ToM.type;
+      }
+      else {
+        error(ctx, "Type of enum '%s' '%s' not found.", Con.meta->id->text, Con.meta->typetoken->text);
+      }
+    }
+    else if(fb2e_Union == Con.type->fb2ti) {                // A union, the member name itself *is* a type.
+      if (find(ctx, meta->id, TYPE, & ToM)) {
+        meta->membertype = ToM.meta->index;
+        ToM.meta->used++;
+      }
+      else {
+        error(ctx, "Could not find union member type '%s' in union '%s'.", meta->id->text, Con.meta->id->text);
+      }
+    }
+    else {
+      // Without a type, can only be a union or an enum.
+      error(ctx, "No type on '%s' and not a union/enum.", meta->id->text);
+    }
+  }
+
+//  printf("MEMBER [%s] ti %x\n", meta->id->text, ToM.type->fb2ti); fflush(stdout);
+
+  assert(isaTypeKind(ToM.type->fb2ti));
+  assert(isaCompound(Con.type->fb2ti));                     // Members can only be part of a compound type.
+  
+  member->type = ToM.type;                                  // We can now give the member the proper type ...
+  Con.type->members[meta->idx4cont] = member;               // ... and assign it to the proper slot in the containing type.
+
+  if (fb2e_Prim == member->type->fb2ti) {
+    if (meta->stringConst) {
+      member->Default.ref = ctx->TMA.set[meta->stringConst];
+      member->Default.type = ct_string;
+    }
+    else {                                                  // A numerical default.
+      member->Default.signd = member->type->signd;
+      member->Default.type = member->type->ct_type;
+      printf("MEMBER [%s] TYPE [%s:%ssigned]\n", member->name, member->type->name, member->type->signd ? "" : "un");
+      if (0LL == member->Default.u64) {                     // For -0 or -0.0 strip the minus flag, if any.
+        member->Default.minus = 0;
+      }
+    }
+  }
+  else if (fb2e_Enum == member->type->fb2ti) {              // See note AA above; here we set the type on a member that is an enum value.
+    if (member->type->type4enum) {                          // That type must already have the proper enumtype set.
+      printf("MEMBER [%s] is ENUM [%s] default '%s'\n", member->name, meta->typetoken->text, meta->value ? meta->value->text : "(none)");
+      if (meta->value) {                                    // This member has a specific default value.
+        if (find(ctx, meta->typetoken, TYPE, & ToM)) {
+          member->Default.u64 = enumm2val(ctx, ToM.type, meta->value).u64; // There is a val2enumm in the runtime, doing the inverse.
+        }
+        else {
+          error(ctx, "Enum of member '%s' '%s' not found.", member->name, meta->typetoken->text);
+        }
+      }
+      type = member->type->type4enum;
+      assert(type->signd);                                  // Enum values are always signed; or make this into an error?
+      member->Default.signd = 1;
+      member->Default.type = type->ct_type;
+    }
+    else {
+      error(ctx, "Member [%s] refers to enum before it is defined.\n", member->name);
+    }
+  }
+
+}
+
+fb2_Any_t * fb2_go2next(void const * cur) {                 // Go to the next element; return NULL when no next element.
+
+  Hdr_t const * here = cur;
+  fb2_Any_t *   next;
+
+  if (! cur) { return NULL; }
+  
+  assert((here->fb2ti & 0b1111111111110000) == 0);             // Small check.
+
+  if (0 == here->o2n) { return NULL; }                      // No more next element.
+
+  next = (fb2_Any_t *) ((char *) here + (8 * here->o2n));
+  
+  assert((next->Type.fb2ti & 0b1111111111110000) == 0);
+  
+  return next;
+  
+}
+
+static uint32_t couldBeRoot(ctx_t ctx, uint16_t ti) {     // Return true when the kind could be a root type.
+
+  if (ti == fb2e_Table) return 1;
+
+//  KoT_STRUCT     = 0b00000010, // these could also be root types but are not allowed by the standard
+//  KoT_UNION      = 0b00000100,
+
+  return 0;
+
+}
+  
+void fb2link(ctx_t ctx) {
+
+  snset_t   metaset = & ctx->Meta;
+  snset_t   tma  = & ctx->TMA;
+  uint32_t  i;
+  meta_t    meta;
+  tag_t     tag;
+  tag_t     key;
+  keva_t    attr;
+  type_t    type;
+  Hdr_t *   cur;
+  Hdr_t *   prev = NULL;
+  schema_t  schema;
+  uint32_t  o2n;
+  uint32_t  numtail;
+
+  struct {
+    const char * name;
+    type_t       type;
+  } Root;
+
+  memset(& Root, 0x00, sizeof(Root));
+
+  assert(ctx->TMA.Grow.locked);
+
+  schema = tma->set[0];                                     // Element[0] is header; set is locked so now we can refer to the obj directly.
+
+  ctx->fb2_ctx->schema = schema;
+
+  for (i = 0; ! ctx->error && i < metaset->num; i++) {      // Go over all types, members and attributes collected so far.
+    meta = metaset->set[i];
+    assert(meta->tom == TYPE || meta->tom == TAG || meta->container != none);
+    if (meta->tom == TYPE_ATTR) {
+      attr2type(ctx, meta);
+    }
+    else if (meta->tom == MEMBER_ATTR) {
+      attr2member(ctx, meta);
+    }
+    else if (meta->tom == MEMBER) {
+      setMemberType(ctx, meta);
+    }
+    else if (meta->tom == TAG) {                            // Assign the tag string field to the chars array.
+      tag = tma->set[i];
+      assert(fb2e_Tag == tag->fb2ti);
+      tag->string = tag->chars;
+      if (i == ctx->meta4hdr->tag) {                        // If this is the tag for the root type, save it.
+        Root.name = tag->string;
+      }
+    }
+    else if (meta->tom == TYPE) {                           // Assign the type its proper name tag.
+      tag = tma->set[meta->tag];
+      assert(fb2e_Tag == tag->fb2ti);
+      type = tma->set[meta->index];
+      assert(isaTypeKind(type->fb2ti));
+      type->name = tag->chars;
+      schema->Num.types++;
+      if (schema->Num.maxmem < type->nummem) {              // Keep track of the maximums.
+        schema->Num.maxmem = type->nummem;
+      }
+      numtail = (uint32_t)(type->nummem + type->numattr);   // Total number of tail slots for this type.
+      if (schema->Num.maxtail < numtail) {
+        schema->Num.maxtail = numtail;
+      }
+    }
+    else if (meta->tom == KEYVAL) {
+      tag = tma->set[meta->tag];
+      key = tma->set[meta->container];
+      tag->string = tag->chars;
+      key->string = key->chars;
+      attr = tma->set[meta->index];
+      attr->key = key->chars;
+      attr->Value.tag = tag;
+      printf("KEYVAL %s:%s\n", attr->key, attr->Value.tag->chars);
+    }
+    else if (meta->tom == HEADER) {
+      // Do nothing.
+    }
+    else {
+      error(ctx, "Unknown meta type %u\n", meta->tom);
+    }
+  }
+
+
+  fflush(stdout); assert(Root.name); // Must have a root here.
+
+  for (i = 1; i < tma->num; i++) {                          // Set the proper offset to next for all elements in the TMA set. Skip the header.
+    cur = tma->set[i];
+    assert(0 == ((uintptr_t) cur & 0b111));                 // Must be 8 byte aligned since we set wca to 8 in the TMA set at the start.
+    if (couldBeRoot(ctx, cur->fb2ti)) {
+      if (0 == strcmp(Root.name, cur->name)) {              // Found the root type.
+        Root.type = tma->set[i];
+        schema->root = (uint32_t)((uint8_t *) Root.type - schema->bytes);
+      }
+    }
+    if (prev) {
+      o2n = (uint32_t) ((uint8_t *) cur - (uint8_t *) prev) / 8;       // Since all objects are aligned on an 8 byte address.
+      assert(o2n <= 0xffff);
+      prev->o2n = o2n;
+    }
+    prev = cur;
+  }
+
+//  for (cur = tma->set[1], i = 1; cur; cur = fb2_go2next(cur), i++) { // Go over all types, members and attributes collected so far.
+//    printf("Cur %p type %u\n", cur, cur->fb2ti);
+//    printf("%12s '%s' used %u\n", t2a[meta->tom], meta->id ? meta->id->text : "<tag>", meta->used);
+//  }
+
+  assert(tma->num == i);
+
+  schema->size = tma->size;
+  schema->Num.elements = tma->num - 1;                      // Don't include the header.
+
+  assert(& schema->Elements[0] == tma->set[1]);             // Ensure the first schema element and the first object align properly.
+
+  printf("%u elements, %u object bytes.\n", i, tma->size);
+
+  printf("First   %p\n", tma->set[1]);
+  printf("E0 addr %p\n", & schema->Elements[0]);
+
+}
+
+
 
 extern int fbpyydebug;
 
@@ -585,7 +968,7 @@ void fb2_parse(fb2_schemaCtx_t ctx, const char * schema, uint32_t size) {
   Ctx.TUC.numTAttr = 0;
   Ctx.TUC.enumtype = NULL;
 
-  flutscan(& Ctx, schema, size);
+  fb2scan(& Ctx, schema, size);
 
 //--
 /*
@@ -608,7 +991,7 @@ void fb2_parse(fb2_schemaCtx_t ctx, const char * schema, uint32_t size) {
 */
 //--
 
-  builtins(& Ctx);                                          // Add the builtin types.
+  builtins(& Ctx);                                          // Add the builtin types; implies Builtin[0] has meta index 1, next 2, ...
   
   Ctx.nexttoken = Ctx.Tokens.set[0];                        // Token to start the parsing with, is the first in the set.
 

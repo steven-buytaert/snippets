@@ -45,6 +45,7 @@ typedef enum Const_t {            // Constant type identification.
   BIN             = 4,   
   FALSE           = 5,
   TRUE            = 6,
+  STRING          = 7,
 } Const_t;
 
 typedef struct Token_t {          // We keep our own token stack
@@ -81,7 +82,7 @@ typedef struct Meta_t {           // Information on an entry in the TMA set. Eac
   uint32_t        container;      // For an attribute, the index of the member or type it belongs to; for a member, the enclosing type index.
   uint32_t        membertype;     // For a member, the type of the member.
   uint32_t        tag;            // The index for the string tag.
-  uint8_t         pad[4];
+  uint32_t        stringConst;    // When non zero, this is a MEMBER tom, string type and this field contains the tag with the constant string.
 } Meta_t;
 
 typedef struct Hdr_t {            // This is the common header for types/members and attributes.
@@ -139,14 +140,10 @@ void     attr(ctx_t ctx, token_t name, token_t value);
 void     enumtype(ctx_t ctx, token_t type);
 void     keyval(ctx_t ctx, const char * key, token_t value);
 void     end4type(ctx_t ctx);
-void     flutscan(ctx_t ctx, const char * schema, uint32_t size);
+void     fb2scan(ctx_t ctx, const char * schema, uint32_t size);
 int32_t  fb2_pyylex(token_t * tok, ctx_t ctx);
 uint32_t fb2_pyyerror(ctx_t ctx, const char * msg);
-uint32_t find(ctx_t ctx, token_t token, uint8_t type, tup_t tup); // find a type/member/attr by its token; when found, fill the tup.
-void     idx2tup(ctx_t ctx, uint32_t idx, tup_t tup);
-void     token2Value(ctx_t ctx, token_t token, Value_t * val);
 void     error(ctx_t ctx, const char * fmt, ...);
-void     fb2link(ctx_t ctx);
 
 #endif // INTERNAL_H
  

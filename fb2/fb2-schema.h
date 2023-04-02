@@ -71,7 +71,7 @@ typedef struct fb2_Member_t {
     fb2_type_t   type;            // The type of the member; when isArray, the type of the element.
     int64_t      type_a;
   };
-  fb2_Value_t    Default;         // Default value.
+  fb2_Value_t    Default;         // Default value or enumeration value.
   union {
     fb2_keyval_t attr[0];
     int64_t      attr_a[0];
@@ -90,10 +90,10 @@ typedef struct fb2_Type_t {
   uint16_t       vtti;            // VTab table index (set and used by code generator only).
 
   uint8_t        numattr;         // Number of type attributes in attrs[] array.
-  uint8_t        canontype;       // For a primitive type, the type number of the canonical name.
+  uint8_t        canontype;       // For a primitive type, the type number of the canonical type.
   uint16_t       nummem;          // Number of members in the members[] array, after the attributes.
-  uint8_t        fbtype;          // For the primitives, the index to the flatbuffer name, e.g. byte, ubyte, short, ...
-  uint8_t        pad[1];
+  uint8_t        ct_type;         // For the primitives, the ct_type number.
+  uint8_t        signd;           // Implies fb2t == fb2e_Prim, the type is signed.
   union{ 
     fb2_type_t   type4enum;       // When an enum, the primitive type of the enum.
     int64_t      type4enum_a;
@@ -148,12 +148,6 @@ typedef struct fb2_SchemaCtx_t {
 } fb2_SchemaCtx_t;
 
 fb2_Any_t * fb2_go2next(void const * cur);
-uint32_t    fb2_ti(void const * e);
-uint32_t    fb2_isPrimitive(void const * e);
-uint32_t    fb2_isStruct(void const * e);
-uint32_t    fb2_isEnum(void const * e);
-uint32_t    fb2_isUnion(void const * e);
-uint32_t    fb2_isTable(void const * e);
 void        fb2_parse(fb2_schemaCtx_t ctx, const char * schema, uint32_t size);
 
 #endif // FB2_SCHEMA_H

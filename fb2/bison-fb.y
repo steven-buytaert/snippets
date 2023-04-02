@@ -2,7 +2,7 @@
 
 // Copyright (c) 2023 Steven Buytaert
 
-#include <internal.h>
+#include <fb2-common.h>
 
 #pragma GCC diagnostic ignored "-Wpadded" // Generated code below is not padding clean.
 
@@ -33,12 +33,11 @@ NameSpace:
       ;
 
 SchemaElement:
-        NAMESPACE  NameSpace     ';'
-      | ROOT              ID     ';'         { keyval(ctx, rootkey,        $2); }
-      | ATTRIBUTE '"'     ID '"' ';'         { keyval(ctx, "attribute",    $3); }
-      | FILEID    '"'     ID '"' ';'         { keyval(ctx, "I:fileid",     $3); }
-      | FILEEXT   '"'     ID '"' ';'         { keyval(ctx, "I:file-ext",   $3); }
-      | FILEEXT   '"' '.' ID '"' ';'         { keyval(ctx, "I:file-ext",   $4); }
+        NAMESPACE  NameSpace ';'
+      | ROOT              ID ';'             { keyval(ctx, rootkey,        $2); }
+      | ATTRIBUTE      CONST ';'             { keyval(ctx, "attribute",    $2); }
+      | FILEID         CONST ';'             { keyval(ctx, "I:fileid",     $2); }
+      | FILEEXT        CONST ';'             { keyval(ctx, "I:file-ext",   $2); }
       | TypeDefinition 
       ;
 
