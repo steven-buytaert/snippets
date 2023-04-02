@@ -1,5 +1,7 @@
 // Copyright 2023 Steven Buytaert
 
+// Compile e.g. with clang -I . -Wall -Os -o sample sample.c lookup3.c sbtbuz1.c murmurhash.c avalanche.c
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -73,6 +75,7 @@ static avtest_t avtest32(void) {
   
   test->HUT.width = sizeof(uint32_t);                       // Hash width in bytes.
   test->count = 64 * 100000;                                // More than enough for statistical purposes.
+//  test->randomize = 1;                                      // Because we use the randomize bit flip mode.
 
   return test;
   
@@ -85,16 +88,16 @@ int main(int argc, char * argv[]) {
   avt->title = "Murmur3";
   avt->HUT.calc = murmur3;
 
-  doAvTest(avt); dumpAvTest(avt);
+  doAvTest(avt); dumpAvTest(avt, stdout);
 
   avt->title = "Lookup3";
   avt->HUT.calc = lookup3;
 
-  doAvTest(avt); dumpAvTest(avt);
+  doAvTest(avt); dumpAvTest(avt, stdout);
 
   avt->title = "sbtbuz1";                                   // Hash to check against; not as good as M3 and LU3 but fast.
   avt->HUT.calc = hash4sbt1;
 
-  doAvTest(avt); dumpAvTest(avt);
+  doAvTest(avt); dumpAvTest(avt, stdout);
 
 }

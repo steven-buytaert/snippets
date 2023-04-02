@@ -3,6 +3,7 @@
 
 // Copyright 2023 Steven Buytaert
 
+#include <stdio.h>
 #include <stdint.h>
 
 typedef struct HUT_t *     hut_t;
@@ -30,7 +31,8 @@ typedef struct AvTest_t {         // Avalanche test
   float        devperc;           // Average deviation over all bits as a percentage.
   float        stddev;            // Standard deviation.
   uint32_t     worstbit;          // Bit with the worst deviation.
-  uint32_t     keepstate;         // Set to non zero to avoid state being cleared.
+  uint16_t     keepstate;         // Set to non zero to avoid state being cleared.
+  uint16_t     randomize;         // Randomize the bit flip between each hash.
   union {
     void *     ref[8];            // For worst case alignment.
     uint64_t   u64[8];            // For worst case alingment.
@@ -40,6 +42,6 @@ typedef struct AvTest_t {         // Avalanche test
 } AvTest_t;
 
 uint32_t doAvTest(avtest_t test); // Perform an avalanche test.
-void     dumpAvTest(avtest_t test);
+void     dumpAvTest(avtest_t test, FILE * out);
 
 #endif // AVALANCHE_H

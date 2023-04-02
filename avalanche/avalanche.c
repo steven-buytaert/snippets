@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
@@ -114,6 +113,7 @@ uint32_t doAvTest(avtest_t test) {                          // Do a test; return
   uint8_t        byte = 0;
   uint8_t        bit = 0;
   hut_t          huts[2] = { & test->HUT, & HUT };          // The 2 huts we will alternate between.
+  uint32_t       mode = 0;                                  // 0 is set bits one by one, 1 is push a zero through, 2 is push a one through.
 
   if (! width || ! test->HUT.hash) { return 1; }            // Must have a proper width and a hash function.
 
@@ -121,7 +121,7 @@ uint32_t doAvTest(avtest_t test) {                          // Do a test; return
 
   test->count = roundup(test->count, width * 2);            // You want all bits to be set and cleared evenly, so width x 2.
   
-  if (test->count < 1000) { test->count *= 1000; }
+  if (test->count < 640) { test->count *= 640; }
 
   if (! test->title) { test->title = ""; }
 
@@ -149,12 +149,39 @@ uint32_t doAvTest(avtest_t test) {                          // Do a test; return
 
   for (i = 0; i < test->count; i++) {
     mask = 1 << bit;
-    v2h[byte] ^= mask;
-    if (++bit == 8) {
-      bit = 0;
-      if (++byte == width) {
-        byte = 0;
+    if (0 == mode) {                                        // Set the next ms bit.
+      v2h[byte] ^= mask;
+    }
+    else if (1 == mode) {                                   // Push a single zero through; all bits are now set.
+      memset(v2h, 0xff, width);
+      v2h[byte] ^= mask;
+    }
+    else if (2 == mode) {                                   // Push a single one through.
+      memset(v2h, 0x00, width);
+      v2h[byte] |= mask;
+    }
+
+    if (! test->randomize) {
+      if (++bit == 8) {
+        bit = 0;
+        if (++byte == width) {
+          byte = 0;
+          if (0 == mode) {                                  // End of the hash width, select next mode.
+            mode = 1;
+          }
+          else if (1 == mode) {
+            mode = 2;
+          }
+          else {
+            mode = 0;
+            memset(v2h, 0x00, width);                       // Start from fresh; clear again.
+          }
+        }
       }
+    }
+    else {
+      bit = random() % 8;
+      byte = random() % test->HUT.width;
     }
 
     test->HUT.calc(huts[i & 1], test->state, v2h, seed);    // The huts[i & 1] will alternate between both.
@@ -168,19 +195,20 @@ uint32_t doAvTest(avtest_t test) {                          // Do a test; return
 
 }
 
-void dumpAvTest(avtest_t test) {
+void dumpAvTest(avtest_t test, FILE * out) {
 
   uint32_t       i;
   const uint32_t width = test->HUT.width;
   cnt_t          cnt = test->Counts;
 
   if (strlen(test->title)) {
-    printf("----- %s -------\n", test->title);
+    fprintf(out, "----- %s -------\n", test->title);
   }
-  printf("      std dev %6.3f%%\n", test->stddev);
-  printf(" IFC %8u %6.3f%%\n", test->ifc, test->devperc);
+  fprintf(out, "      %srandom flips.\n", test->randomize ? "" : "non-");
+  fprintf(out, "      std dev %6.3f%%\n", test->stddev);
+  fprintf(out, " IFC %8u %6.3f%%\n", test->ifc, test->devperc);
   for (i = 0; i < width * 8; i++, cnt++) {
-    printf("%2u C %8u %6.3f%%\n", cnt->bitnum, cnt->count, cnt->devperc);
+    fprintf(out, "%2u C %8u %6.3f%%\n", cnt->bitnum, cnt->count, cnt->devperc);
   }
 
 }
