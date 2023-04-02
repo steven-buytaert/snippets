@@ -61,6 +61,12 @@ Container repo with very simple code snippets.
   to compare 3 different hashes; murmur3, lookup3 and a buzhash added for
   comparison. The murmur3 and lookup3 source code files contain the original
   copyrights. Only the lookup3 source code file was slightly modified so it
-  could be included in the sample code. Compile with
+  could be compiled and linked into the sample. The test can use a
+  deterministic mean of flipping the bits or a random mode; ensure the test
+  count is high enough for statistical relevance, in the random mode. RNG
+  seeding is not done by the test and needs to be added manually, if needed.
+  Compile with
+  ```C
   clang -I . -Wall -Os -o sample sample.c lookup3.c sbtbuz1.c murmurhash.c avalanche.c
+  ```
   and run ./sample.
