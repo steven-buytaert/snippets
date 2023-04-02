@@ -75,7 +75,7 @@ static avtest_t avtest32(void) {
   
   test->HUT.width = sizeof(uint32_t);                       // Hash width in bytes.
   test->count = 64 * 100000;                                // More than enough for statistical purposes.
-//  test->randomize = 1;                                      // Because we use the randomize bit flip mode.
+  test->randomize = 1;                                      // Because we use the randomize bit flip mode.
 
   return test;
   
