@@ -93,7 +93,7 @@ typedef struct t2c_Member_t {     // Member of a composite type.
   uint8_t            nameisdup;   // Name of the member is a strdup'ed name (internal purposes only).
   uint8_t            isForward;   // This member refers to a composite type, defined later (can't use the typedef'ed type yet).
   uint8_t            isRef2Self;  // This member refers to itself as type, e.g. a linked list; implies isForward.
-  uint8_t            pad[1];
+  uint8_t            anonunion;   // When non zero, this member is part of an anonymous union cluster in this structure.
   t2c_Cargo_t        Cargo;       // User defined cargo; is copied when relevant (e.g. moving to cluster).
 } t2c_Member_t;
 

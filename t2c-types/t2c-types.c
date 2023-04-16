@@ -5,6 +5,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #include <t2c-types.h>
 
@@ -253,7 +254,7 @@ static void a4Sz(ctx_t ctx, type_t stack[], uint32_t d) {   // Internal function
     }
 
     if (isStruct(type)) {
-      m->offset = offset + padding;                         // Update member information.
+      m->offset = (uint32_t)(offset + padding);             // Update member information.
     }
     else {
       m->offset = 0;
@@ -626,7 +627,7 @@ void t2c_ana4cluster(ctx_t ctx, type_t type) {
   x = mkClusters(ctx, ci);
   if (ctx->error) { return; }
 
-  alt = allocAlt(ctx, 1 + ci->created);                     // Allocate alternative info.
+  alt = allocAlt(ctx, 1u + ci->created);                    // Allocate alternative info.
   if (! alt) {                                              // Error set in context.
     freeCluster(ctx, ci);
     freemem(ctx, ci);
@@ -702,7 +703,7 @@ void t2c_ana4cluster(ctx_t ctx, type_t type) {
     }
   }
 
-  qsort_r(ctype->Members, ctype->num - 1, sizeof(t2c_Member_t), mcmp, ctx); // Don't sort the last vtail member.
+  qsort_r(ctype->Members, ctype->num - 1u, sizeof(t2c_Member_t), mcmp, ctx); // Don't sort the last vtail member.
 
   t2c_initype(ctx, ctype);
 
@@ -732,7 +733,7 @@ static void initbitset(ctx_t ctx, type_t bs) {
   type_t   base = bs->boetype;
   uint32_t i;
   member_t m;
-  uint32_t remain = base->size * 8;                         // Number of bits remaining in the base type.
+  uint32_t remain = (uint32_t)(base->size * 8);             // Number of bits remaining in the base type.
   uint32_t offset = 0;
 
   if (! isPrim(base)) {
@@ -1000,7 +1001,7 @@ type_t t2c_clone4type(ctx_t ctx, const t2c_Type_t * type) { // Clone a type (ens
 
   memcpy(clone, type, sizeof(t2c_Type_t));                  // Copy the bulk of the type (overwrites the name reference).
   clone->name = (char *) & clone->Members[type->num];       // Was overwritten by the memcpy; so re-assign it.
-  strncpy(clone->name, type->name, ctx->maxnamesize - 1);   // Copy name contents.
+  strncpy(clone->name, type->name, ctx->maxnamesize - 1u);  // Copy name contents.
   clone->prop &= (uint8_t) ~t2c_Static;                     // Remove the static property, if any.
   clone->ref2type = NULL;                                   // This field is never cloned.
 
@@ -1340,7 +1341,7 @@ static void add2spec(spec_t spec, line_t line) {            // Add the line to t
 
 static void pad(spec_t spec, line_t line, uint32_t ts) {    // Fill with space until tab stop or overflow.
 
-  while (line->off + 1 < ts && ! spec->overflow) {
+  while (line->off + 1u < ts && ! spec->overflow) {
     out(spec, line, " ");
   }
 
@@ -1370,6 +1371,8 @@ void t2c_fmttype(t2c_ctx_t ctx, t2c_type_t type, spec_t spec) {
   uint32_t     isEnum   = (ti == 5);
   char         evfmt[32];
   char         eol[32];
+  uint32_t     tab4type = spec->Tab.type;
+  uint32_t     anonunion = 0;
 
   static const char * ti2name[] = {
     "",
@@ -1405,7 +1408,8 @@ void t2c_fmttype(t2c_ctx_t ctx, t2c_type_t type, spec_t spec) {
     sprintf(eol, "//");
   }
   else {
-    sprintf(eol, "");
+    //sprintf(eol, "");
+    eol[0] = 0;
   }
 
   if (6 == ti) {                                            // A typedef.
@@ -1440,7 +1444,17 @@ void t2c_fmttype(t2c_ctx_t ctx, t2c_type_t type, spec_t spec) {
     add2spec(spec, & L);                                    // Add declaration header line.
 
     for (i = 0; i < type->num; i++, m++) {                  // Now do all members.
+
       pad(spec, & L, spec->Tab.type);
+
+      if (anonunion != m->anonunion) {                      // Start the anonymous union.
+        anonunion = 1;                                      // Active.
+        out(spec, & L, "union {");
+        pad(spec, & L, spec->Tab.ends);
+        add2spec(spec, & L);
+        spec->Tab.type += 2;                                // Indent 2 more.
+        pad(spec, & L, spec->Tab.type);
+      }
 
       if (m->isConst) {
         out(spec, & L, "const ");
@@ -1485,6 +1499,17 @@ void t2c_fmttype(t2c_ctx_t ctx, t2c_type_t type, spec_t spec) {
       pad(spec, & L, spec->Tab.ends);
       if (spec->overflow) { return; }                       // No need to continue
       add2spec(spec, & L);
+
+      if (i + 1 == type->num || (m + 1)->anonunion != m->anonunion) {
+        if (anonunion) {
+          anonunion = 0;                                    // No longer active.
+          spec->Tab.type = tab4type;                        // Restore previous indent.
+          pad(spec, & L, spec->Tab.type);
+          out(spec, & L, "};");
+          pad(spec, & L, spec->Tab.ends);
+          add2spec(spec, & L);
+        }
+      }
     }
 
     out(spec, & L, "} %s;", type->name);  
