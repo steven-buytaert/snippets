@@ -28,7 +28,10 @@ typedef struct Ctx_t {            // Internal context.
   uint32_t        cookie1;
   uint16_t        string_tti;     // String type table index.
   uint8_t         phase;
-  uint8_t         pad[1];
+  char            ID[5];          // I:fileid \0 terminated.
+  uint8_t         pad[2];
+  uint16_t        root_tti;       // Root element type table index.
+  const char *    rootname;       // Name of the root element.
   fb2_type_t      canon[11];      // The canonical primitive FB2 types.
   fb2_codeCtx_t   fb2code;
   SNSet_t         Const;          // Default and enum values constants.
@@ -43,7 +46,7 @@ typedef struct Ctx_t {            // Internal context.
 typedef struct Type_t *   type_t;
 typedef struct Comp_t *   comp_t;
 typedef struct Member_t * member_t;
-typedef struct VTab_t *   vtab_t;
+typedef struct fb2_VTab_t *   vtab_t;
 
 static const char * ct2a[] = {
     "ct_none,     ", //  0,
@@ -71,8 +74,6 @@ typedef enum {
   compound_mark = 1,  // The T2C type as a compound table entry; used as a bool.
   vtab_mark     = 2,  // The T2C type has a vtab at this index.
 } Marks;
-
-static uint32_t optimize = 0;
 
 // We juggle 4 different contexts here; so make some accessors and check.
 
@@ -258,9 +259,11 @@ static struct {
   { 0, 0, .t2c_type = 0,          .props4ttt = fb2_NONE   }, // 0
   { 0, 0, .t2c_type = t2c_Prim,   .props4ttt = fb2_PRIM   }, // 1
   { 1, 1, .t2c_type = t2c_Struct, .props4ttt = fb2_TABLE  }, // 2 table
-  { 1, 1, .t2c_type = t2c_Union,  .props4ttt = fb2_UNION  }, // 3 union
+  { 1, 1, .t2c_type = t2c_Struct, .props4ttt = fb2_UNION  }, // 3 union
   { 1, 0, .t2c_type = t2c_Enum,   .props4ttt = fb2_ENUM   }, // 4 enum
   { 1, 0, .t2c_type = t2c_Struct, .props4ttt = fb2_STRUCT }, // 5 struct
+//  { 0, 1, .t2c_type = t2c_Struct, .props4ttt = fb2_VECTOR }, // 6 vec
+//  { 0, 1, .t2c_type = t2c_Struct, .props4ttt = fb2_STRING }, // 7 string
 };
 
 static void clearmould(t2c_type_t moat, uint32_t num) {
@@ -278,15 +281,17 @@ static void clearmould(t2c_type_t moat, uint32_t num) {
 
 }
 
-static const char * dummy(fb2_codeCtx_t ctx, const char * name) {   // Dummy alias function.
+static const char * noalias(fb2_codeCtx_t ctx, const char * name, fb2_Alias_t at) {   // Dummy alias function.
   return name;
 }
+
+static void noprune(fb2_codeCtx_t ctx) { }                  // Dummy prune.
 
 static char * mktypename(fb2_CodeCtx_t * ctx, char b[], const char * base, uint32_t fb2ti) {
 
   char copy[128];
 
-  strcpy(copy, ctx->alias(ctx, base));
+  strcpy(copy, ctx->alias(ctx, base, Alias4Type));
 
   fb2ti = (fb2ti & fb2e_Mask);
 
@@ -312,7 +317,7 @@ static const char * mkrefname(fb2_CodeCtx_t * ctx, char b[], const char * base, 
   const char * prepend = ctx->pref4refs;
   uint32_t     done = 0;
 
-  strcpy(copy, ctx->alias(ctx, base));
+  strcpy(copy, ctx->alias(ctx, base, Alias4Type));
 
   fb2ti = (fb2ti & fb2e_Mask);
 
@@ -472,17 +477,20 @@ static void resolve(t2c_ctx_t t2c_ctx, t2c_member_t m, void * arg) {
   fb2_member_t    fb2m;
   char            buf[128];
   const char *    a4union;
+  t2c_type_t      t2c_type;
+  fb2_type_t      fb2_type;
 
   if (m->type == ctx->unresolved) {
     fb2m = m->Cargo.refs[0];                                // The FB member was attached to the cargo of the T2C member.
     a4union = (fb2e_Union == fb2m->type->fb2ti) ? app->a4union : "";
     printf("// Resolve %stype [%s%s_Vec%s]\n", fb2m->isArray ? "vector ": "", app->prefix, fb2m->type->name, app->suffix);
-    sprintf(buf, "%s%s%s%s", app->prefix, app->alias(app, fb2m->type->name), a4union, app->suffix);
+    sprintf(buf, "%s%s%s%s", app->prefix, app->alias(app, fb2m->type->name, Alias4Type), a4union, app->suffix);
     m->type = t2c_name2type(t2c_ctx, buf);
 
 if (! m->type) { printf("%s %u [%s] NOT FOUND\n", __FUNCTION__, __LINE__, buf); fflush(stdout); } 
 
     assert(m->type); // for now otherwise it means a missing type.
+
     if (fb2m->isArray) {
       printf("// VECTOR [%s] [%s]\n", m->type->name, fb2m->type->name);
       m->type = findvector(app, fb2m->type->name, fb2m->type->fb2ti);
@@ -490,6 +498,14 @@ if (! m->type) { printf("%s %u [%s] NOT FOUND\n", __FUNCTION__, __LINE__, buf); 
     }
     else if (fb2tc[fb2m->type->fb2ti].isIndirect) {         // If an indirect type ...
       m->numind++;                                          // ... we make it a reference.
+    }
+    else if (fb2e_Struct == fb2m->type->fb2ti) {            // But if it is a struct member that ...
+      t2c_type = t2c_mem2cont(m, NULL);
+      fb2_type = t2c_type->Cargo.refs[0];
+      if (fb2e_Union == fb2_type->fb2ti) {                  // ... is port of a union, ...
+        m->numind++;                                        // ... it is also a reference.
+        printf("Struct [%s] is INDIRECT in [%s].\n", m->name, fb2_type->name);
+      }
     }
   }
 
@@ -519,7 +535,6 @@ typedef struct ct4Comp_t {        // Information to generate a T2C type from an 
   fb2_type_t      fb2_type;       // The type to generate the t2c type for.
   fb2_type_t    * canon;          // The canonical FB2 types; pointer to Ctx.canon array.
   ctx_t           ctx;            // The internal context.
-
   t2c_type_t      t2c_type;       // The generated type.
   t2c_type_t      mould;          // The mould to be used for building up the type.
   uint32_t        maxmem;         // The number of member slots in the mould.
@@ -538,6 +553,7 @@ static const char * fmts[] = {
   "0x%016"PRIx64,  // 5
 };
 */
+
 static const uint8_t type2fmti[] = {
    0, // ct_none      =  0,
    2, // ct_int8      =  1,
@@ -576,15 +592,17 @@ static const uint8_t type2neg[] = {
   ct_neg_int64, // ct_neg_int64 = 15,
 };
   
-static void setPrimType(fb2_member_t fb2m, t2c_member_t t2cm, fb2_type_t cmtype) {
+static void check4minus(fb2_member_t fb2m, t2c_member_t t2cm, fb2_type_t cmtype) {
 
   assert(fb2m->Default.type);
+
   if (fb2m->Default.minus) {                                // The negative flag was set in token2Value().
-  // isn't this already done in fb2-schema.c?
-    fb2m->Default.type = type2neg[cmtype->canontype];       // Change to appropriate negative type.
+    fb2m->Default.type = type2neg[cmtype->canontype];       // The proper negative type is set here.
   }
 
 }
+
+// Add the proper primitive type to members of an enumeration.
 
 static void enum2prim(t2c_ctx_t t2c_ctx, t2c_member_t m, void * arg) {
 
@@ -595,7 +613,7 @@ static void enum2prim(t2c_ctx_t t2c_ctx, t2c_member_t m, void * arg) {
 
   assert(ct4cookie == ct4c->cookie);
 
-  if (fb2m && fb2e_Enum == fb2m->type->fb2ti) {
+  if (fb2m && fb2e_Enum == fb2m->type->fb2ti) {             // The member is part of an enum type.
     mtype = fb2m->type;
     printf("// Replace member [%s] from [%s] ", fb2m->name, mtype->name);
     assert(mtype->type4enum->canontype);                    // Must have a canonical type.
@@ -604,7 +622,7 @@ static void enum2prim(t2c_ctx_t t2c_ctx, t2c_member_t m, void * arg) {
     etype = t2c_name2type(t2c_ctx, mtype->name);
     assert(etype);                                          // Must be found
     m->type = etype;
-    setPrimType(fb2m, m, mtype);
+    check4minus(fb2m, m, mtype);                            // See if the enum value is negative.
   }
 
 }
@@ -638,9 +656,10 @@ static void gen1(fb2_CodeCtx_t * ctx, ct4Comp_t * ct4c) {   // Generate a T2C co
   mktypename(ctx, mould->name, src->name, src->fb2ti);
 
   for (i = 0; i < src->nummem; i++, t2cm++) {               // Do all members.
+    t2cm->anonunion = isUnion ? 1 : 0;                      // When containing type represents a union, this member is part of it.
     fb2m = src->members[i];                                 // Create a shorthand for the rest of this loop.
     t2cm->Cargo.refs[0] = fb2m;                             // Attach the fb2 member to the t2cm member in slot 0.
-    t2cm->name = ctx->alias(ctx, fb2m->name);               // Maybe aliased.
+    t2cm->name = ctx->alias(ctx, fb2m->name, Alias4Mem);    // Maybe aliased.
     mtype = fb2m->type;
     if (fb2m->isString) {
       t2cm->type = ct4c->string;
@@ -650,18 +669,10 @@ static void gen1(fb2_CodeCtx_t * ctx, ct4Comp_t * ct4c) {   // Generate a T2C co
     else if (fb2e_Prim == mtype->fb2ti) {                   // A primitive type.
       assert(mtype->canontype);                             // Must have a canonical type.
       mtype = ct4c->canon[mtype->canontype];                // Switch to canonical type.
-      fb2m->tti = mtype->canontype;                         // For canonicals, the canontype it the type table index.
+      fb2m->tti = mtype->canontype;                         // For canonicals, the canontype in the type table index.
       t2cm->type = t2c_name2type(t2cCtx, mtype->name);
       assert(t2cm->type);//must be found
-//--
-//void settype(fb2_member_t fb2m, t2c_member_t t2cm, fb2_type_t cmtype) {
-      setPrimType(fb2m, t2cm, mtype);
-//      fb2m->Default.width = t2cm->type->size;               // All other properties have been set in setMemberType().
-//      fb2m->Default.type = mtype->canontype;
-//      if (fb2m->Default.negative) {                         // The negative flag was set in token2Value().
-//        fb2m->Default.type = type2neg[mtype->canontype];    // Change to appropriate negative type.
-//      }
-//--
+      check4minus(fb2m, t2cm, mtype);
 
       if (fb2m->isArray) {                                  // The member is a vector of primitives, so find or create it.
         printf("// VECTOR P [%s] [%s]\n", t2cm->type->name, mtype->name);
@@ -718,16 +729,15 @@ static void genTypes(ctx_t ctx) {
   uint32_t        x;
   type_t          ttt; // Type Table Type.
   t2c_type_t      mould;                                    // The mother of all types.
-  t2c_member_t    t2cm;
   uint32_t        msize = sizeof(t2c_Type_t);               // And how large it is.
   char            buf[128];
   t2c_type_t      t2ctype;
-  const char *    rootname = NULL;
   ct4Comp_t       CT4;
 
   if (! fb2Code->prefix) { fb2Code->prefix = ""; }          // Prefix can not be NULL.
 
-  if (! fb2Code->alias) { fb2Code->alias = dummy; }         // Can not be NULL; provide pass through.
+  if (! fb2Code->alias) { fb2Code->alias = noalias; }       // Can not be NULL; provide pass through.
+  if (! fb2Code->prune) { fb2Code->prune = noprune; }       // Can not be NULL; provide pass through.
 
   assert(NUM(ctx->canon) >= schema->Num.canonical);         // See that our canonical table is large enough.
 
@@ -771,7 +781,6 @@ static void genTypes(ctx_t ctx) {
   assert(! t2cCtx->error);
   clearmould(mould, schema->Num.maxmem);                    // Clear the template.
 
-
   e = & schema->Elements[0];
   for (i = 0, x = 0; x < schema->Num.canonical; i++, e = fb2_go2next(e)) {
     if (fb2e_Prim == e->Type.fb2ti) {
@@ -790,20 +799,24 @@ static void genTypes(ctx_t ctx) {
   }
 
   ttt = findtype(ctx, "string", & ctx->string_tti);
-  ttt->props = fb2_PRIM;
+  ttt->props = fb2_STRING;                                  // String is not a primitive; has its own fb2 property.
 
   e = & schema->Elements[0];                                // Go over all schema elements.
   for (i = 0; i < schema->Num.elements; i++, e = fb2_go2next(e)) {
     if (fb2e_KeyVal == e->KeyVal.fb2ti) {
       if (! strcmp("I:root-type", e->KeyVal.key)) {
-        rootname = e->KeyVal.Value.tag->string;             // Save the root type name for later.
+        ctx->rootname = e->KeyVal.Value.tag->string;        // Save the root type name for later.
+      }
+      if (! strcmp("I:fileid", e->KeyVal.key)) {            // We save the file id for generating the context structure.
+        strncpy(ctx->ID, e->KeyVal.Value.tag->string, 4);   // File id is 4 characters exactly.
+        memcpy(fb2Code->ID, e->KeyVal.Value.tag->string, 4);
       }
     }
 
     if (fb2tc[e->Type.fb2ti].isCompound) {                  // Convert all non primitive FB2 types into T2C types.
       CT4.fb2_type = & e->Type;
       gen1(fb2Code, & CT4);
-      clearmould(mould, schema->Num.maxmem);                // Clear the template.
+      clearmould(mould, schema->Num.maxmem);                // Clear the template for the next type, if any.
     }
   }
 
@@ -837,38 +850,16 @@ static void genTypes(ctx_t ctx) {
 
   printf("// Replaced %u typedefs.\n", tdr);
 
-  if (optimize) { // -- Cleanup/customize
+  fb2Code->prune(fb2Code);                                  // Call user customization function, if any.
 
-  sprintf(buf, "%s%s_t", fb2Code->prefix, "Operator");
-  t2ctype = t2c_name2type(t2cCtx, buf);
-  assert(t2ctype); // for now
-  for (i = 0, t2cm = t2ctype->Members; i < t2ctype->num; i++, t2cm++) {
-    if (0 == strcmp(t2cm->name, "builtin_options")) {
-      printf("RETYPED [%s]\n", t2cm->name);
-      t2cm->type = & t2c_VoidRef;
-      break;
-    }
-  }
-
-  sprintf(buf, "%s%s_t", fb2Code->prefix, "OperatorCode");
-  t2ctype = t2c_name2type(t2cCtx, buf);
-  assert(t2ctype); // for now
-  for (i = 0, t2cm = t2ctype->Members; i < t2ctype->num; i++, t2cm++) {
-    if (0 == strcmp(t2cm->name, "builtin_code")) {
-      printf("RETYPED [%s]\n", t2cm->name);
-      t2cm->type = & t2c_U32;
-      break;
-    }
-  }
-
-  } // -- End of Cleanup/customize
-
-  assert(rootname);                                         // Mark from root.
-  sprintf(buf, "%s%s_t", fb2Code->prefix, rootname);
+  assert(ctx->rootname);                                    // Mark from root.
+  sprintf(buf, "%s%s_t", fb2Code->prefix, ctx->rootname);
   t2ctype = t2c_name2type(t2cCtx, buf);
   assert(t2ctype); // for now
   t2c_mark4use(t2cCtx, t2ctype);                            // Mark all from the root.
   ctx->root = t2ctype;
+
+  findtype(ctx, ctx->rootname, & ctx->root_tti);            // Set the root tid in context.
 
   t2c_scan4mem(t2cCtx, enum2prim, & CT4);                   // Only *after* mark4use, move enum members types to primitive.
 
@@ -1023,7 +1014,7 @@ static uint32_t dist(uint8_t * start, uint8_t * cur) {      // Return distance i
 
 //#include <hexdump.h>
 
-static uint32_t encodestr(snset_t set, fb2_tag_t tag) {
+static uint32_t encodestr(snset_t set, fb2_Tag_t const * tag) {
 
   uint8_t * start = set->addr4next;
   uint8_t * cur = start;
@@ -1069,7 +1060,7 @@ static uint32_t encodestr(snset_t set, fb2_tag_t tag) {
 static void mem2const(t2c_ctx_t t2cCtx, t2c_member_t m, void * arg) {
 
   fb2_member_t  fb2m = m->Cargo.refs[0];
-  fb2_tag_t     tag;
+  fb2_Tag_t const *    tag;
   uint32_t      i;
   snset_t       set = & any2ctx(arg)->Const;
   const_t       dev;
@@ -1165,6 +1156,7 @@ static void m2types(t2c_ctx_t t2cCtx, t2c_member_t m, void * arg) {
   if (fb2t) {                                               // Ensure the containing type is in the Types table.
     sprintf(buf, "%s", fb2t->name);
     ttt = findtype(ctx, buf, & tti);
+    assert(strcmp(buf, "string"));                          // We should not fiddle with strings props here.
     ttt->props = fb2tc[fb2t->fb2ti].props4ttt;
   }
 
@@ -1175,11 +1167,17 @@ static void m2types(t2c_ctx_t t2cCtx, t2c_member_t m, void * arg) {
     ttt = findtype(ctx, buf, & fb2m->tti);
     if (fb2e_Prim == fb2m->type->fb2ti) {                   // If a primitive ...
       prim = typeset->set[fb2m->type->canontype];           // ... ensure it has the proper size, alignment and props.
-      assert(prim->props && prim->size && prim->align);
-      ttt->props = prim->props;
-      ttt->size  = prim->size;
-      ttt->align = prim->align;
-      ttt->fi = prim->fi;
+      if (! ttt->props) {                                   // Don't overwrite properties already set, e.g. fb2_STRING.
+        ttt->props = prim->props;
+        ttt->size  = prim->size;
+        ttt->align = prim->align;
+        ttt->fi = prim->fi;
+      }
+    }
+    else if (fb2e_Enum == fb2m->type->fb2ti) {
+      prim = typeset->set[fb2m->Default.type];              // fb2m->Default.type is set in schema::setMemberType().
+      ttt->size = prim->size;
+      ttt->align = prim->align; // Always aligned on a 32 bit boundary or the real primitive alignment?
     }
     else {
       ttt->props = fb2tc[fb2m->type->fb2ti].props4ttt;
@@ -1267,15 +1265,6 @@ static void genCompoundTable(ctx_t ctx) {
   
 }
 
-/*
-typedef const struct VTab_t {     // Generic VTable.
-  struct {
-    uint16_t   vtab;              // Size of this vtable, in bytes.
-    uint16_t   table;             // Size of the table pointing to this vtable, in bytes.
-  } Size;
-  int16_t      offs[0];           // Offsets where the member data can be found in the table.
-} VTab_t;
-*/
 static void struc2vtab(t2c_ctx_t t2cCtx, t2c_type_t t, void * arg) {
 
   fb2_type_t   fb2t = t->Cargo.refs[0];
@@ -1286,13 +1275,13 @@ static void struc2vtab(t2c_ctx_t t2cCtx, t2c_type_t t, void * arg) {
   uint32_t     i;
 
   if (fb2t && fb2e_Struct == fb2t->fb2ti) {
-    size = sizeof(VTab_t) + sizeof(int16_t) * t->num;
+    size = sizeof(fb2_VTab_t) + sizeof(int16_t) * t->num;
     printf("// VTAB for [%s] sizes %u %u\n", fb2t->name, size, t->size);
-    vtab = set->obj(set, size, alignof(VTab_t));
+    vtab = set->obj(set, size, alignof(fb2_VTab_t));
     vtab->Size.vtab = size;
     vtab->Size.table = t->size;
     for (i = 0; i < t->num; i++) {
-      vtab->offs[i] = t->Members[i].offset;
+      vtab->offsets[i] = t->Members[i].offset;
     }
     assert(set->num - 1);                                   // There is a dummy already inserted in the table.
     fb2t->vtti = set->num - 1;
@@ -1325,6 +1314,7 @@ static const char * props2char(uint8_t props) {
     case fb2_UNION:     return "fb2_UNION ";
     case fb2_ENUM:      return "fb2_ENUM  ";
     case fb2_STRUCT:    return "fb2_STRUCT";
+    case fb2_STRING:    return "fb2_STRING";
     case fb2_PRIM: {
       if (signflag) return "fb2_SIGNED | fb2_PRIM";
       else          return "             fb2_PRIM";
@@ -1354,13 +1344,44 @@ static t2c_type_t vti2type(ctx_t ctx, uint32_t vti) {       // Search a type for
 
 }
 
+static uint32_t memberIsUnion(snset_t types, member_t m) {
+
+  type_t type;
+
+  assert(m->tid < types->num);
+
+  type = types->set[m->tid];
+  
+  return (fb2_UNION == (type->props & fb2_MASK));
+
+}
+
+static uint32_t comp2num(snset_t types, comp_t comp) {      // Return the real number of members, including (hidden) union type members.
+
+  uint32_t i;
+  member_t m;
+  uint32_t count = 0;
+  
+  for (m = comp->Members, i = 0; i < comp->num; i++, m++) {
+    if (memberIsUnion(types, m)) {                          // For a union member, we add an extra member for the type.
+      count++;
+    }
+    count++;
+  }
+
+  return count;
+
+}
+
 static void emitTables(ctx_t ctx) {
 
   snset_t      compset = & ctx->Compounds;
   uint32_t     i;
   uint32_t     x;
+  uint32_t     num;
   comp_t       comp;
   member_t     m;
+  uint32_t     unionmem;
   const char * names = (const char *) ctx->Names.addr4Set;
   const char * endofnames = (const char *) ctx->Names.addr4next;
   snset_t      typeset = & ctx->Types;
@@ -1384,6 +1405,7 @@ static void emitTables(ctx_t ctx) {
   if (! pre) { pre = ""; }
 
   memset(spaces, ' ', sizeof(spaces));
+  spaces[sizeof(spaces) - 1] = 0;                           // Terminate.
 
   // VTable accessor and table.
 
@@ -1394,19 +1416,19 @@ static void emitTables(ctx_t ctx) {
       assert(t2ctype->Cargo.refs[0]);                       // Must have an fb2 type associated with it.
       fb2type = t2ctype->Cargo.refs[0];
       printf("static const struct {\n");
-      printf("  VTab_t    VTab;\n");
-      printf("  int16_t   offs[%u];\n", t2ctype->num);
+      printf("  fb2_VTab_t VTab;\n");
+      printf("  int16_t    offsets[%u];\n", t2ctype->num);
       printf("} %s%s_VTab = {\n", pre, fb2type->name);
       printf("  .VTab.Size = { %u, %u },\n", vtab->Size.vtab, vtab->Size.table);
-      printf("  .offs = { ");
+      printf("  .offsets = { ");
       for (x = 0; x < t2ctype->num; x++) {
-        printf("%d%s ", vtab->offs[x], x + 1 == t2ctype->num ? "" : ",");
+        printf("%d%s ", vtab->offsets[x], x + 1 == t2ctype->num ? "" : ",");
       }
       printf("},\n};\n\n");
     }
 
-    printf("static VTab_t * svtabs[] = {\n");
-    printf("  (VTab_t *) 0,\n");
+    printf("static fb2_VTab_t * svtabs[] = {\n");
+    printf("  (fb2_VTab_t *) 0,\n");
     for (i = 1; i < vtabset->num; i++) {
       vtab = vtabset->set[i];
       t2ctype = vti2type(ctx, i);
@@ -1419,19 +1441,20 @@ static void emitTables(ctx_t ctx) {
 
   for (i = 0; i < compset->num; i++) {
     comp = compset->set[i];
+    num = comp2num(typeset, comp);                          // Get the real number of members, including hidden union type members.
     assert(comp->tid < typeset->num);
     type = typeset->set[comp->tid];
     //printf("// COMP emit %p\n", comp);
     printf("static struct {\n");
     printf("  Comp_t   Comp;\n");
     if (comp->num) {
-      printf("  Member_t Members[%u];\n", comp->num);
+      printf("  Member_t Members[%u];\n", num);
     }
     printf("} %s%s = {\n", pre, & names[type->nti]);
     namesz = strlen(& names[type->nti]);
     maxname = (namesz > maxname) ? namesz : maxname;
     printf("  .Comp.tid   = %6u,\n", comp->tid);
-    printf("  .Comp.num   = %6u,%s\n", comp->num, (! comp->num) ? " // Has no members." : "");
+    printf("  .Comp.num   = %6u,%s\n", num, (! num) ? " // Has no members." : "");
     printf("  .Comp.props = %s,\n", props2char(comp->props));
     printf("  .Comp.svtid = %6u,\n", comp->svtid);
     if (comp->num) {
@@ -1440,6 +1463,7 @@ static void emitTables(ctx_t ctx) {
         printf("    { .nti =      0, .tid =      0,                 }, // none\n");
       }
       for (m = comp->Members, x = 0; x < comp->num; x++, m++) {
+        unionmem = memberIsUnion(typeset, m);
         printf("    { .nti = %6u, ", m->nti);
         printf(".tid = %6u, ", m->tid);
         if (m->ctoff) {
@@ -1448,7 +1472,10 @@ static void emitTables(ctx_t ctx) {
         else {
           printf("                ");
         }
-        printf("}, // %s\n", & names[m->nti]);
+        printf("}, // %s%s\n", & names[m->nti], unionmem ? " type" : "");
+        if (unionmem) {
+          printf("    {%s}, // %s handle\n", & spaces[80], & names[m->nti]);
+        }
         if (fb2_UNION == comp->props && x + 2 == comp->num) break;
       }
       printf("  },\n");
@@ -1461,7 +1488,7 @@ static void emitTables(ctx_t ctx) {
   maxname = (maxname < 10) ? 10 : maxname;
   maxname += 8 + strlen(pre);                               // Leave some room for the "& xxx.Comp, ' etc.
   assert(maxname < sizeof(spaces) - 1);
-  spaces[maxname] = 0;                                      // Terminate the spaces string.
+  spaces[maxname] = 0;                                      // Terminate the spaces string at the proper place.
   printf("static Comp_t * Comps[] = {\n");
   printf("  (Comp_t *) 0, %s// 0 First always NULL.\n", & spaces[13]);
   for (i = 0; i < compset->num; i++) {
@@ -1519,7 +1546,7 @@ static void emitTables(ctx_t ctx) {
     2, 2, 2, 3, 3, 5, 5, 9, 9, 5, 9, 2, 2, 3, 5, 9
   };
 
-  printf("static const uint8_t consts[] = {\n");
+  printf("static const uint8_t consts[] __attribute__ ((aligned (4))) = {\n");
   for (i = 0; i < constset->num; i++) {
     cc = constset->set[i];
     printf("  %s ", ct2a[cc[0]]);
@@ -1546,7 +1573,27 @@ static void emitTables(ctx_t ctx) {
     }
     printf(" // %4u\n", offsetInSet(constset, i));
   }
-  printf("};\n");
+  printf("};\n\n");
+
+  // Context
+  
+  printf("#define NUM(A) (sizeof(A) / sizeof(A[0]))\n\n");
+
+  printf("fb2_BCtx_t %sCtx = {\n", ctx->ID);
+  printf("  .Codec = {\n");
+  printf("    .roottid   = %u, // %s\n", ctx->root_tti, ctx->rootname);
+  printf("    .stringtid = %u,\n", ctx->string_tti);
+  printf("    .Types     = Types,\n");
+  printf("    .numtypes  = NUM(Types),\n");
+  printf("    .Comps     = Comps,\n");
+  printf("    .numcomps  = NUM(Comps),\n");
+  printf("    .Names     = names,\n");
+  printf("    .namessize = sizeof(names),\n");
+  printf("    .Consts    = consts,\n");
+  printf("    .constsize = sizeof(consts),\n");
+  printf("    .svtabs    = svtabs,\n");
+  printf("  },\n");
+  printf("};\n\n");
 
 }
 
@@ -1568,6 +1615,7 @@ void fb2_generate(fb2_codeCtx_t ctx) {
   ctx->schemaCtx->cookie = cookie3;
   Ctx.fb2code = ctx;
   Ctx.cookie1 = cookie1;
+  strcpy(Ctx.ID, "XXXX");                                   // Placeholder file id.
 
   assert(ctx2code(& Ctx));                                  // Check our cookies.
   assert(ctx2tc(& Ctx));
