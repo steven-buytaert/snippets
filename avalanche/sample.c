@@ -33,7 +33,7 @@ static void w2b(uint32_t w, uint8_t b[]) {
 
 uint32_t sbtbuz1(const void * d, uint32_t s, uint32_t seed);
 
-static void hash4sbt1(hut_t hut, uint32_t args[16], const uint8_t v2h[], const uint8_t sb[]) {
+static void hash4sbt2(hut_t hut, uint32_t args[16], const uint8_t v2h[], const uint8_t sb[]) {
 
   uint32_t seed = b2w(sb);
   uint32_t hash = sbtbuz1(v2h, hut->width, seed);
@@ -95,8 +95,8 @@ int main(int argc, char * argv[]) {
 
   doAvTest(avt); dumpAvTest(avt, stdout);
 
-  avt->title = "sbtbuz1";                                   // Hash to check against; not as good as M3 and LU3 but fast.
-  avt->HUT.calc = hash4sbt1;
+  avt->title = "sbtbuz2";                                   // Hash to check against; pretty fast and good enough.
+  avt->HUT.calc = hash4sbt2;
 
   doAvTest(avt); dumpAvTest(avt, stdout);
 
