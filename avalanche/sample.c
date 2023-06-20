@@ -1,6 +1,6 @@
 // Copyright 2023 Steven Buytaert
 
-// Compile e.g. with clang -I . -Wall -Os -o sample sample.c lookup3.c sbtbuz1.c murmurhash.c avalanche.c
+// Compile e.g. with clang -I . -Wall -Os -o sample sample.c lookup3.c sbtbuz2.c murmurhash.c avalanche.c
 
 #include <stdio.h>
 #include <string.h>
@@ -31,12 +31,12 @@ static void w2b(uint32_t w, uint8_t b[]) {
 
 }
 
-uint32_t sbtbuz1(const void * d, uint32_t s, uint32_t seed);
+uint32_t sbtbuz2(const void * d, uint32_t s, uint32_t seed);
 
 static void hash4sbt2(hut_t hut, uint32_t args[16], const uint8_t v2h[], const uint8_t sb[]) {
 
   uint32_t seed = b2w(sb);
-  uint32_t hash = sbtbuz1(v2h, hut->width, seed);
+  uint32_t hash = sbtbuz2(v2h, hut->width, seed);
 
   w2b(hash, hut->hash);
 

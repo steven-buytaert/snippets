@@ -80,7 +80,7 @@ static void calcBadness(avtest_t test) {
   test->worstbit = 0xffffffff;
   
   for (cnt = test->Counts, i = 0; i < bits; i++, cnt++) {
-    tmp = (float) abs(test->ifc - cnt->count);
+    tmp = (float) abs((int)(test->ifc - cnt->count));
     cnt->devperc = (100.0 * tmp) / fifc;
     if (cnt->devperc > worst) {
       worst = cnt->devperc;
@@ -115,7 +115,7 @@ uint32_t doAvTest(avtest_t test) {                          // Do a test; return
   hut_t          huts[2] = { & test->HUT, & HUT };          // The 2 huts we will alternate between.
   uint32_t       mode = 0;                                  // 0 is set bits one by one, 1 is push a zero through, 2 is push a one through.
 
-  if (! width || ! test->HUT.hash) { return 1; }            // Must have a proper width and a hash function.
+  if (! width || ! test->HUT.calc) { return 1; }            // Must have a proper width and a hash function.
 
   if (! test->count) { test->count = 1000 * width; }
 
