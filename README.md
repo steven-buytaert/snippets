@@ -68,9 +68,9 @@ make snippet which is kind of obvious).
   deterministic mean of flipping the bits or a random mode; ensure the test
   count is high enough for statistical relevance, in the random mode. RNG
   seeding is not done by the test and needs to be added manually, if needed.
-  Compile with
+  Compile sample with
   ```C
-  clang -I . -Wall -Os -o sample sample.c lookup3.c sbtbuz1.c murmurhash.c avalanche.c
+  clang -I . -Wall -Os -o sample sample.c lookup3.c sbtbuz2.c murmurhash.c avalanche.c
   ```
   and run ./sample.
 
@@ -81,3 +81,7 @@ make snippet which is kind of obvious).
   but where the buffersize is passed as an argument.
   [This paper](https://eklitzke.org/path-max-is-tricky) arguments why using
   PATH_MAX is a wrong approach anyway.
+  Compile sample with
+  ```C
+  clang -Wall -Werror -Os -I ./ -o sample sample.c resolvepath.c strlcpy-cat.c
+  ```
