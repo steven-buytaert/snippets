@@ -1,5 +1,8 @@
 # snippets
-Container repo with very simple code snippets.
+Container repo with very simple code snippets. All code should compile
+cleanly with either clang or gcc. Dependencies have been kept to a minimum;
+only standard C library functions are required (except for the gnu modular
+make snippet which is kind of obvious).
 
 * circbuffer: circular buffer that allows 1 reader and 1 writer to operate
   on it, lock free.
@@ -70,3 +73,11 @@ Container repo with very simple code snippets.
   clang -I . -Wall -Os -o sample sample.c lookup3.c sbtbuz1.c murmurhash.c avalanche.c
   ```
   and run ./sample.
+
+* sbt-utils: implementations for strlcat and strlcpy based upon the
+  canonical paper found [here](https://www.millert.dev/papers/strlcpy.html).
+  The other function included is resolvepath which is essentially an implementation of
+  the Posix realpath function but not relying on the PATH_MAX system limit
+  but where the buffersize is passed as an argument.
+  [This paper](https://eklitzke.org/path-max-is-tricky) arguments why using
+  PATH_MAX is a wrong approach anyway.
