@@ -1,7 +1,9 @@
 // Copyright (c) 2023 Steven Buytaert
 
-#ifndef INTERNAL_H
-#define INTERNAL_H
+#ifndef COMMON_SCHEMA_H
+#define COMMON_SCHEMA_H
+
+// File shared between fb2-schema.c and the lexer/parser code.
 
 #include <snset.h>
 #include <assert.h>
@@ -17,17 +19,19 @@ static const uint32_t none = 0xffffffff;  // Set index equivalent for NULL.
 
 static const char * rootkey = "I:root-type";
 
-typedef struct fb2_Type_t      IType_t;    // Internal shorthands to public types.
-typedef struct fb2_Type_t *    type_t;
-typedef struct fb2_Member_t    IMember_t;
-typedef struct fb2_Member_t *  member_t;
-typedef struct fb2_KeyVal_t    KeyVal_t;
-typedef struct fb2_KeyVal_t *  keva_t;
-typedef struct fb2_Tag_t       Tag_t;
-typedef struct fb2_Tag_t *     tag_t;
-typedef struct fb2_BSchema_t * schema_t;
+typedef struct fb2s_Type_t     IType_t;   // Internal shorthands to public types.
+typedef struct fb2s_Type_t *   type_t;
+typedef struct fb2s_Member_t   IMember_t;
+typedef struct fb2s_Member_t * member_t;
+typedef struct fb2s_KeyVal_t   KeyVal_t;
+typedef struct fb2s_KeyVal_t * keva_t;
+typedef struct fb2s_Tag_t      Tag_t;
+typedef struct fb2s_Tag_t *    tag_t;
+typedef struct fb2s_Schema_t * schema_t;
 typedef struct fb2_Value_t     Value_t;
-typedef union  fb2_Any_t       Any_t;
+typedef union  fb2s_Any_t      Any_t;
+
+// Internal structures defined in this header.
 
 typedef struct Ctx_t *         ctx_t;
 typedef struct Token_t *       token_t;
@@ -108,7 +112,7 @@ typedef struct Tup_t {            // The combination of meta information and the
 } Tup_t;
 
 typedef struct Ctx_t {            // Context for lexing and parsing.
-  fb2_schemaCtx_t fb2_ctx;
+  fb2s_ctx_t      sctx;
   SNSet_t         Tokens;
   meta_t          meta4hdr;       // Meta information for the header.
   token_t         nexttoken;      // Next token to process.
@@ -145,5 +149,5 @@ int32_t  fb2_pyylex(token_t * tok, ctx_t ctx);
 uint32_t fb2_pyyerror(ctx_t ctx, const char * msg);
 void     error(ctx_t ctx, const char * fmt, ...);
 
-#endif // INTERNAL_H
+#endif // COMMON_SCHEMA_H
  

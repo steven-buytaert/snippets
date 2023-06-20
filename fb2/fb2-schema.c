@@ -7,7 +7,7 @@
 
 #include <fb2-common.h>
 
-static const fb2_Type_t Builtin[] = {
+static const fb2s_Type_t Builtin[] = {
   { .name = "none",     .canontype =  0, .ct_type = ct_none               },
 
   { .name = "int8_t",   .canontype =  1, .ct_type = ct_int8,   .signd = 1 },
@@ -585,10 +585,9 @@ static void * mem4set(snset_t set, void * mem, uint32_t sz) {
 
   ctx_t ctx = set->custom;
 
-  return ctx->fb2_ctx->mem(ctx->fb2_ctx, mem, sz);
+  return ctx->sctx->mem(ctx->sctx, mem, sz);
 
 }
-
 
 static void attr2member(ctx_t ctx, meta_t meta) {           // Link the attribute into the proper member slot.
 
@@ -748,18 +747,18 @@ static void setMemberType(ctx_t ctx, meta_t meta) {         // Determine the pro
 
 }
 
-fb2_Any_t * fb2_go2next(void const * cur) {                 // Go to the next element; return NULL when no next element.
+fb2s_Any_t * fb2s_go2next(void const * cur) {               // Go to the next element; return NULL when no next element.
 
   Hdr_t const * here = cur;
-  fb2_Any_t *   next;
+  fb2s_Any_t *   next;
 
   if (! cur) { return NULL; }
   
-  assert((here->fb2ti & 0b1111111111110000) == 0);             // Small check.
+  assert((here->fb2ti & 0b1111111111110000) == 0);          // Small check.
 
   if (0 == here->o2n) { return NULL; }                      // No more next element.
 
-  next = (fb2_Any_t *) ((char *) here + (8 * here->o2n));
+  next = (fb2s_Any_t *) ((char *) here + (8 * here->o2n));
   
   assert((next->Type.fb2ti & 0b1111111111110000) == 0);
   
@@ -805,7 +804,7 @@ void fb2link(ctx_t ctx) {
 
   schema = tma->set[0];                                     // Element[0] is header; set is locked so now we can refer to the obj directly.
 
-  ctx->fb2_ctx->schema = schema;
+  ctx->sctx->schema = schema;
 
   for (i = 0; ! ctx->error && i < metaset->num; i++) {      // Go over all types, members and attributes collected so far.
     meta = metaset->set[i];
@@ -849,8 +848,10 @@ void fb2link(ctx_t ctx) {
       key->string = key->chars;
       attr = tma->set[meta->index];
       attr->key = key->chars;
-      attr->Value.tag = tag;
-      printf("KEYVAL %s:%s\n", attr->key, attr->Value.tag->chars);
+//      attr->Value.tag = tag;
+      attr->Value.ref = tag;
+//      printf("KEYVAL %s:%s\n", attr->key, attr->Value.tag->chars);
+      printf("KEYVAL %s:%s\n", attr->key, tag->chars);
     }
     else if (meta->tom == HEADER) {
       // Do nothing.
@@ -899,13 +900,11 @@ void fb2link(ctx_t ctx) {
 
 }
 
-
-
 extern int fbpyydebug;
 
 const uint8_t fb2sid[7] = { 0x34, 0x65, 0x14, 0x51, 0x22, 0x51, 0x17 };
 
-void fb2_parse(fb2_schemaCtx_t ctx, const char * schema, uint32_t size) {
+void fb2s_parse(fb2s_ctx_t ctx, const char * schema, uint32_t size) {
 
   assert(offsetof(Hdr_t,  name) == offsetof(IMember_t,   name));
   assert(offsetof(Hdr_t, fb2ti) == offsetof(IMember_t,  fb2ti));
@@ -927,19 +926,19 @@ void fb2_parse(fb2_schemaCtx_t ctx, const char * schema, uint32_t size) {
   assert(offsetof(Hdr_t, fb2ti) == offsetof(Any_t, Type.fb2ti));
   assert(offsetof(Hdr_t,   o2n) == offsetof(Any_t,   Type.o2n));
   
-  assert((offsetof(fb2_BSchema_t, bytes) & 0b111) == 0);    // First element should start on an 8 byte address.
+  assert((offsetof(fb2s_Schema_t, bytes) & 0b111) == 0);    // First element should start on an 8 byte address.
 
-  assert(sizeof(fb2_Type_t)    == 32);                      // Ensure we have fixed width types on all machines.
-  assert(sizeof(fb2_KeyVal_t)  == 32);
-  assert(sizeof(fb2_Member_t)  == 48);
-  assert(sizeof(fb2_Tag_t)     == 16);
-  assert(sizeof(fb2_BSchema_t) == 40);
+  assert(sizeof(fb2s_Type_t)   == 32);                      // Ensure we have fixed width types on all machines.
+  assert(sizeof(fb2s_KeyVal_t) == 32);
+  assert(sizeof(fb2s_Member_t) == 48);
+  assert(sizeof(fb2s_Tag_t)    == 16);
+  assert(sizeof(fb2s_Schema_t) == 40);
 
   Ctx_t Ctx;                                                // Internal context.
   
   memset(& Ctx, 0x00, sizeof(Ctx));
 
-  Ctx.fb2_ctx = ctx;
+  Ctx.sctx = ctx;
 
   snset_init(& Ctx.Tokens, mem4set);                        // Set with tokens.
   Ctx.Tokens.Grow.bytes = 2048;
@@ -957,7 +956,7 @@ void fb2_parse(fb2_schemaCtx_t ctx, const char * schema, uint32_t size) {
   Ctx.Meta.Grow.slots =   64;
   Ctx.Meta.custom = & Ctx;
 
-  Ctx.TMA.obj(& Ctx.TMA, sizeof(fb2_BSchema_t), 8);         // Slot 0 is for the header; create it as soon as both sets are initialized.
+  Ctx.TMA.obj(& Ctx.TMA, sizeof(fb2s_Schema_t), 8);         // Slot 0 is for the header; create it as soon as both sets are initialized.
   Ctx.meta4hdr = Ctx.Meta.obj(& Ctx.Meta, sizeof(Meta_t), 8);
   Ctx.meta4hdr->tom = HEADER;
 

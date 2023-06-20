@@ -10,7 +10,16 @@
 #include <fb2-code.h>
 #include <fb2-types.h>
 
-typedef struct Ctx_t * ctx_t;
+// Internal shorthands.
+
+typedef struct fb2_Type_t *   type_t;
+typedef struct fb2_Comp_t *   comp_t;
+typedef struct fb2_Member_t * member_t;
+typedef struct fb2_VTab_t *   vtab_t;
+
+// Declared locally.
+
+typedef struct Ctx_t *        ctx_t;
 
 static const uint32_t cookie1 = 0xfafeb0be;
 static const uint32_t cookie2 = 0xf0efd0ef;
@@ -32,8 +41,8 @@ typedef struct Ctx_t {            // Internal context.
   uint8_t         pad[2];
   uint16_t        root_tti;       // Root element type table index.
   const char *    rootname;       // Name of the root element.
-  fb2_type_t      canon[11];      // The canonical primitive FB2 types.
-  fb2_codeCtx_t   fb2code;
+  fb2s_type_t     canon[11];      // The canonical primitive FB2 types.
+  fb2c_ctx_t  fb2code;
   SNSet_t         Const;          // Default and enum values constants.
   SNSet_t         Names;          // Names table.
   SNSet_t         Types;          // Types table; indexed by fb2 type->tti.
@@ -41,12 +50,11 @@ typedef struct Ctx_t {            // Internal context.
   SNSet_t         VTabs;          // Structure VTabs.
   t2c_type_t      root;           // The root type as a T2C type.
   t2c_type_t      unresolved;     // Type to resolve later.
+  struct {
+    char          buf[1020];
+    uint32_t      off;            // Offset in the buffer.
+  } Out;                          // Output buffer.
 } Ctx_t;
-
-typedef struct Type_t *   type_t;
-typedef struct Comp_t *   comp_t;
-typedef struct Member_t * member_t;
-typedef struct fb2_VTab_t *   vtab_t;
 
 static const char * ct2a[] = {
     "ct_none,     ", //  0,
@@ -87,9 +95,9 @@ static ctx_t any2ctx(void * any) {
   
 }
 
-static fb2_codeCtx_t ctx2code(void * any) {
+static fb2c_ctx_t ctx2code(void * any) {
 
-  const fb2_codeCtx_t ctx = any2ctx(any)->fb2code;
+  const fb2c_ctx_t ctx = any2ctx(any)->fb2code;
 
   assert(cookie2 == ctx->cookie);
 
@@ -107,9 +115,9 @@ static t2c_ctx_t ctx2tc(void * any) {
 
 }
 
-static fb2_schemaCtx_t ctx2schema(void * any) {
+static fb2s_ctx_t ctx2schema(void * any) {
 
-  fb2_schemaCtx_t ctx = ctx2code(any)->schemaCtx;
+  fb2s_ctx_t ctx = ctx2code(any)->sctx;
 
   assert(cookie3 == ctx->cookie);
 
@@ -123,7 +131,7 @@ static fb2_schemaCtx_t ctx2schema(void * any) {
 
 static void * getmem(ctx_t ctx, uint32_t size) {
 
-  fb2_codeCtx_t code = ctx2code(ctx);
+  fb2c_ctx_t code = ctx2code(ctx);
 
   void * block = code->mem(code, NULL, size);
   
@@ -135,13 +143,13 @@ static void * getmem(ctx_t ctx, uint32_t size) {
 
 static void freemem(ctx_t ctx, void * block) {
 
-  fb2_codeCtx_t code = ctx2code(ctx);
+  fb2c_ctx_t code = ctx2code(ctx);
 
   if (block) { code->mem(code, block, 0); }
   
 }
 
-static void genCode(t2c_ctx_t ctx, t2c_type_t type) {       // Generate the code for 1 type.
+static void genHeaderCode(ctx_t ctx, t2c_type_t type) {     // Generate the header code for a single type.
 
   struct {
     t2c_TGSpec_t Spec;
@@ -149,7 +157,9 @@ static void genCode(t2c_ctx_t ctx, t2c_type_t type) {       // Generate the code
     char         buf[8192];
   } GB;
   
-  t2c_tgspec_t spec = & GB.Spec;
+  fb2c_ctx_t code = ctx2code(ctx);
+  t2c_ctx_t      t2ctx = ctx2tc(ctx);
+  t2c_tgspec_t   spec = & GB.Spec;
 
   GB.Spec.Buf.cap        = NUM(GB.buf);
   GB.Spec.Buf.buf        = GB.buf;
@@ -171,12 +181,12 @@ static void genCode(t2c_ctx_t ctx, t2c_type_t type) {       // Generate the code
   GB.Spec.useFwDec       =  0;
   GB.Spec.useTypedef     =  1;
 
-  t2c_fmttype(ctx, type, & GB.Spec);
+  t2c_fmttype(t2ctx, type, & GB.Spec);
 
   if (spec->overflow) { printf("// OVERFLOWED\n"); }
 
   for (uint32_t n = 0; n < spec->Lines.num; n++) {
-    printf("%s\n", spec->Line[n].start);
+    code->out4header(code, spec->Line[n].start);
   }
 
   if (! t2c_isTypedef(type)) {
@@ -239,7 +249,7 @@ static type_t findtype(ctx_t ctx, const char * nm, uint16_t * tti) {
   }
   
   if (i == set->num) {                                      // Not found, add it.
-    type = set->obj(set, sizeof(Type_t), alignof(Type_t));
+    type = set->obj(set, sizeof(fb2_Type_t), alignof(fb2_Type_t));
     *tti = set->num - 1;
     type->nti = nti;
     printf("// TYPE '%s' added tti %u\n", nm, *tti);
@@ -281,13 +291,15 @@ static void clearmould(t2c_type_t moat, uint32_t num) {
 
 }
 
-static const char * noalias(fb2_codeCtx_t ctx, const char * name, fb2_Alias_t at) {   // Dummy alias function.
+// Dummy alias function.
+
+static const char * noalias(fb2c_ctx_t ctx, const char * name, fb2c_Alias_t at) {
   return name;
 }
 
-static void noprune(fb2_codeCtx_t ctx) { }                  // Dummy prune.
+static void noprune(fb2c_ctx_t ctx) { }                 // Dummy prune.
 
-static char * mktypename(fb2_CodeCtx_t * ctx, char b[], const char * base, uint32_t fb2ti) {
+static char * mktypename(fb2c_ctx_t ctx, char b[], const char * base, uint32_t fb2ti) {
 
   char copy[128];
 
@@ -308,7 +320,7 @@ static char * mktypename(fb2_CodeCtx_t * ctx, char b[], const char * base, uint3
 
 }
 
-static const char * mkrefname(fb2_CodeCtx_t * ctx, char b[], const char * base, uint32_t fb2ti) {
+static const char * mkrefname(fb2c_ctx_t ctx, char b[], const char * base, uint32_t fb2ti) {
 
   const char * vta = (fb2ti >= fb2e_Vector) ? "_vec" : "";
 
@@ -364,7 +376,7 @@ static void s4type(t2c_ctx_t ctx, t2c_type_t type, void * arg) {
 // Try to search for the vector and if not found, create it. The 'base' is the FB2 type name of the
 // type to create a vector for, NOT the equivalent T2C type that should already exist.
 
-static t2c_type_t findvector(fb2_CodeCtx_t * app, const char * obase, uint32_t fb2ti) {
+static t2c_type_t findvector(fb2c_ctx_t app, const char * obase, uint32_t fb2ti) {
 
   struct {
     t2c_Type_t   Type;
@@ -473,12 +485,12 @@ static void check4clash(t2c_ctx_t ctx, t2c_member_t m, void * arg) {
 static void resolve(t2c_ctx_t t2c_ctx, t2c_member_t m, void * arg) {
 
   ctx_t           ctx = arg;
-  fb2_codeCtx_t   app = ctx2code(ctx);
-  fb2_member_t    fb2m;
+  fb2c_ctx_t  app = ctx2code(ctx);
+  fb2s_member_t   fb2m;
   char            buf[128];
   const char *    a4union;
   t2c_type_t      t2c_type;
-  fb2_type_t      fb2_type;
+  fb2s_type_t     fb2_type;
 
   if (m->type == ctx->unresolved) {
     fb2m = m->Cargo.refs[0];                                // The FB member was attached to the cargo of the T2C member.
@@ -532,8 +544,8 @@ static void removetype(t2c_ctx_t ctx, t2c_type_t type) {
 static const uint32_t ct4cookie = 0x03041965;
 
 typedef struct ct4Comp_t {        // Information to generate a T2C type from an FB2 type.
-  fb2_type_t      fb2_type;       // The type to generate the t2c type for.
-  fb2_type_t    * canon;          // The canonical FB2 types; pointer to Ctx.canon array.
+  fb2s_type_t      fb2_type;       // The type to generate the t2c type for.
+  fb2s_type_t    * canon;          // The canonical FB2 types; pointer to Ctx.canon array.
   ctx_t           ctx;            // The internal context.
   t2c_type_t      t2c_type;       // The generated type.
   t2c_type_t      mould;          // The mould to be used for building up the type.
@@ -592,7 +604,7 @@ static const uint8_t type2neg[] = {
   ct_neg_int64, // ct_neg_int64 = 15,
 };
   
-static void check4minus(fb2_member_t fb2m, t2c_member_t t2cm, fb2_type_t cmtype) {
+static void check4minus(fb2s_member_t fb2m, t2c_member_t t2cm, fb2s_type_t cmtype) {
 
   assert(fb2m->Default.type);
 
@@ -607,8 +619,8 @@ static void check4minus(fb2_member_t fb2m, t2c_member_t t2cm, fb2_type_t cmtype)
 static void enum2prim(t2c_ctx_t t2c_ctx, t2c_member_t m, void * arg) {
 
   ct4Comp_t *  ct4c = arg;
-  fb2_member_t fb2m = m->Cargo.refs[0];
-  fb2_type_t   mtype;
+  fb2s_member_t fb2m = m->Cargo.refs[0];
+  fb2s_type_t   mtype;
   t2c_type_t   etype;
 
   assert(ct4cookie == ct4c->cookie);
@@ -627,16 +639,16 @@ static void enum2prim(t2c_ctx_t t2c_ctx, t2c_member_t m, void * arg) {
 
 }
 
-static void gen1(fb2_CodeCtx_t * ctx, ct4Comp_t * ct4c) {   // Generate a T2C compound type from a FB2 type.
+static void gen1(fb2c_ctx_t ctx, ct4Comp_t * ct4c) {   // Generate a T2C compound type from a FB2 type.
 
   t2c_ctx_t       t2cCtx = & ctx->t2cCtx;
   uint32_t        i;
   t2c_member_t    t2cm;
-  fb2_member_t    fb2m;
+  fb2s_member_t    fb2m;
   char            buf[128];
-  fb2_type_t      mtype;
+  fb2s_type_t      mtype;
   t2c_type_t      mould = ct4c->mould;
-  fb2_type_t      src = ct4c->fb2_type;                     // A shorthand for the src FB2 type to generate from.
+  fb2s_type_t      src = ct4c->fb2_type;                     // A shorthand for the src FB2 type to generate from.
   uint32_t        isEnum = (fb2e_Enum == src->fb2ti);
   uint32_t        isUnion = (fb2e_Union == src->fb2ti);
 
@@ -718,21 +730,22 @@ static void gen1(fb2_CodeCtx_t * ctx, ct4Comp_t * ct4c) {   // Generate a T2C co
 
 }
 
-static void genTypes(ctx_t ctx) {
+static void genTypes(ctx_t ctx) {                           // Generate all the types.
 
-  fb2_codeCtx_t   fb2Code = ctx2code(ctx);
-  fb2_schemaCtx_t fb2Ctx = ctx2schema(ctx);
-  t2c_ctx_t       t2cCtx = ctx2tc(ctx);
-  fb2_BSchema_t * schema = fb2Ctx->schema;
-  fb2_Any_t *     e;
-  uint32_t        i;
-  uint32_t        x;
-  type_t          ttt; // Type Table Type.
-  t2c_type_t      mould;                                    // The mother of all types.
-  uint32_t        msize = sizeof(t2c_Type_t);               // And how large it is.
-  char            buf[128];
-  t2c_type_t      t2ctype;
-  ct4Comp_t       CT4;
+  fb2c_ctx_t         fb2Code = ctx2code(ctx);
+  fb2s_ctx_t         fb2Ctx = ctx2schema(ctx);
+  t2c_ctx_t          t2cCtx = ctx2tc(ctx);
+  fb2s_Schema_t *    schema = fb2Ctx->schema;
+  fb2s_Any_t *       e;
+  uint32_t           i;
+  uint32_t           x;
+  fb2s_Tag_t const * tag;
+  type_t             ttt;                                   // Type Table Type.
+  t2c_type_t         mould;                                 // The mother of all types.
+  uint32_t           msize = sizeof(t2c_Type_t);            // And how large it is.
+  char               buf[128];
+  t2c_type_t         t2ctype;
+  ct4Comp_t          CT4;
 
   if (! fb2Code->prefix) { fb2Code->prefix = ""; }          // Prefix can not be NULL.
 
@@ -782,7 +795,7 @@ static void genTypes(ctx_t ctx) {
   clearmould(mould, schema->Num.maxmem);                    // Clear the template.
 
   e = & schema->Elements[0];
-  for (i = 0, x = 0; x < schema->Num.canonical; i++, e = fb2_go2next(e)) {
+  for (i = 0, x = 0; x < schema->Num.canonical; i++, e = fb2s_go2next(e)) {
     if (fb2e_Prim == e->Type.fb2ti) {
       t2ctype = t2c_prims[x];                               // Get the corresponding t2c type.
       assert(!x || ! strcmp(t2ctype->name, e->Type.name));  // They must be in the same order, except for the first which is char.
@@ -802,14 +815,15 @@ static void genTypes(ctx_t ctx) {
   ttt->props = fb2_STRING;                                  // String is not a primitive; has its own fb2 property.
 
   e = & schema->Elements[0];                                // Go over all schema elements.
-  for (i = 0; i < schema->Num.elements; i++, e = fb2_go2next(e)) {
+  for (i = 0; i < schema->Num.elements; i++, e = fb2s_go2next(e)) {
     if (fb2e_KeyVal == e->KeyVal.fb2ti) {
+      tag = e->KeyVal.Value.ref;
       if (! strcmp("I:root-type", e->KeyVal.key)) {
-        ctx->rootname = e->KeyVal.Value.tag->string;        // Save the root type name for later.
+        ctx->rootname = tag->string;                        // Save the root type name for later.
       }
       if (! strcmp("I:fileid", e->KeyVal.key)) {            // We save the file id for generating the context structure.
-        strncpy(ctx->ID, e->KeyVal.Value.tag->string, 4);   // File id is 4 characters exactly.
-        memcpy(fb2Code->ID, e->KeyVal.Value.tag->string, 4);
+        strncpy(ctx->ID, tag->string, 4);                   // File id is 4 characters exactly.
+        memcpy(fb2Code->ID, tag->string, 4);
       }
     }
 
@@ -871,21 +885,21 @@ static void genTypes(ctx_t ctx) {
     printf("[%s] w %u\n", t->name, t->weight);
   }
 
-  printf("#endif // debug\n#include <fb2-types.h>\n\n");
+  fb2Code->out4header(fb2Code, "#endif // debug\n#include <fb2-types.h>\n\n");
 
   for (i = 0; i < t2cCtx->num; i++) {                       // First do the typedefs.
     if (!t2cCtx->types[i]->mark4use) continue;
     if (t2c_isTypedef(t2cCtx->types[i])) {
-      genCode(t2cCtx, t2cCtx->types[i]);
+      genHeaderCode(ctx, t2cCtx->types[i]);
     }
   }
 
-  printf("\n");
+  fb2Code->out4header(fb2Code, "\n");
 
   for (i = 0; i < t2cCtx->num; i++) {                       // Then the types themselves.
     if (!t2cCtx->types[i]->mark4use) continue;
     if (! t2c_isTypedef(t2cCtx->types[i])) {
-      genCode(t2cCtx, t2cCtx->types[i]);
+      genHeaderCode(ctx, t2cCtx->types[i]);
     }
   }
 
@@ -1014,7 +1028,7 @@ static uint32_t dist(uint8_t * start, uint8_t * cur) {      // Return distance i
 
 //#include <hexdump.h>
 
-static uint32_t encodestr(snset_t set, fb2_Tag_t const * tag) {
+static uint32_t encodestr(snset_t set, fb2s_Tag_t const * tag) {
 
   uint8_t * start = set->addr4next;
   uint8_t * cur = start;
@@ -1059,8 +1073,8 @@ static uint32_t encodestr(snset_t set, fb2_Tag_t const * tag) {
 
 static void mem2const(t2c_ctx_t t2cCtx, t2c_member_t m, void * arg) {
 
-  fb2_member_t  fb2m = m->Cargo.refs[0];
-  fb2_Tag_t const *    tag;
+  fb2s_member_t  fb2m = m->Cargo.refs[0];
+  fb2s_Tag_t const * tag;
   uint32_t      i;
   snset_t       set = & any2ctx(arg)->Const;
   const_t       dev;
@@ -1140,8 +1154,8 @@ static void genConstTable(ctx_t ctx) {
 static void m2types(t2c_ctx_t t2cCtx, t2c_member_t m, void * arg) {
 
   ctx_t         ctx = any2ctx(arg);
-  fb2_member_t  fb2m = m->Cargo.refs[0];
-  fb2_type_t    fb2t;
+  fb2s_member_t  fb2m = m->Cargo.refs[0];
+  fb2s_type_t    fb2t;
   snset_t       typeset = & ctx->Types;
   char          buf[128];
   type_t        ttt;
@@ -1211,8 +1225,8 @@ static void genNameAndTypeTables(ctx_t ctx) {               // Generate both nam
 
 static void t2compound(t2c_ctx_t t2cCtx, t2c_type_t t, void * arg) {
 
-  fb2_type_t   fb2t = t->Cargo.refs[0];
-  fb2_member_t fb2m;
+  fb2s_type_t   fb2t = t->Cargo.refs[0];
+  fb2s_member_t fb2m;
   ctx_t        ctx = any2ctx(arg);
   snset_t      set = & ctx->Compounds;
   comp_t       comp;
@@ -1229,8 +1243,8 @@ static void t2compound(t2c_ctx_t t2cCtx, t2c_type_t t, void * arg) {
 
   assert(! t->marks[compound_mark]);                        // Should not have been marked yet.
 
-  size = sizeof(Comp_t) + t->num * sizeof(Member_t);
-  comp = set->obj(set, size, alignof(Comp_t));
+  size = sizeof(fb2_Comp_t) + t->num * sizeof(fb2_Member_t);
+  comp = set->obj(set, size, alignof(fb2_Comp_t));
   comp->num = t->num;
   comp->svtid = fb2t->vtti;
   sprintf(buf, "%s", fb2t->name);
@@ -1267,7 +1281,7 @@ static void genCompoundTable(ctx_t ctx) {
 
 static void struc2vtab(t2c_ctx_t t2cCtx, t2c_type_t t, void * arg) {
 
-  fb2_type_t   fb2t = t->Cargo.refs[0];
+  fb2s_type_t   fb2t = t->Cargo.refs[0];
   uint32_t     size;
   vtab_t       vtab;
   ctx_t        ctx = any2ctx(arg);
@@ -1373,6 +1387,35 @@ static uint32_t comp2num(snset_t types, comp_t comp) {      // Return the real n
 
 }
 
+static void emit(ctx_t ctx, const char * fmt, ...) {
+
+  va_list       ap;
+  fb2c_ctx_t code = ctx2code(ctx);
+  uint32_t      rem = sizeof(ctx->Out.buf) - ctx->Out.off;
+  char *        cur = ctx->Out.buf + ctx->Out.off;
+  int32_t       nw;
+  uint32_t      flush = 0;
+
+  va_start(ap, fmt);
+  nw = vsnprintf(cur, rem, fmt, ap);
+  assert((uint32_t) nw < rem) ;                             // We don't want our buffer to be too small.
+  ctx->Out.off += (uint32_t) nw;
+  va_end(ap);
+
+  for (uint32_t i = ctx->Out.off; i > 0; i--) {
+    if ('\n' == ctx->Out.buf[i - 1]) {
+      flush = 1;
+      break;
+    }
+  }
+
+  if (flush) {
+    code->out4tables(code, ctx->Out.buf);
+    ctx->Out.off = 0;
+  }
+  
+}
+
 static void emitTables(ctx_t ctx) {
 
   snset_t      compset = & ctx->Compounds;
@@ -1388,7 +1431,7 @@ static void emitTables(ctx_t ctx) {
   snset_t      constset = & ctx->Const;
   snset_t      vtabset = & ctx->VTabs;
   t2c_type_t   t2ctype;
-  fb2_type_t   fb2type;
+  fb2s_type_t  fb2type;
   type_t       type;
   vtab_t       vtab;
   uint8_t *    cc;
@@ -1415,204 +1458,208 @@ static void emitTables(ctx_t ctx) {
       t2ctype = vti2type(ctx, i);
       assert(t2ctype->Cargo.refs[0]);                       // Must have an fb2 type associated with it.
       fb2type = t2ctype->Cargo.refs[0];
-      printf("static const struct {\n");
-      printf("  fb2_VTab_t VTab;\n");
-      printf("  int16_t    offsets[%u];\n", t2ctype->num);
-      printf("} %s%s_VTab = {\n", pre, fb2type->name);
-      printf("  .VTab.Size = { %u, %u },\n", vtab->Size.vtab, vtab->Size.table);
-      printf("  .offsets = { ");
+      emit(ctx, "static const struct {\n");
+      emit(ctx, "  fb2_VTab_t VTab;\n");
+      emit(ctx, "  int16_t    offsets[%u];\n", t2ctype->num);
+      emit(ctx, "} %s%s_VTab = {\n", pre, fb2type->name);
+      emit(ctx, "  .VTab.Size = { %u, %u },\n", vtab->Size.vtab, vtab->Size.table);
+      emit(ctx, "  .offsets = { ");
       for (x = 0; x < t2ctype->num; x++) {
-        printf("%d%s ", vtab->offsets[x], x + 1 == t2ctype->num ? "" : ",");
+        emit(ctx, "%d%s ", vtab->offsets[x], x + 1 == t2ctype->num ? "" : ",");
       }
-      printf("},\n};\n\n");
+      emit(ctx, "},\n};\n\n");
     }
 
-    printf("static fb2_VTab_t * svtabs[] = {\n");
-    printf("  (fb2_VTab_t *) 0,\n");
+    emit(ctx, "static fb2_VTab_t * svtabs[] = {\n");
+    emit(ctx, "  (fb2_VTab_t *) 0,\n");
     for (i = 1; i < vtabset->num; i++) {
       vtab = vtabset->set[i];
       t2ctype = vti2type(ctx, i);
       assert(t2ctype->Cargo.refs[0]);                       // Must have an fb2 type associated with it.
       fb2type = t2ctype->Cargo.refs[0];
-      printf("  & %s%s_VTab.VTab,\n", pre, fb2type->name);
+      emit(ctx, "  & %s%s_VTab.VTab,\n", pre, fb2type->name);
     }
-    printf("};\n\n");
+    emit(ctx, "};\n\n");
   }
+
+  // Emit all compound type structures.
 
   for (i = 0; i < compset->num; i++) {
     comp = compset->set[i];
     num = comp2num(typeset, comp);                          // Get the real number of members, including hidden union type members.
     assert(comp->tid < typeset->num);
     type = typeset->set[comp->tid];
-    //printf("// COMP emit %p\n", comp);
-    printf("static struct {\n");
-    printf("  Comp_t   Comp;\n");
+    //emit(ctx, "// COMP emit %p\n", comp);
+    emit(ctx, "static struct {\n");
+    emit(ctx, "  fb2_Comp_t   Comp;\n");
     if (comp->num) {
-      printf("  Member_t Members[%u];\n", num);
+      emit(ctx, "  fb2_Member_t Members[%u];\n", num);
     }
-    printf("} %s%s = {\n", pre, & names[type->nti]);
+    emit(ctx, "} %s%s = {\n", pre, & names[type->nti]);
     namesz = strlen(& names[type->nti]);
     maxname = (namesz > maxname) ? namesz : maxname;
-    printf("  .Comp.tid   = %6u,\n", comp->tid);
-    printf("  .Comp.num   = %6u,%s\n", num, (! num) ? " // Has no members." : "");
-    printf("  .Comp.props = %s,\n", props2char(comp->props));
-    printf("  .Comp.svtid = %6u,\n", comp->svtid);
+    emit(ctx, "  .Comp.tid   = %6u,\n", comp->tid);
+    emit(ctx, "  .Comp.num   = %6u,%s\n", num, (! num) ? " // Has no members." : "");
+    emit(ctx, "  .Comp.props = %s,\n", props2char(comp->props));
+    emit(ctx, "  .Comp.svtid = %6u,\n", comp->svtid);
     if (comp->num) {
-      printf("  .Members = {\n");
+      emit(ctx, "  .Members = {\n");
       if (fb2_UNION == comp->props) {                       // A union has this extra member for none.
-        printf("    { .nti =      0, .tid =      0,                 }, // none\n");
+        emit(ctx, "    { .nti =      0, .tid =      0,                 }, // none\n");
       }
       for (m = comp->Members, x = 0; x < comp->num; x++, m++) {
         unionmem = memberIsUnion(typeset, m);
-        printf("    { .nti = %6u, ", m->nti);
-        printf(".tid = %6u, ", m->tid);
+        emit(ctx, "    { .nti = %6u, ", m->nti);
+        emit(ctx, ".tid = %6u, ", m->tid);
         if (m->ctoff) {
-          printf(".ctoff = %6u ", m->ctoff);
+          emit(ctx, ".ctoff = %6u ", m->ctoff);
         }
         else {
-          printf("                ");
+          emit(ctx, "                ");
         }
-        printf("}, // %s%s\n", & names[m->nti], unionmem ? " type" : "");
+        emit(ctx, "}, // %s%s\n", & names[m->nti], unionmem ? " type" : "");
         if (unionmem) {
-          printf("    {%s}, // %s handle\n", & spaces[80], & names[m->nti]);
+          emit(ctx, "    {%s}, // %s handle\n", & spaces[80], & names[m->nti]);
         }
         if (fb2_UNION == comp->props && x + 2 == comp->num) break;
       }
-      printf("  },\n");
+      emit(ctx, "  },\n");
     }
-    printf("};\n\n");
+    emit(ctx, "};\n\n");
   }
 
-  // Compound table accessor.
+  // Compound table.
 
   maxname = (maxname < 10) ? 10 : maxname;
   maxname += 8 + strlen(pre);                               // Leave some room for the "& xxx.Comp, ' etc.
   assert(maxname < sizeof(spaces) - 1);
   spaces[maxname] = 0;                                      // Terminate the spaces string at the proper place.
-  printf("static Comp_t * Comps[] = {\n");
-  printf("  (Comp_t *) 0, %s// 0 First always NULL.\n", & spaces[13]);
+  emit(ctx, "static fb2_Comp_t * Comps[] = {\n");
+  emit(ctx, "  (fb2_Comp_t *) 0, %s// 0 First always NULL.\n", & spaces[17]);
   for (i = 0; i < compset->num; i++) {
     comp = compset->set[i];
     type = typeset->set[comp->tid];
     sprintf(buf, "& %s%s.Comp,", pre, & names[type->nti]);
     filler = & spaces[strlen(buf)];
-    printf("  %s %s// %u\n", buf, filler, i + 1);
+    emit(ctx, "  %s %s// %u\n", buf, filler, i + 1);
   }
 
-  printf("};\n\n");
+  emit(ctx, "};\n\n");
 
-  // Name table accessor.
+  // Names table.
 
-  printf("static const char names[] = {\n  ");
+  emit(ctx, "static const char names[] = {\n  ");
   for (i = 0, cur = names; cur < endofnames; cur++, i++) {
-    if (i && 0 == (i % 25)) printf("  //  %6u\n  ", i);
-    if (*cur) { printf("'%c',", *cur); }
-    else      { printf(" 0 ,");        }
+    if (i && 0 == (i % 25)) emit(ctx, "  //  %6u\n  ", i);
+    if (*cur) { emit(ctx, "'%c',", *cur); }
+    else      { emit(ctx, " 0 ,");        }
   }
-  printf("\n};\n\n");
+  emit(ctx, "\n};\n\n");
 
   // Types table.
 
-  printf("static Type_t Types[] = {\n");
+  emit(ctx, "static fb2_Type_t Types[] = {\n");
   for (i = 0; i < typeset->num; i++) {
     type = typeset->set[i];
-//    printf("// %s \n", & names[type->nti]); fflush(stdout);
+//    emit(ctx, "// %s \n", & names[type->nti]); fflush(stdout);
     
-    printf("  { .size = %u, .align = %u, .props = %-21s, ", type->size, type->align, props2char(type->props));
-    printf(".nti = %6u, ", type->nti);
+    emit(ctx, "  { .size = %u, .align = %u, .props = %-21s, ", type->size, type->align, props2char(type->props));
+    emit(ctx, ".nti = %6u, ", type->nti);
     if (type->cti) {
-      printf(".cti = %3u, ", type->cti);
+      emit(ctx, ".cti = %3u, ", type->cti);
     }
     else {
-      printf("            ");
+      emit(ctx, "            ");
     }
     if (type->vetid) {
-      printf(".vetid = %3u, ", type->vetid);
+      emit(ctx, ".vetid = %3u, ", type->vetid);
     }
     else {
-      printf("              ");
+      emit(ctx, "              ");
     }
     if (type->fi) {
-      printf(".fi = %u, ", type->fi);
+      emit(ctx, ".fi = %u, ", type->fi);
     }
     else {
-      printf("         ");
+      emit(ctx, "         ");
     }
-    printf("}, // %3u %s\n", i, & names[type->nti]);
+    emit(ctx, "}, // %3u %s\n", i, & names[type->nti]);
   }
-  printf("};\n\n");
+  emit(ctx, "};\n\n");
 
-  static const uint8_t t2sz[] = {                           // Translate a type to a size, including the type byte.
+  static const uint8_t t2sz[] = {                           // Translate a constant type to a size, including the type byte.
     2, 2, 2, 3, 3, 5, 5, 9, 9, 5, 9, 2, 2, 3, 5, 9
   };
 
-  printf("static const uint8_t consts[] __attribute__ ((aligned (4))) = {\n");
+  emit(ctx, "static const uint8_t consts[] __attribute__ ((aligned (4))) = {\n");
   for (i = 0; i < constset->num; i++) {
     cc = constset->set[i];
-    printf("  %s ", ct2a[cc[0]]);
-    if (ct_string == cc[0]) {                               // Encode a string; that's a bit tricky.
-      printf("0x%02x, ", cc[1]);                            // Print the offset to the string vector.
+    emit(ctx, "  %s ", ct2a[cc[0]]);
+    if (ct_string == cc[0]) {                               // Encode a string; this one's a bit tricky.
+      emit(ctx, "0x%02x, ", cc[1]);                         // Print the offset to the string vector.
       done = 1;                                             // Printed the offset byte already.
       assert(cc[1] >= 2);
       for (x = 0; x < cc[1] - 2u; x++) {                    // Print the padding bytes, if any.
-        printf("0x00, "); done++;
+        emit(ctx, "0x00, "); done++;
       }
       memcpy(& size, & cc[0] + cc[1], sizeof(size));        // Get the size field.
       for (x = 0; x < 4 + size; x++) {                      // The 4 is for the uint32_t size field.
         if (0 == (done % 16)) {
-          printf("\n                ");
+          emit(ctx, "\n                ");
           done = 0;
         }
-        printf("0x%02x, ", cc[cc[1] + x]); done++;
+        emit(ctx, "0x%02x, ", cc[cc[1] + x]); done++;
       }
     }
     else {                                                  // Plain old data constant.
       for (x = 1; x < t2sz[cc[0]]; x++) {
-        printf("0x%02x, ", cc[x]);
+        emit(ctx, "0x%02x, ", cc[x]);
       }
     }
-    printf(" // %4u\n", offsetInSet(constset, i));
+    emit(ctx, " // %4u\n", offsetInSet(constset, i));
   }
-  printf("};\n\n");
+  emit(ctx, "};\n\n");
 
-  // Context
+  // Codec Context
   
-  printf("#define NUM(A) (sizeof(A) / sizeof(A[0]))\n\n");
+  emit(ctx, "#define NUM(A) (sizeof(A) / sizeof(A[0]))\n\n");
 
-  printf("fb2_BCtx_t %sCtx = {\n", ctx->ID);
-  printf("  .Codec = {\n");
-  printf("    .roottid   = %u, // %s\n", ctx->root_tti, ctx->rootname);
-  printf("    .stringtid = %u,\n", ctx->string_tti);
-  printf("    .Types     = Types,\n");
-  printf("    .numtypes  = NUM(Types),\n");
-  printf("    .Comps     = Comps,\n");
-  printf("    .numcomps  = NUM(Comps),\n");
-  printf("    .Names     = names,\n");
-  printf("    .namessize = sizeof(names),\n");
-  printf("    .Consts    = consts,\n");
-  printf("    .constsize = sizeof(consts),\n");
-  printf("    .svtabs    = svtabs,\n");
-  printf("  },\n");
-  printf("};\n\n");
+  emit(ctx, "fb2_Ctx_t %sCtx = {\n", ctx->ID);
+  emit(ctx, "  .Codec = {\n");
+  emit(ctx, "    .roottid   = %u, // %s\n", ctx->root_tti, ctx->rootname);
+  emit(ctx, "    .stringtid = %u,\n", ctx->string_tti);
+  emit(ctx, "    .Types     = Types,\n");
+  emit(ctx, "    .numtypes  = NUM(Types),\n");
+  emit(ctx, "    .Comps     = Comps,\n");
+  emit(ctx, "    .numcomps  = NUM(Comps),\n");
+  emit(ctx, "    .Names     = names,\n");
+  emit(ctx, "    .namessize = sizeof(names),\n");
+  emit(ctx, "    .Consts    = consts,\n");
+  emit(ctx, "    .constsize = sizeof(consts),\n");
+  if (vtabset->num > 1) {                                   // Only when we have a structs vtable.
+    emit(ctx, "    .svtabs    = svtabs,\n");
+  }
+  emit(ctx, "  },\n");
+  emit(ctx, "};\n\n");
 
 }
 
 static void * mem4set(snset_t set, void * mem, uint32_t sz) {
 
-  fb2_codeCtx_t code = ctx2code(set->custom);
+  fb2c_ctx_t code = ctx2code(set->custom);
 
   return code->mem(code, mem, sz);
 
 }
 
-void fb2_generate(fb2_codeCtx_t ctx) {
+void fb2c_generate(fb2c_ctx_t ctx) {
 
   Ctx_t  Ctx;
 
   memset(& Ctx, 0x00, sizeof(Ctx));
 
   ctx->cookie = cookie2;                                    // Set up some cookies to check our context getters.
-  ctx->schemaCtx->cookie = cookie3;
+  ctx->sctx->cookie = cookie3;
   Ctx.fb2code = ctx;
   Ctx.cookie1 = cookie1;
   strcpy(Ctx.ID, "XXXX");                                   // Placeholder file id.
