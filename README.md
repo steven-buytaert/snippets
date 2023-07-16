@@ -86,7 +86,7 @@ make snippet which is kind of obvious).
   clang -Wall -Werror -Os -I ./ -o sample sample.c resolvepath.c strlcpy-cat.c
   ```
 
-* bluetooth: a header file that embodies the Bluetooth 5.2 Host Controller
+* bluetooth: a header file that embodies the Bluetooth 5.3 Host Controller
   Interface specification commands and events that can be exchanged. The
   result of some experimenting with regular expressions on the specification
   text. The parser itself is to kludgy to release but the result could be
