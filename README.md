@@ -39,7 +39,13 @@ make snippet which is kind of obvious).
 * delta-timers: implement a multitude of timers by means of a linked list
   with each timer/element having a delta relative timeout wrt the previous timer
   in the list, so when evaluating the timeout, only the first element/timer needs
-  to be checked. Does not contain sample code (yet).
+  to be checked. There is a small snippet of sample code, using a pthread as
+  a timer ticker thread.
+
+  ```C
+  clang -Os -Wall -I . *.c -o sample -lpthread
+  ./sample # run until ctrl-c
+  ```
 
 * txt-tr-utils: a small set of in place text transformation functions. They
   are all very simple. None of them implement any checking for the buffer
