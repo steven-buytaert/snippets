@@ -10,6 +10,7 @@
 #include <inttypes.h>
 
 static uint32_t NT = 20;          // Number of modifier threads.
+static uint32_t prunepoint = 200; // Number of nodes in the list to start pruning.
 
 // Enable when the garbage collection cycle should be done by the main
 // thread when all modifier threads are idle.
@@ -34,10 +35,10 @@ typedef struct Thr_t * thr_t;
 
 typedef struct Thr_t {            // Modifier thread.
   pthread_t         pthread;
-  uint32_t          tid;
-  uint32_t          ops;          // Operations done (adding/deleting).
+  uint64_t          ops;          // Operations done (adding/deleting).
   uint32_t          missed;       // Operations aborted due to lock issues.
   uint32_t          cleansed;     // Number of GC cycles/windows performed.
+  uint32_t          tid;
   pthread_mutex_t   Mut;
   pthread_cond_t    Cond;
   volatile uint32_t holding;
@@ -156,10 +157,9 @@ static void cleanup(node_t nodes2free) {
 
 static void txstops(thr_t t) {
 
-  uint32_t expected = 1;
   static const uint32_t locked = 0xffffff;                  // To lock the cleanup window to this thread.
+  uint32_t expected = 1;
 
-#if ! defined(IDLE_CLEANUP)
   if (CAX(& otc, & expected, & locked)) {
     static uint32_t homealone = 0;
 
@@ -167,6 +167,7 @@ static void txstops(thr_t t) {
 
     t->cleansed++;
     
+#if ! defined(IDLE_CLEANUP)
 _C_ node_t n2free = cooling;
 
 _C_ node_t empty = NULL;
@@ -320,7 +321,6 @@ int main(int argc, char * argv[]) {
   uint32_t i;
   thr_t    t;
   uint32_t pruned = 0;
-  uint32_t prunepoint = 200;                                // Number of nodes in the list to start pruning.
   node_t   n;
 
   assert(sizeof(Thr) / sizeof(Thr[0]) >= NT);
@@ -348,19 +348,20 @@ int main(int argc, char * argv[]) {
 
     for (t = Thr, i = 0; i < NT; i++, t++) {
       double pms = ((double) t->missed / (double) t->ops) * 100.0;
-      printf("%3u ops %8u misses %4u %5.2f%% gcw %u\n",
+      printf("%3u ops %"PRIu64" misses %u %6.3f%% gcw %u\n",
         t->tid, t->ops, t->missed, pms, t->cleansed);
       (void) rand();
     }
 
     for (i = 0, n = Head.next; n; n = n->next, i++) { }     // Just count number of nodes during idle time.
     const char * gcm = "hot";                               // Garbage collection moment; hot means during modification.
-    uint32_t delayed = 0;
+    uint32_t delayed = 0;                                   // Number of nodes on cooling and zombie list.
 
 #if defined(IDLE_CLEANUP)
     cleanup(cooling);                                       // Garbage collect the nodes here during idle moment.
     cooling = NULL;
     gcm = "idle";
+    assert(NULL == zombies);                                // Should never be used.
 #else
     for (n = cooling; n; n = n->next) {                     // Count the cooling nodes.
       delayed++;
@@ -368,12 +369,14 @@ int main(int argc, char * argv[]) {
     for (n = zombies; n; n = n->next) {                     // Count the zombie nodes.
       delayed++;
     }
-#endif // IDLE_CLEANUP
+#endif
 
-    printf("-- %u/%u nodes, prune > %u %u, freed %"PRIu64", added %"PRIu64" (%d) %s GC.\n",
+    printf("-- %u/%u nodes, prune > %u %u, freed %"PRIu64", added %"PRIu64" (%d) cooling %u%s %s GC.\n",
       i, numnodes, prunepoint, pruned, 
-      freed, added, (int32_t) (added - freed), gcm);
-    assert(i == numnodes);
+      freed, added, (int32_t) (added - freed),
+      delayed, canyield ? " (chopped)" : "", gcm);
+
+    assert(i == numnodes);                                  // The real eating of the pudding.
     assert(i == added - freed - delayed);
 
     if (numnodes > prunepoint && also_remove > 2) {         // Keep contention high enough by favoring remove when prune limit reached.
@@ -384,14 +387,14 @@ int main(int argc, char * argv[]) {
       also_remove = prunepoint;                             // This is outside the range of commands.
     }
 
+    canyield = canyield ? 0 : 1;                            // Flip canyield.
+
     hold = 0;
-    for (t = Thr, i = 0; i < NT; i++, t++) {
+    for (t = Thr, i = 0; i < NT; i++, t++) {                // Resume all idled mutator threads.
       pthread_mutex_lock(& t->Mut);
       pthread_cond_broadcast(& t->Cond);
       pthread_mutex_unlock(& t->Mut);
     }
-    
-    canyield = canyield ? 0 : 1;                              // Flip canyield.
     
   }
 

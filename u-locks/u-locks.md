@@ -33,16 +33,19 @@ deletions.
 During this idle moment, the main thread will perform some assertions to
 asses the soundness of the list and the PoC code.
 
-Note that in this proof of concept code, the current number of threads (to
-be configured at the top of the file) is rather high versus the size of the
-linked list (to be set in the variable **prunepoint** in main). This is to
-ensure we have a lot of contention between the threads.
+Note that in this proof of concept code, the current number of threads
+**NT** (to be configured at the top of the file) is rather high versus
+the size of the linked list **prunepoint**. This is to
+ensure we have a lot of contention between the threads, competing for the
+same nodes. This will result in a high percentage missed number in the
+thread reporting. Decreasing **NT** and/or increasing **prunepoint** will
+reduce the contention dramatically.
 
-There's also an inline macro **_C_** defined that is inserted in the list
+There's also an inline macro **\_C\_** defined that is inserted in the list
 manipulation code of the threads, to ensure that the thread will be
-interrupted more than enough to proof the correctness. This is just to proof
-the point of the prototype code and is not meant to be copied in a real
-world application.
+interrupted and yield for another thread, more than enough to proof the
+correctness. This is just to proof the point of the prototype code and
+is not meant to be copied in a real world application.
 
 ### Selecting an Insertion/Deletion Position
 
