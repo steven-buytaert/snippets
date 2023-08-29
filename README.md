@@ -98,3 +98,9 @@ make snippet which is kind of obvious).
   text. The parser itself is to kludgy to release but the result could be
   useful for people that want to create a code generator for
   encoding/decoding HCI messages or test pattern generation, debugging, etc.
+
+* u-locks: some proof of concept code of micro locking a linked list and
+  manipulating it with several mutator threads. Uses optimistic
+  synchronization and atomic operations to achieve multi-threaded
+  correctness. Single Makefile and single source file; just a proof of
+  concept. There's more documention in the u-locks.md file.
