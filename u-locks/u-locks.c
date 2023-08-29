@@ -145,7 +145,7 @@ static void cleanup(node_t nodes2free) {
   while (nodes2free) {
     n = nodes2free;
     nodes2free = nodes2free->next;
-    n->next = (node_t) NULL;                                // Ensure navigating the node segfaults.
+    n->next = (node_t) 0xcafebabe;                          // Ensure navigating the node segfaults.
     assert(n->locked);
     n->locked = 0;                                          // Node is no longer locked.
     free(n);
