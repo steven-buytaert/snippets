@@ -49,7 +49,8 @@ make snippet which is kind of obvious).
 
 * txt-tr-utils: a small set of in place text transformation functions. They
   are all very simple. None of them implement any checking for the buffer
-  size being large enough.
+  size being large enough. Simple, yet I was getting annoyed by the number
+  of times I re-implemented -and debugged- them from scratch each time.
 
 * t2c-types: a set of utilities to create, manipulate and analyze structure
   types, union types, enums and bitsets. Could prove useful in code generation
@@ -95,7 +96,7 @@ make snippet which is kind of obvious).
 * bluetooth: a header file that embodies the Bluetooth 5.3 Host Controller
   Interface specification commands and events that can be exchanged. The
   result of some experimenting with regular expressions on the specification
-  text. The parser itself is to kludgy to release but the result could be
+  text. The parser itself is too kludgy to release but the result could be
   useful for people that want to create a code generator for
   encoding/decoding HCI messages or test pattern generation, debugging, etc.
 
@@ -103,4 +104,4 @@ make snippet which is kind of obvious).
   manipulating it with several mutator threads. Uses optimistic
   synchronization and atomic operations to achieve multi-threaded
   correctness. Single Makefile and single source file; just a proof of
-  concept. There's more documention in the u-locks.md file.
+  concept. There's more documentation in the u-locks.md file.
