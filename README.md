@@ -8,18 +8,27 @@ make snippet which is kind of obvious).
   on it, lock free.
 
 * uintxx: customizable width unsigned integer operations, multiply, divide,
-  shift left and right.
+  shift left and shift right.
 
 * ecvt-strtod: currently only ecvt implementation. Convert a 64 or 32 bit IEEE754
   double into character digits; rounding to nearest even or not, can be
   selected. For scaling up and down, it makes use of the uintxx code
-  mentioned above. There's some sample code.
+  mentioned above. There's some sample code that can be build as follows,
+  from within the ecvt-strtod folder:
+
+  ```console
+  gcc -I . -I ../uintxx *.c ../uintxx/uintxx.c -o sample
+  ./sample
+  1.3806515690000000e-23 printf
+  1.3806515690000000e-23 sbtecvt
+  3.14159274 sbtecvt
+  ```
 
 * customizable-printf: printf where one can add new format characters and
   the code how they should be rendered. Has implementations for most format
   characters of printf. There's a bit of sample code to show its usage. For
   the double formatting (e, g, f) it makes use of the ecvt implementation
-  above.
+  described earlier. There's a super simple Makefile to build the sample.
 
 * gnu-4.x-modular-make: implementation of a sample loadable module for GNU
   Make 4.x. It allows subfolders with implementation code for libraries.
@@ -42,7 +51,7 @@ make snippet which is kind of obvious).
   to be checked. There is a small snippet of sample code, using a pthread as
   a timer ticker thread.
 
-  ```C
+  ```console
   clang -Os -Wall -I . *.c -o sample -lpthread
   ./sample # run until ctrl-c
   ```
@@ -76,7 +85,7 @@ make snippet which is kind of obvious).
   count is high enough for statistical relevance, in the random mode. RNG
   seeding is not done by the test and needs to be added manually, if needed.
   Compile sample with
-  ```C
+  ```console
   clang -I . -Wall -Os -o sample sample.c lookup3.c sbtbuz2.c murmurhash.c avalanche.c
   ```
   and run ./sample.
@@ -89,7 +98,7 @@ make snippet which is kind of obvious).
   [This paper](https://eklitzke.org/path-max-is-tricky) arguments why using
   PATH_MAX is a wrong approach anyway.
   Compile sample with
-  ```C
+  ```console
   clang -Wall -Werror -Os -I ./ -o sample sample.c resolvepath.c strlcpy-cat.c
   ```
 
