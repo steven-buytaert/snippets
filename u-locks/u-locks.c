@@ -20,9 +20,9 @@ static uint32_t prunepoint = 200; // Number of nodes in the list to start prunin
 typedef struct Node_t * node_t;
 
 typedef struct Node_t {           // Prototype of a node.
-  volatile node_t     next;
+  node_t       next;
   union {
-    volatile uint32_t header;
+    uint32_t   header;
     struct {
       uint32_t        :  2;
       uint32_t locked :  1;       // One bit locking flag.
@@ -157,7 +157,7 @@ static void cleanup(node_t nodes2free) {                    // Release the given
 
 static void txstops(thr_t t) {                              // Called at the end of any list transaction operation.
 
-  static const uint32_t locked = 0xffffff;                  // To lock the cleanup window to this thread.
+  uint32_t locked = 0xffffff;                               // To lock the cleanup window to this thread.
   uint32_t expected = 1;
 
   if (CAX(& otc, & expected, & locked)) {
