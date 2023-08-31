@@ -62,7 +62,7 @@ static void atomic_dec(uint32_t * where) {
 
 #define CAX(P, X, D) __atomic_compare_exchange(P, X, D, 0, __ATOMIC_SEQ_CST, __ATOMIC_ACQUIRE)
 
-static uint32_t trylock(node_t node) {
+static uint32_t trylock(node_t node) {                      // Try locking a node; returns non zero when locked.
 
   Node_t Exp = { .header = node->header };
   Node_t Des = { .header = node->header };
@@ -74,7 +74,7 @@ static uint32_t trylock(node_t node) {
 
 }
 
-static void unlock(node_t node) {
+static void unlock(node_t node) {                           // Unlock a locked node.
 
   Node_t Exp = { .header = node->header };
   Node_t Des = { .header = node->header };
@@ -92,7 +92,7 @@ static void unlock(node_t node) {
 
 static volatile uint32_t canyield = 0;                      // Flipped by controller thread every now and then.
 
-static void couldyield(thr_t thr) {
+static void couldyield(thr_t thr) {                         // Called at various points to enforce thread switching beyond normal.
 
   if (canyield && 0 == mrand(20)) {                         // Every so many calls and if allowed, give up cpu.
     sched_yield();
@@ -102,22 +102,22 @@ static void couldyield(thr_t thr) {
 
 #define _C_ couldyield(t);
 
-static uint32_t numnodes = 0;
+static uint32_t numnodes = 0;                               // Total number of nodes in the list.
 
-static Node_t Head = {
-  .locked = 0,                    // Starts unlocked.
+static Node_t Head = {                                      // List header pseudo node.
+  .locked = 0,
   .next = NULL,
 };
 
 static node_t cooling = NULL;                               // List with deleted nodes but still potentially used for navigation.
 
-static node_t zombies = NULL;
+static node_t zombies = NULL;                               // List with nodes to be physically free'd next GC window.
 
 static volatile uint64_t freed = 0;                         // Total freed nodes; is incremented without locks/atomicity.
 
-static uint64_t added = 0;
+static uint64_t added = 0;                                  // Total number of nodes ever added to the list; only grows.
 
-static volatile uint32_t windowmissed = 0;
+static volatile uint32_t windowmissed = 0;                  // Number of times we could not properly get the cooling list in the window.
 
 static volatile uint32_t hold = 0;                          // When non zero, all modifier threads should hold their horses.
 
@@ -135,11 +135,11 @@ static void add2cooling(node_t node) {                      // Insert node atomi
 
 }
 
-static void txstarts(thr_t t) {
+static void txstarts(thr_t t) {                             // Called at the start of any list transaction: navigation/manipulation.
   atomic_inc(& otc);
 }
 
-static void cleanup(node_t nodes2free) {
+static void cleanup(node_t nodes2free) {                    // Release the given list of nodes.
 
   node_t n;
 
@@ -155,7 +155,7 @@ static void cleanup(node_t nodes2free) {
 
 }
 
-static void txstops(thr_t t) {
+static void txstops(thr_t t) {                              // Called at the end of any list transaction operation.
 
   static const uint32_t locked = 0xffffff;                  // To lock the cleanup window to this thread.
   uint32_t expected = 1;
@@ -163,13 +163,11 @@ static void txstops(thr_t t) {
   if (CAX(& otc, & expected, & locked)) {
     static uint32_t homealone = 0;
 
-    assert(0 == homealone++);                               // Only one thread allowed in here.
-
-    t->cleansed++;
+    assert(0 == homealone++);                               // Only one thread allowed in the window code.
     
 #if ! defined(IDLE_CLEANUP)
+    t->cleansed++;
 _C_ node_t n2free = cooling;
-
 _C_ node_t empty = NULL;
 _C_ if (CAX(& cooling, & n2free, & empty)) {
       cleanup(zombies);                                     // Cleanup the cooling list from previous window.
@@ -212,7 +210,7 @@ static void * tester(void * arg) {
     pthread_mutex_unlock(& t->Mut);
 
     i = mrand(15);
-    if (0 == i) {                                           // Insert.
+    if (0 == i) {                                           // --- Try to insert a new node.
       node = malloc(sizeof(Node_t)); assert(node);
       memset(node, 0x00, sizeof(Node_t));
 _C_   txstarts(t);                                          // Transaction start.
@@ -223,7 +221,7 @@ _C_   txstarts(t);                                          // Transaction start
 _C_     if (! left) break;                                  // We absolutely need a left node.
 _C_     left = left->next;
       }
-      if (left) {
+      if (left) {                                           // Only continue if we found a proper left node.
 _C_     if (trylock(left)) {
           right = left->next;                               // Assign when left has been locked.
 _C_       if (right && ! trylock(right)) {                  // There's a right node, but we can't lock it.
@@ -232,7 +230,7 @@ _C_         unlock(left);
             t->missed++;
           }
           else {                                            // We have locked left and either no right or a locked right node.
-            node->locked = 1;                               // Simple lock claim here.
+            node->locked = 1;                               // Simple lock claim here on the new node.
             node->next = right;                             // Node not yet visible; set right first.
 _C_         left->next = node;                              // Link node in; node is now visible to all threads.
             atomic_inc(& numnodes);
@@ -253,12 +251,12 @@ _C_         if (right) { unlock(right); }
       }
 _C_   txstops(t);                                           // Transaction stops.
     }
-    else if ((1 == i || also_remove == i) && numnodes) {    // Remove a node.
+    else if (1 == i || also_remove == i) {                  // --- Try to remove a node.
       where = mrand(numnodes);                              // Where to remove a node.
 _C_   txstarts(t);                                          // Transaction start.
       left = & Head;
 
-      for (i = 0; i < where; i++) {                         // Try to find it 
+      for (i = 0; i < where; i++) {                         // Try to find it.
 _C_     if (! left) break;
 _C_     left = left->next;
       }
