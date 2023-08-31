@@ -24,6 +24,9 @@ make snippet which is kind of obvious).
   3.14159274 sbtecvt
   ```
 
+  [This blog entry of Victor Zverovich](https://www.zverovich.net/2019/02/11/formatting-floating-point-numbers.html)
+  was an inspiration for the code to convert the IEEE754 format.
+
 * customizable-printf: printf where one can add new format characters and
   the code how they should be rendered. Has implementations for most format
   characters of printf. There's a bit of sample code to show its usage. For
