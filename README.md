@@ -17,12 +17,16 @@ make snippet which is kind of obvious).
   from within the ecvt-strtod folder:
 
   ```console
-  gcc -I . -I ../uintxx *.c ../uintxx/uintxx.c -o sample
+  gcc -m32 -I . -I ../uintxx *.c ../uintxx/uintxx.c -o sample
   ./sample
   1.3806515690000000e-23 printf
   1.3806515690000000e-23 sbtecvt
   3.14159274 sbtecvt
   ```
+
+  The code works for both 32 bit and 64 bit CPUs, so therefore the -m32.
+  Leave this command line option out for the 64 bit version. Also big
+  or little endianess shouldn't matter.
 
   [This blog entry of Victor Zverovich](https://www.zverovich.net/2019/02/11/formatting-floating-point-numbers.html)
   was an inspiration for the code to convert the IEEE754 format.
@@ -40,10 +44,16 @@ make snippet which is kind of obvious).
   moment. Contact me if you are interested.
 
 * snset: a simple implementation of an object allocator; if you need to
-  create a set of objects that have a dynamic tail end and you want
-  the result to be a single block of memory (e.g. for memory efficiency reasons),
-  this will help in creating that block of objects. There is sample
-  code showing how to use the set.
+  create a set of objects that may have a dynamic tail end (variable sized)
+  and you want the result to be a single block of memory (e.g. for memory
+  efficiency reasons), this will help in creating that block of objects.
+  There is sample code showing how to use the set. To build from the snset
+  folder:
+
+  ```console
+  clang -I . snset.c sample.c -o sample
+  ./sample
+  ```
 
 * hexdump: create a canonical hexdump in a given character buffer. Always
   terminate the dump, even if the buffer is too small.

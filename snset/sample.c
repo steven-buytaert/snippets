@@ -13,7 +13,7 @@ typedef struct Obj_t * obj_t;
 typedef struct Obj_t {            // Demo of a growable object.
   uint16_t    next;               // Offset to next object; in bytes.
   uint16_t    number;             // Consecutive number; starts with 0.
-  uint8_t     size;
+  uint8_t     size;               // Number of characters at the tail.
   char        fill;               // Character we will fill the tail with.
   uint8_t     tail[0];            // Tail element with size fill characters and a \0.
 } Obj_t;
@@ -31,9 +31,9 @@ static obj_t obj2next(obj_t obj) {                          // Go over the list 
 
 }
 
-static void setnext(obj_t this, const obj_t obj) {
+static void setnext(obj_t this, const obj_t next) {         // Set the proper next offset in this object to the next object.
 
-  this->next = (uint8_t *) obj - (uint8_t *) this;
+  this->next = (uint8_t *) next - (uint8_t *) this;
 
 }
 
