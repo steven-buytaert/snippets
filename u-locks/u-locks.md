@@ -33,9 +33,9 @@ deletions.
 During this idle moment, the main thread will perform some assertions to
 asses the soundness of the list and the PoC code.
 
-Note that in this proof of concept code, the current number of threads
-**NT** (to be configured at the top of the file) is rather high versus
-the size of the linked list **prunepoint**. This is to
+Note that in this proof of concept code, the default number of threads
+**NT** is rather high versus the size of the linked list **prunepoint**.
+Both can be changed with -n and -p options respectively. This is to
 ensure we have a lot of contention between the threads, competing for the
 same nodes. This will result in a high percentage missed number in the
 thread reporting. Decreasing **NT** and/or increasing **prunepoint** will
@@ -49,7 +49,7 @@ is not meant to be copied in a real world application.
 
 ### Selecting an Insertion/Deletion Position
 
-For either adding a node or deleting a node, a tester thread will navigate
+For either adding a node or deleting a node, a mutator thread will navigate
 over the list by using the next field of each node without any
 locking/unlocking of the node to evaluate the next field. This is the
 optimistic synchronization. In fact, locking the node during navigation
@@ -64,7 +64,7 @@ of the transaction during which we want the list to be stable.
 
 ### Adding/Deleting a Node
 
-Once a random insertion/deletion point has been found, only then the nodes
+Once a random insertion/deletion point has been found, and only then, the nodes
 involved are getting locked, if possible. In case a node can not be locked,
 the operation will abort; successful operations and aborted ones are each
 counted so that we can evaluate the hit/miss ratio during the 1 second
@@ -98,10 +98,10 @@ operation or transaction on the list.
 2. At the end of the operation, it is checked if, when the operation count is
    atomically reduced by 1, it would reach 0. If that is the case, 
    a locked out cleanup window is created; i.e. there is only a single thread that
-   **enters** the window; i.e. there is only 1 thread that is running the
+   **enters** the window; so there is only 1 thread that is running the
    code in the window, but it is **still competing with other threads** over
-   shared variables, **during that time in the window**. I.e. during the window,
-   still nodes are possibly being added and deleted by the other threads.
+   shared variables, **during that time in the window**. On other words, during the window,
+   nodes are possibly still being added and deleted by the other threads.
    That lockout is created by temporarily adding a large number (larger than
    the number of competing threads) to the outstanding operation count.
 
@@ -111,8 +111,7 @@ cleaned out the **next** time in the cleanup window. Thus we effectively
 create a 2-phase delete of the deleted nodes.
 
 In this sample code, we show that the cleanup of nodes can be done either by
-a support thread, when all manipulator threads have been set to idle (by
-enabling the IDLE_CLEANUP preprocessor guard at the start of the file) or by
-leaving the IDLE_CLEANUP macro inactive (comment it out), the inline cleanup
-during txstops() is being used; also called the 'hot' way of collecting
-garbage as it is done inline with manipulation of the list.
+a support thread, when all manipulator threads have been set to idle
+(idle GC) or by any of the mutator threads in the lockout window, called 'hot GC'
+as it is done inline with manipulation of the list. The default is 'hot GC'
+but 'idle GC' can be selected with the --idleclean command line option.

@@ -124,6 +124,6 @@ make snippet which is kind of obvious).
 
 * u-locks: some proof of concept code of micro locking a linked list and
   manipulating it with several mutator threads. Uses optimistic
-  synchronization and atomic operations to achieve multi-threaded
-  correctness. Single Makefile and single source file; just a proof of
-  concept. There's more documentation in the u-locks.md file.
+  synchronization and gcc/clang builtin atomic operations to achieve
+  multi-threaded correctness. Single Makefile and single source file;
+  just a proof of concept. There's more documentation in the u-locks.md file.

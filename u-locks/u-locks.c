@@ -6,6 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
+#include <getopt.h>
 #include <pthread.h>
 #include <inttypes.h>
 
@@ -15,7 +16,7 @@ static uint32_t prunepoint = 200; // Number of nodes in the list to start prunin
 // Enable when the garbage collection cycle should be done by the main
 // thread when all modifier threads are idle.
 
-//#define IDLE_CLEANUP
+static uint32_t idle_cleanup = 0;
 
 typedef struct Node_t * node_t;
 
@@ -36,8 +37,8 @@ typedef struct Thr_t * thr_t;
 typedef struct Thr_t {            // Modifier thread.
   pthread_t         pthread;
   uint64_t          ops;          // Operations done (adding/deleting).
-  uint32_t          missed;       // Operations aborted due to lock issues.
-  uint32_t          cleansed;     // Number of GC cycles/windows performed.
+  uint64_t          missed;       // Operations aborted due to lock issues.
+  uint64_t          cleansed;     // Number of GC cycles/windows performed.
   uint32_t          tid;
   pthread_mutex_t   Mut;
   pthread_cond_t    Cond;
@@ -94,7 +95,7 @@ static volatile uint32_t canyield = 0;                      // Flipped by contro
 
 static void couldyield(thr_t thr) {                         // Called at various points to enforce thread switching beyond normal.
 
-  if (canyield && 0 == mrand(20)) {                         // Every so many calls and if allowed, give up cpu.
+  if (canyield && 0 == mrand(400)) {                        // Every so many calls and if allowed, give up cpu.
     sched_yield();
   }
 
@@ -165,18 +166,18 @@ static void txstops(thr_t t) {                              // Called at the end
 
     assert(0 == homealone++);                               // Only one thread allowed in the window code.
     
-#if ! defined(IDLE_CLEANUP)
-    t->cleansed++;
-_C_ node_t n2free = cooling;
-_C_ node_t empty = NULL;
-_C_ if (CAX(& cooling, & n2free, & empty)) {
-      cleanup(zombies);                                     // Cleanup the cooling list from previous window.
-      zombies = n2free;                                     // Current cooling list will be deleted next time.
+    if (! idle_cleanup) {
+      t->cleansed++;
+_C_   node_t n2free = cooling;
+_C_   node_t empty = NULL;
+_C_   if (CAX(& cooling, & n2free, & empty)) {
+        cleanup(zombies);                                   // Cleanup the cooling list from previous window.
+        zombies = n2free;                                   // Current cooling list will be deleted next time.
+      }
+      else {
+        windowmissed++;
+      }
     }
-    else {
-      windowmissed++;
-    }
-#endif // IDLE_CLEANUP
 
     assert(0 == --homealone);
 
@@ -312,7 +313,15 @@ static void initthr(thr_t t) {
   pthread_cond_init(& t->Cond, NULL);
 
 }
-    
+
+static const struct option Options[] = {
+  { "numthreads", 1, NULL, 'n' },
+  { "prune",      1, NULL, 'p' },
+  { "idleclean",  0, NULL, 'i' },
+  { "help",       0, NULL, 'h' },
+  { NULL,         0, NULL,  0  },
+};
+
 int main(int argc, char * argv[]) {
 
   Thr_t    Thr[100];
@@ -320,11 +329,40 @@ int main(int argc, char * argv[]) {
   thr_t    t;
   uint32_t pruned = 0;
   node_t   n;
+  int32_t  ai;                                              // Argument index.
+  char     o;
 
   assert(sizeof(Thr) / sizeof(Thr[0]) >= NT);
 
   memset(Thr, 0x00, sizeof(Thr));
-  
+
+  do {
+    o = getopt_long(argc, argv, "hin:p:", Options, & ai);
+    switch (o) {
+      case 'i':
+        idle_cleanup = 1;
+        break;
+
+      case 'n': 
+        NT = (uint32_t) atoi(optarg);
+        if (NT > 100) { NT = 100; }
+        break;
+
+      case 'p':
+        prunepoint = (uint32_t) atoi(optarg);
+        break;
+
+      case 'h': case '?':
+        printf("%s [options]\n", argv[0]);
+        printf("--numthreads -n : number of mutator threads; default %u threads.\n", NT);
+        printf("--prune      -p : prune list when more than this # elements; default %u elements.\n", prunepoint);
+        printf("--idleclean  -i : GC done in idle thread; default is hot i.e. mutator threads do GC.\n");
+        printf("Runs until ctrl-c.\n");
+        return 1;
+        break;
+    }
+  } while (o != -1);                                        // Process as long as there are options.
+    
   for (i = 0; i < NT; i++) {
     Thr[i].tid = i + 1;
     initthr(& Thr[i]);
@@ -346,7 +384,7 @@ int main(int argc, char * argv[]) {
 
     for (t = Thr, i = 0; i < NT; i++, t++) {
       double pms = ((double) t->missed / (double) t->ops) * 100.0;
-      printf("%3u ops %"PRIu64" misses %u %6.3f%% gcw %u\n",
+      printf("%3u ops %"PRIu64" misses %"PRIu64" %6.3f%% gcw %"PRIu64"\n",
         t->tid, t->ops, t->missed, pms, t->cleansed);
       (void) rand();
     }
@@ -355,19 +393,20 @@ int main(int argc, char * argv[]) {
     const char * gcm = "hot";                               // Garbage collection moment; hot means during modification.
     uint32_t delayed = 0;                                   // Number of nodes on cooling and zombie list.
 
-#if defined(IDLE_CLEANUP)
-    cleanup(cooling);                                       // Garbage collect the nodes here during idle moment.
-    cooling = NULL;
-    gcm = "idle";
-    assert(NULL == zombies);                                // Should never be used.
-#else
-    for (n = cooling; n; n = n->next) {                     // Count the cooling nodes.
-      delayed++;
+    if (idle_cleanup) {
+      cleanup(cooling);                                     // Garbage collect the nodes here during idle moment.
+      cooling = NULL;
+      gcm = "idle";
+      assert(NULL == zombies);                              // Should never be used in idle collect.
     }
-    for (n = zombies; n; n = n->next) {                     // Count the zombie nodes.
-      delayed++;
+    else {                                                  // Hot GC, we need to count the cooling and zombie nodes.
+      for (n = cooling; n; n = n->next) {                   // Count the cooling nodes.
+        delayed++;
+      }
+      for (n = zombies; n; n = n->next) {                   // Count the zombie nodes.
+        delayed++;
+      }
     }
-#endif
 
     printf("-- %u/%u nodes, prune > %u %u, freed %"PRIu64", added %"PRIu64" (%d) cooling %u%s %s GC.\n",
       i, numnodes, prunepoint, pruned, 
