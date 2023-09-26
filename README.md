@@ -17,7 +17,7 @@ make snippet which is kind of obvious).
   from within the ecvt-strtod folder:
 
   ```console
-  gcc -m32 -I . -I ../uintxx *.c ../uintxx/uintxx.c -o sample
+  gcc -m32 -Wall -Wsign-conversion -Wextra -Wno-unused-parameter -I . -I ../uintxx *.c ../uintxx/uintxx.c -o sample
   ./sample
   1.3806515690000000e-23 printf
   1.3806515690000000e-23 sbtecvt
