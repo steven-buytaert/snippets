@@ -127,3 +127,8 @@ make snippet which is kind of obvious).
   synchronization and gcc/clang builtin atomic operations to achieve
   multi-threaded correctness. Single Makefile and single source file;
   just a proof of concept. There's more documentation in the u-locks.md file.
+
+* umem: a micro memory manager for allocating and releasing blocks of
+  memory, much like standard malloc and free. It uses microlocks on each
+  chunk of memory, in stead of a global mutex for which OS support is
+  required. Main use is in embedded systems.
