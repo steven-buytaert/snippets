@@ -82,12 +82,10 @@ static void unlock(node_t node) {                           // Unlock a locked n
 
   assert(node->locked);                                     // Once locked, it must remain locked.
 
-  Exp.locked = 1;
-  Des.locked = 0;
-
-  while (! CAX(& node->header, & Exp.header, & Des.header)) {
-                                                            // Since it must start locked, we must be able and wait to unlock it.
-  }
+  do {
+    Exp.locked = 1;
+    Des.locked = 0;
+  } while (! CAX(& node->header, & Exp.header, & Des.header));
 
 }
 
