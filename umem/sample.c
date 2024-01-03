@@ -15,17 +15,27 @@
   This is an extremely simple multithread demonstrator of the micro manager.
 
   Each thread does nothing else than randomly either allocate or release a
-  block of memory. In case of allocation, it clears the received memory.
+  block of memory. In case of allocation, it clears the received memory. In
+  case of release, the contents of the block and the given tag, are checked.
 
   The process of allocation/release for each thread runs forever until control-c
   is pressed.
   
+  The monitor thread, will dump some statistics, each second;
+    - the number of current chunks in the micro manager
+    - the contention rate per second (see the contention callback).
+    - running time
+    - for each thread, the number of operations done and the number of bytes
+      currently allocated and that mutator thread.
+    - at the end, the total number of bytes in use; since it is calculated without
+      any locking, this is just a snapshot.
+  
 */
 
 typedef struct Block_t {
-  void *            mem;
-  uint32_t          size;
-  uint8_t           fill;
+  void *            mem;          // Points to the allocated memory.
+  uint32_t          size;         // Size of the block in bytes.
+  uint8_t           fill;         // Block has been filled with this byte.
   uint8_t           pad[3];
 } Block_t;
 
@@ -49,9 +59,7 @@ static uint32_t blockOK(Block_t * block, uint8_t tags) {    // Return non zero w
   uint8_t * c = block->mem;
   
   for (uint32_t i = 0; ok && i < block->size; i++, c++) {
-    if (*c != block->fill) {
-      ok = 0;
-    }
+    ok = (*c == block->fill);
   }
   
   return ok;
@@ -72,7 +80,7 @@ static void * mutate(void * arg) {
 
     switch (what) {    
       case 0: case 1: {                                     // Allocate.
-        if (mut->filled < NUM(mut->blocks)) {
+        if (mut->filled < NUM(mut->blocks)) {               // Only allocate if slots left.
           do {
             s = (uint32_t) rand() % NUM(mut->blocks);
           } while (mut->blocks[s].mem);                     // Find a vacant slot.
@@ -97,7 +105,7 @@ static void * mutate(void * arg) {
       }
     
       case 2: case 3: {                                     // Release.
-        if (mut->filled) {
+        if (mut->filled) {                                  // Only release if blocks left.
           do {
             s = (uint32_t) rand() % NUM(mut->blocks);
           } while (! mut->blocks[s].mem);                   // Find an occupied slot.
@@ -126,7 +134,7 @@ static void * mutate(void * arg) {
 
 static void contCb(umemctx_t umem) {                        // Contention callback for sample.
   __atomic_add_fetch(& umem->count, 1, __ATOMIC_SEQ_CST);   // Keep a count on the contention.
-  usleep(1000 * (1 + (uint32_t)rand() % 0x0f));             // Do some random backoff.
+  usleep(2000 * (1 + ((uint32_t) rand() % 0x0f)));          // Do some random backoff.
 }
 
 static const struct option Options[] = {
@@ -139,7 +147,7 @@ static const struct option Options[] = {
 int main(int argc, char * argv[]) {
 
   uint32_t  numthr = 2;
-  uint32_t  spacesz = 1024 * 64;
+  uint32_t  spacesz = 1024 * 128;
   uint8_t * space;
   int32_t   o;
   int32_t   ai;                                             // Argument index.
@@ -155,13 +163,14 @@ int main(int argc, char * argv[]) {
       case 'n': {
         numthr = (uint32_t) atoi(optarg);
         numthr = numthr ? numthr : 1;
-        numthr = numthr > 255 ? 255 : numthr;               // Apply some limit.
+        numthr = numthr > 99 ? 99 : numthr;                 // Apply some limit.
         break;
       }
 
       case 's': {
         spacesz = (uint32_t) atoi(optarg);
-        spacesz = spacesz > 1024 ? spacesz : 1024;
+        spacesz = spacesz > 10 * 1024 ? spacesz : 10 * 1024;
+        spacesz = iusize(spacesz);                          // Limit to what we can represent.
         break;
       }
 
@@ -187,7 +196,7 @@ int main(int argc, char * argv[]) {
 
   for (i = 0; i < numthr; i++) {
     memset(& muts[i], 0x00, sizeof(Mut_t));
-    sprintf(muts[i].name, "mut %u", i);
+    sprintf(muts[i].name, "mut %2u:", i);
     muts[i].run = 1;
     muts[i].tid = (uint8_t) i;
     muts[i].umem = & UMem;
@@ -200,7 +209,7 @@ int main(int argc, char * argv[]) {
     uint32_t d = s / (3600 * 24); s -= d * 3600 * 24;
     uint32_t h = s / 3600;        s -= h * 3600;
     uint32_t m = s / 60;          s -= m * 60;
-    printf("%u chunks, %u cont/sec, %u day%s %u hour%s, %u minute%s, %u second%s.\n", 
+    printf("%u chunks, %u cont/sec, %u day%s, %u hour%s, %u minute%s, %u second%s.\n", 
         UMem.numchunks, UMem.count,
         d, d == 1 ? "" : "s",
         h, h == 1 ? "" : "s",
