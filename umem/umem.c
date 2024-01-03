@@ -25,7 +25,7 @@ static void unlock(chunk_t chunk) {
   Chunk_t Exp = { .header = chunk->header };
   Chunk_t Des = { .header = chunk->header };
 
-  assert(chunk->lock);
+  assert(chunk->lock);                                      // Must have been locked before.
 
   do {
     Exp.lock = 1;
@@ -46,7 +46,7 @@ static uint32_t roundup(uint32_t value, uint32_t po2) {     // Round up to a giv
   return (value + (po2 - 1)) & ~(po2 - 1);
 }
 
-static chunk_t split(chunk_t c2s, uint32_t size) {          // Split at given size; return remainder if big enough, otherwise NULL.
+static chunk_t split(chunk_t c2s, uint32_t size) {          // Split at given size; return remainder.
 
   Mem_t    Succ = { .chunk = c2s };
   uint32_t sucsize = c2s->size - size - chunkhdrsz;         // Successor size.
@@ -153,38 +153,6 @@ static uint32_t iterate(umemiter_t iter) {                  // Iterator; return 
 
 }
 
-static uint32_t bestFitCb(umemiter_t iter, chunk_t c) {     // Best fit walking over all chunks.
-
-  uint32_t status = UMemIt_Unlock;
-  
-  assert(c->lock);
-  assert(iter->succ == chunk2succ(c));
-  assert(iter->succ->lock);
-  
-  if (! c->ciu && c->size >= iter->size) {                  // Free and big enough?
-    if (iter->found && c->size < iter->found->size) {       // A tighter fit.
-      assert(iter->found->lock);                            // Both found and ...
-      assert(iter->succ2found->lock);                       // its successor should have been kept locked.
-      iter->found->ciu = 0;                                 // We no longer claim it in use.
-      unlock(iter->found);                                  // Unlock the previous ones, first found ...
-      if (c != iter->succ2found) { 
-        unlock(iter->succ2found);                           // ... then successor. Same order as locking.
-      }
-      iter->found = NULL;                                   // This will ensure c is added below.
-    }
-
-    if (! iter->found) {
-      iter->found = c;
-      iter->succ2found = iter->succ;
-      c->ciu = 1;                                           // Claim it in use already.
-      status = UMemIt_Keep;                                 // Continue and keep it locked.
-    }
-  }
-
-  return status;
-  
-}
-
 static void freechunk(umemctx_t umem, chunk_t c2free) {     // Slow path to release a chunk.
 
   chunk_t  succ, succ2;
@@ -268,7 +236,7 @@ static void uncfree(umemctx_t umem, void * mem) {           // Uncontended path 
 
 }
 
-static void clearc2free(umemctx_t umem) {                   // Release chunks of to be freed list, if any.
+static void clean(umemctx_t umem) {                         // Release chunks of to be freed list, if any.
 
   chunk_t c2free;
   chunk_t next;
@@ -290,7 +258,7 @@ static void ufree(umemctx_t umem, void * mem) {             // Slow path to rele
 
   chunk_t chunk;
 
-  clearc2free(umem);                                        // Clean any from the free list first.
+  clean(umem);                                              // Clean any from the free list first.
 
   if (mem) {
     chunk = mem2chunk(mem);
@@ -337,6 +305,38 @@ static void * iter2mem(umemiter_t iter, uint8_t tags) {     // Use found iterato
 
 }
 
+static uint32_t bestFitCb(umemiter_t iter, chunk_t c) {     // Best fit walking over all chunks.
+
+  uint32_t status = UMemIt_Unlock;
+  
+  assert(c->lock);
+  assert(iter->succ == chunk2succ(c));
+  assert(iter->succ->lock);
+  
+  if (! c->ciu && c->size >= iter->size) {                  // Free and big enough?
+    if (iter->found && c->size < iter->found->size) {       // A tighter fit.
+      assert(iter->found->lock);                            // Both found and ...
+      assert(iter->succ2found->lock);                       // its successor should have been kept locked.
+      iter->found->ciu = 0;                                 // We no longer claim it in use.
+      unlock(iter->found);                                  // Unlock the previous ones, first found ...
+      if (c != iter->succ2found) { 
+        unlock(iter->succ2found);                           // ... then successor. Same order as locking.
+      }
+      iter->found = NULL;                                   // This will ensure c is added below.
+    }
+
+    if (! iter->found) {
+      iter->found = c;
+      iter->succ2found = iter->succ;
+      c->ciu = 1;                                           // Claim it in use already.
+      status = UMemIt_Keep;                                 // Continue and keep it locked.
+    }
+  }
+
+  return status;
+  
+}
+
 static void * umalloc(umemctx_t umem, uint32_t sz, uint8_t tags) { // Slow path umalloc.
 
   UMemIter_t Iter = { .cb = bestFitCb, .umem = umem };
@@ -345,7 +345,7 @@ static void * umalloc(umemctx_t umem, uint32_t sz, uint8_t tags) { // Slow path 
   uint32_t   count = 0;
   uint32_t   breakat = umem->breakat;                       // Take snapshot.
 
-  clearc2free(umem);                                        // Do any cleanup first.
+  clean(umem);                                              // Do any cleanup first.
 
   if (sz < minchunksize) { sz = minchunksize; }             // Ensure we have a proper size.
   if (sz > iusize(sz)) { return NULL; }                     // Too large.
@@ -374,6 +374,46 @@ static void * umalloc(umemctx_t umem, uint32_t sz, uint8_t tags) { // Slow path 
       umem->contcb(umem);
     }
   } while (! complete);
+
+  return iter2mem(& Iter, tags);
+
+}
+
+static uint32_t firstFitCb(umemiter_t iter, chunk_t c) {    // First fit walking over all chunks.
+
+  uint32_t status = UMemIt_Unlock;
+  
+  assert(c->lock);
+  assert(iter->succ == chunk2succ(c));
+  assert(iter->succ->lock);
+  
+  if (! c->ciu && c->size >= iter->size) {                  // Free and big enough?
+    iter->found = c;
+    iter->succ2found = iter->succ;
+    c->ciu = 1;                                             // Claim it in use already.
+    status = UMemIt_Stop;                                   // Keep the chunk and stop here.
+  }
+  
+  return status;
+  
+}
+
+static void * uncmalloc(umemctx_t umem, uint32_t sz, uint8_t tags) { // Least contented path umalloc.
+
+  UMemIter_t Iter = { .cb = firstFitCb, .umem = umem };
+  uint32_t   count = 0;
+
+  if (sz < minchunksize) { sz = minchunksize; }             // Ensure we have a proper size.
+  if (sz > iusize(sz)) { return NULL; }                     // Too large.
+
+  Iter.size = roundup(sz, 4);
+
+  Iter.found = NULL;
+
+  do {
+    Iter.start = umem->start;;
+    if(iterate(& Iter)) break;                              // If we had a full scan, don't retry.
+  } while (! Iter.found && ++count < 2);                    // Try 2 times only.
 
   return iter2mem(& Iter, tags);
 
@@ -417,6 +457,7 @@ void initUMemCtx(umemctx_t ctx, uint8_t space[], uint32_t size) {
     ctx->iterate = iterate;
     ctx->free = ufree;
     ctx->uncfree = uncfree;
+    ctx->uncmalloc = uncmalloc;
   
     trylock(start);                                         // Lock required for chunk2succ; should succeed.
     Mem.chunk = chunk2succ(start);                          // End chunk, but header not part of space.
@@ -431,4 +472,3 @@ void initUMemCtx(umemctx_t ctx, uint8_t space[], uint32_t size) {
   }
 
 }
-

@@ -30,6 +30,18 @@ manager systems like malloc/free.
   encoded as number of bytes of the chunk, but could easily be changed into
   number of 8 byte units.
 
+There are a lot of assert statements in the code to check that the required
+invariant conditions remain honoured. Some assert statements also contain a
+comma operator, with the last operand being a 1, to satisfy the assert
+statement and where the previous comma operands perform an operation that
+enhances the checking for errors; e.g.
+
+```C
+assert((succ->header = 0, 1));  // Clear when debugging; succ no longer exists.
+```
+
 TODO: small pthread sample application.
-TODO: fast path memory allocation
+
 TODO: realloc like implementation
+
+TODO: reduce contention by not always starting with the same chunk.
