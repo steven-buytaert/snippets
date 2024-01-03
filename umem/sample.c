@@ -37,7 +37,7 @@ typedef struct Mut_t {            // Mutator Thread Context.
   uint32_t          filled;       // Number of slots filled in blocks.
   volatile uint16_t run;
   uint16_t          tid;          // Simple thread id; starts at 0.
-  char              name[32];
+  char              name[36];
 } Mut_t;
 
 #define NUM(A) (sizeof(A) / sizeof(A[0]))
