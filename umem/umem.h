@@ -32,9 +32,9 @@ typedef struct UMemCtx_t {        // Micro Memory Manager Context.
   chunk_t         c2free;         // List of chunks to be freed.
   uint8_t       * space;          // Space provided by user to be managed.
   umalloc_t       malloc;         // Best fit effort allocation.
-  umalloc_t       uncmalloc;      // Least uncontended allocation effort.
+  umalloc_t       uncmalloc;      // Less contented allocation; NULL return does NOT always means OOM!
   ufree_t         free;           // Release the memory again, slowest, coalescing path.
-  ufree_t         uncfree;        // Uncontended free function; real work done later.
+  ufree_t         uncfree;        // Uncontended free function; real freeing work done later.
   uiter_t         iterate;        // Iterate over all chunks.
 } UMemCtx_t;
 

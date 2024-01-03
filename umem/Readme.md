@@ -40,7 +40,13 @@ enhances the checking for errors; e.g.
 assert((succ->header = 0, 1));  // Clear when debugging; succ no longer exists.
 ```
 
-TODO: small pthread sample application.
+To build the extremely simple multithreaded sample application:
+
+```
+$ gcc -Wall -Wconversion -Wextra -Wpadded -Werror -I . -o sample sample.c umem.c -lpthread
+```
+
+NOTE: one can also use clang for building the application.
 
 TODO: realloc like implementation
 
