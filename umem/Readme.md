@@ -40,13 +40,26 @@ enhances the checking for errors; e.g.
 assert((succ->header = 0, 1));  // Clear when debugging; succ no longer exists.
 ```
 
-To build the extremely simple multithreaded sample application:
+To build and run the extremely simple multithreaded sample application:
 
 ```
 $ gcc -Wall -Wconversion -Wextra -Wpadded -Werror -I . -o sample sample.c umem.c -lpthread
+$ ./sample -n 10 # Run with 10 mutator threads.
 ```
 
-NOTE: one can also use clang for building the application.
+NOTE: one can also use clang for building the sample or add any
+optimization flags to the compiler command line.
+
+The sample application will just run the given number of threads (default is
+2) in parallel, allocating and releasing memory, randomly, until control-c
+is pressed. Every second the number of bytes in use per thread, and in
+total, is shown, as well as the number of chunks currently in the memory
+manager and the contention rate per second, on the memory manager.
+
+The sample application will perform some simple checks to see if the block
+contents have been tampered with, before releasing the block. The simple
+thread id, allocated at the start, is used as the tags content for each
+block and is also checked upon.
 
 TODO: realloc like implementation
 

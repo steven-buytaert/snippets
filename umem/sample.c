@@ -25,7 +25,8 @@
 typedef struct Block_t {
   void *            mem;
   uint32_t          size;
-  uint8_t           pad[4];
+  uint8_t           fill;
+  uint8_t           pad[3];
 } Block_t;
 
 typedef struct Mut_t {            // Mutator Thread Context.
@@ -36,11 +37,26 @@ typedef struct Mut_t {            // Mutator Thread Context.
   uint32_t          inuse;        // Number of bytes in use.
   uint32_t          filled;       // Number of slots filled in blocks.
   volatile uint16_t run;
-  uint16_t          tid;          // Simple thread id; starts at 0.
-  char              name[36];
+  uint8_t           tid;          // Simple thread id; starts at 0.
+  char              name[37];
 } Mut_t;
 
 #define NUM(A) (sizeof(A) / sizeof(A[0]))
+
+static uint32_t blockOK(Block_t * block, uint8_t tags) {    // Return non zero when block checks out OK.
+
+  uint32_t  ok = mem2chunk(block->mem)->tags == tags;;
+  uint8_t * c = block->mem;
+  
+  for (uint32_t i = 0; ok && i < block->size; i++, c++) {
+    if (*c != block->fill) {
+      ok = 0;
+    }
+  }
+  
+  return ok;
+
+}
 
 static void * mutate(void * arg) {
 
@@ -63,13 +79,14 @@ static void * mutate(void * arg) {
           size = 1 + (uint32_t) (rand() % 256);             // Select a proper size.
           b = & mut->blocks[s];
           if (0 == what) {
-            b->mem = umem->malloc(umem, size, 0);           // Slow.
+            b->mem = umem->malloc(umem, size, mut->tid);    // Slow.
           }
           else {
-            b->mem = umem->uncmalloc(umem, size, 0);        // Faster.
+            b->mem = umem->uncmalloc(umem, size, mut->tid); // Faster.
           }
           if (b->mem) {
-            memset(b->mem, 0xff, size);                     // Fill the block.
+            b->fill = (uint8_t) rand() & 0xff;
+            memset(b->mem, b->fill, size);                  // Fill the block.
             b->size = size;
             mut->filled++;
             mut->ops++;
@@ -85,6 +102,7 @@ static void * mutate(void * arg) {
             s = (uint32_t) rand() % NUM(mut->blocks);
           } while (! mut->blocks[s].mem);                   // Find an occupied slot.
           b = & mut->blocks[s];
+          assert(blockOK(b, mut->tid));
           if (2 == what) {
             umem->free(umem, b->mem);                       // Slow release.
           }
@@ -129,6 +147,7 @@ int main(int argc, char * argv[]) {
   Mut_t *   muts;
   UMemCtx_t UMem;
   uint32_t  inuse;
+  uint32_t  seconds = 0;
 
   do {
     o = getopt_long(argc, argv, "hn:s:", Options, & ai);
@@ -136,6 +155,7 @@ int main(int argc, char * argv[]) {
       case 'n': {
         numthr = (uint32_t) atoi(optarg);
         numthr = numthr ? numthr : 1;
+        numthr = numthr > 255 ? 255 : numthr;               // Apply some limit.
         break;
       }
 
@@ -169,14 +189,23 @@ int main(int argc, char * argv[]) {
     memset(& muts[i], 0x00, sizeof(Mut_t));
     sprintf(muts[i].name, "mut %u", i);
     muts[i].run = 1;
-    muts[i].tid = (uint16_t) i;
+    muts[i].tid = (uint8_t) i;
     muts[i].umem = & UMem;
     pthread_create(& muts[i].thread, NULL, mutate, & muts[i]);
   }
 
   while (1) {
     sleep(1);
-    printf("%u chunks, %u cont/sec.\n", UMem.numchunks, UMem.count);
+    uint32_t s = ++seconds;
+    uint32_t d = s / (3600 * 24); s -= d * 3600 * 24;
+    uint32_t h = s / 3600;        s -= h * 3600;
+    uint32_t m = s / 60;          s -= m * 60;
+    printf("%u chunks, %u cont/sec, %u day%s %u hour%s, %u minute%s, %u second%s.\n", 
+        UMem.numchunks, UMem.count,
+        d, d == 1 ? "" : "s",
+        h, h == 1 ? "" : "s",
+        m, m == 1 ? "" : "s", 
+        s, s == 1 ? "" : "s");
     UMem.count = 0;
     inuse = 0;
     for (i = 0; i < numthr; i++) {
