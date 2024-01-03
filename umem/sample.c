@@ -22,11 +22,18 @@
   
 */
 
+typedef struct Block_t {
+  void *            mem;
+  uint32_t          size;
+  uint8_t           pad[4];
+} Block_t;
+
 typedef struct Mut_t {            // Mutator Thread Context.
   umemctx_t         umem;         // Micro Memory to use.
   pthread_t         thread;
-  void *            blocks[64];   // Collection of blocks.
+  Block_t           blocks[128];  // Collection of blocks.
   uint64_t          ops;          // Total operation count.
+  uint32_t          inuse;        // Number of bytes in use.
   uint32_t          filled;       // Number of slots filled in blocks.
   volatile uint16_t run;
   uint16_t          tid;          // Simple thread id; starts at 0.
@@ -39,9 +46,10 @@ static void * mutate(void * arg) {
 
   Mut_t *   mut = arg;
   uint32_t  what;
-  uint32_t  sz;
+  uint32_t  size;
   uint32_t  s;
   umemctx_t umem = mut->umem;
+  Block_t * b;
 
   while (mut->run) {
     what = rand() & 0b11;
@@ -51,15 +59,22 @@ static void * mutate(void * arg) {
         if (mut->filled < NUM(mut->blocks)) {
           do {
             s = (uint32_t) rand() % NUM(mut->blocks);
-          } while (mut->blocks[s]);                         // Find a vacant slot.
-          sz = 1 + (uint32_t) (rand() % 256);               // Select a proper size.
+          } while (mut->blocks[s].mem);                     // Find a vacant slot.
+          size = 1 + (uint32_t) (rand() % 256);             // Select a proper size.
+          b = & mut->blocks[s];
           if (0 == what) {
-            mut->blocks[s] = umem->malloc(umem, sz, 0);     // Slow.
+            b->mem = umem->malloc(umem, size, 0);           // Slow.
           }
           else {
-            mut->blocks[s] = umem->uncmalloc(umem, sz, 0);  // Faster.
+            b->mem = umem->uncmalloc(umem, size, 0);        // Faster.
           }
-          if (mut->blocks[s]) { mut->filled++; mut->ops++; }
+          if (b->mem) {
+            memset(b->mem, 0xff, size);                     // Fill the block.
+            b->size = size;
+            mut->filled++;
+            mut->ops++;
+            mut->inuse += size;
+          }
         }
         break;
       }
@@ -68,14 +83,18 @@ static void * mutate(void * arg) {
         if (mut->filled) {
           do {
             s = (uint32_t) rand() % NUM(mut->blocks);
-          } while (! mut->blocks[s]);                       // Find an occupied slot.
+          } while (! mut->blocks[s].mem);                   // Find an occupied slot.
+          b = & mut->blocks[s];
           if (2 == what) {
-            umem->free(umem, mut->blocks[s]);               // Slow release.
+            umem->free(umem, b->mem);                       // Slow release.
           }
           else {
-            umem->uncfree(umem, mut->blocks[s]);            // Faster release.
+            umem->uncfree(umem, b->mem);                    // Faster release.
           }
-          mut->filled--; mut->blocks[s] = NULL; mut->ops++; // Update slot and count.
+          mut->filled--;                                    // Update slot and count.
+          b->mem = NULL;
+          mut->inuse -= b->size;
+          mut->ops++;
         }
         break;
       }
@@ -85,6 +104,11 @@ static void * mutate(void * arg) {
   
   return NULL;
   
+}
+
+static void contCb(umemctx_t umem) {                        // Contention callback for sample.
+  __atomic_add_fetch(& umem->count, 1, __ATOMIC_SEQ_CST);   // Keep a count on the contention.
+  usleep(1000 * (1 + (uint32_t)rand() % 0x0f));             // Do some random backoff.
 }
 
 static const struct option Options[] = {
@@ -104,6 +128,7 @@ int main(int argc, char * argv[]) {
   uint32_t  i;
   Mut_t *   muts;
   UMemCtx_t UMem;
+  uint32_t  inuse;
 
   do {
     o = getopt_long(argc, argv, "hn:s:", Options, & ai);
@@ -138,6 +163,7 @@ int main(int argc, char * argv[]) {
   assert(space);
   
   initUMemCtx(& UMem, space, spacesz);
+  UMem.contcb = contCb;                                     // Override do nothing contention callback.
 
   for (i = 0; i < numthr; i++) {
     memset(& muts[i], 0x00, sizeof(Mut_t));
@@ -150,10 +176,14 @@ int main(int argc, char * argv[]) {
 
   while (1) {
     sleep(1);
-    printf("%u chunks.\n", UMem.numchunks);
+    printf("%u chunks, %u cont/sec.\n", UMem.numchunks, UMem.count);
+    UMem.count = 0;
+    inuse = 0;
     for (i = 0; i < numthr; i++) {
-      printf("%s %"PRIu64" operations.\n", muts[i].name, muts[i].ops);
+      printf("%s %"PRIu64" operations, %u in use.\n", muts[i].name, muts[i].ops, muts[i].inuse);
+      inuse += muts[i].inuse;
     }
+    printf("%u bytes in use of %u.\n", inuse, spacesz);
   }
    
   return 0;
