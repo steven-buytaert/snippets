@@ -61,6 +61,10 @@ contents have been tampered with, before releasing the block. The simple
 thread id, allocated at the start, is used as the tags content for each
 block and is also checked upon.
 
+Every 16 seconds of operation, the monitor thread will force all mutator
+threads to only use the slow release; that means that all chunks should
+again coalesce into the single starting chunk.
+
 TODO: realloc like implementation
 
 TODO: reduce contention by not always starting with the same chunk.

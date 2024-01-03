@@ -48,7 +48,8 @@ typedef struct Mut_t {            // Mutator Thread Context.
   uint32_t          filled;       // Number of slots filled in blocks.
   volatile uint16_t run;
   uint8_t           tid;          // Simple thread id; starts at 0.
-  char              name[37];
+  volatile uint8_t  releaseonly;  // When non zero, only fast release allowed.
+  char              name[36];
 } Mut_t;
 
 #define NUM(A) (sizeof(A) / sizeof(A[0]))
@@ -77,6 +78,7 @@ static void * mutate(void * arg) {
 
   while (mut->run) {
     what = rand() & 0b11;
+    if (mut->releaseonly) { what = 2; }                     // 2 is slower coalescing release.
 
     switch (what) {    
       case 0: case 1: {                                     // Allocate.
@@ -156,6 +158,7 @@ int main(int argc, char * argv[]) {
   UMemCtx_t UMem;
   uint32_t  inuse;
   uint32_t  seconds = 0;
+  uint32_t  releasing = 0;
 
   do {
     o = getopt_long(argc, argv, "hn:s:", Options, & ai);
@@ -185,7 +188,6 @@ int main(int argc, char * argv[]) {
     }
   } while (o != -1);                                        // Process as long as there are options.
 
-  
   muts = malloc(sizeof(Mut_t) * numthr);
   assert(muts);
   space = malloc(spacesz);
@@ -205,21 +207,27 @@ int main(int argc, char * argv[]) {
 
   while (1) {
     sleep(1);
+    if (releasing) { releasing--; }                         // Decrement release counter.
+    if (seconds && 0 == (seconds & 0xf)) {
+      releasing = 1;
+    }
     uint32_t s = ++seconds;
     uint32_t d = s / (3600 * 24); s -= d * 3600 * 24;
     uint32_t h = s / 3600;        s -= h * 3600;
     uint32_t m = s / 60;          s -= m * 60;
-    printf("%u chunks, %u cont/sec, %u day%s, %u hour%s, %u minute%s, %u second%s.\n", 
+    printf("%u chunks, %u cont/sec, %u day%s, %u hour%s, %u minute%s, %u second%s%s.\n", 
         UMem.numchunks, UMem.count,
         d, d == 1 ? "" : "s",
         h, h == 1 ? "" : "s",
         m, m == 1 ? "" : "s", 
-        s, s == 1 ? "" : "s");
+        s, s == 1 ? "" : "s",
+        releasing ? ", only release" : "");
     UMem.count = 0;
     inuse = 0;
     for (i = 0; i < numthr; i++) {
       printf("%s %"PRIu64" operations, %u in use.\n", muts[i].name, muts[i].ops, muts[i].inuse);
       inuse += muts[i].inuse;
+      muts[i].releaseonly = releasing ? 1 : 0;
     }
     printf("%u bytes in use of %u.\n", inuse, spacesz);
   }
