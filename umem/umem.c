@@ -268,12 +268,13 @@ static void ufree(umemctx_t umem, void * mem) {             // Slow path to rele
 
 }
 
+static const uint32_t enough2split = minchunksize + 2 * chunkhdrsz;
+
 static void * iter2mem(umemiter_t iter, uint8_t tags) {     // Use found iterator chunk for memory, if any.
 
   umemctx_t umem = iter->umem;
   chunk_t   rem;
   chunk_t   succ;
-  uint32_t  enough2split = minchunksize + 2 * chunkhdrsz;
 
   if (iter->found) {
     assert(iter->found->lock);                              // Must have been locked by callback.
@@ -282,7 +283,7 @@ static void * iter2mem(umemiter_t iter, uint8_t tags) {     // Use found iterato
     succ = iter->succ2found;
     assert(succ->lock);                                     // Iterator guarantee.
     assert(succ->pif);                                      // Since its predecessor is free.
-    if (iter->found->size - iter->size > enough2split) {    // Big enough remainder to split.
+    if (iter->found->size - iter->size >= enough2split) {   // Big enough remainder to split.
       rem = split(iter->found, iter->size);
       assert((trylock(rem), 1));                            // Only for chunk2succ in next assert.
       assert(succ == chunk2succ(rem));                      // its successor has been locked already, but ...
@@ -451,6 +452,7 @@ void initUMemCtx(umemctx_t ctx, uint8_t space[], uint32_t size) {
     Start.chunk->pif = 0;
     start = Start.chunk;
     ctx->start = start;
+    ctx->numchunks = 1;
 
     ctx->breakat = 12;
     ctx->malloc = umalloc;
