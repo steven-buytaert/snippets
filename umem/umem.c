@@ -306,7 +306,7 @@ static void * iter2mem(umemiter_t iter, uint8_t tags) {     // Use found iterato
 
 }
 
-static uint32_t bestFitCb(umemiter_t iter, chunk_t c) {     // Best fit walking over all chunks.
+static UMemItStat_t bestFitCb(umemiter_t iter, chunk_t c) { // Best fit walking over all chunks.
 
   uint32_t status = UMemIt_Unlock;
   
@@ -380,7 +380,7 @@ static void * umalloc(umemctx_t umem, uint32_t sz, uint8_t tags) { // Slow path 
 
 }
 
-static uint32_t firstFitCb(umemiter_t iter, chunk_t c) {    // First fit walking over all chunks.
+static UMemItStat_t firstFitCb(umemiter_t iter, chunk_t c) {// First fit walking over all chunks.
 
   uint32_t status = UMemIt_Unlock;
   
@@ -419,6 +419,130 @@ static void * uncmalloc(umemctx_t umem, uint32_t sz, uint8_t tags) { // Least co
   return iter2mem(& Iter, tags);
 
 }
+
+#if defined(UREALLOC)
+
+static void locktuple(umemctx_t ctx, chunk_t chunk, chunk_t succ) {
+
+  uint32_t bothlocked;
+
+  do {                                                      // Try to get both chunks locked, avoiding deadlock.
+    ctx->contcb(ctx);                                       // Let others make progress; both unlocked.
+    bothlocked = 0;
+    if (trylock(chunk)) {
+      if (trylock(succ)) {
+        bothlocked = 1;
+      }
+      else {
+        unlock(chunk);
+      }
+    }
+  } while (! bothlocked);
+
+}
+
+void * urealloc(umemctx_t ctx, void * mem, uint32_t size, uint8_t tags) {
+
+  chunk_t  chunk;
+  chunk_t  succ;
+  chunk_t  rem;
+  uint32_t bothlocked;
+  void *   newmem = NULL;
+
+  clean(ctx);                                               // Clean any from the free list first.
+
+  if (mem) {
+    chunk = mem2chunk(mem);
+    assert(chunk->ciu);
+    if (0 == size) {                                        // Work as free.
+      freechunk(ctx, chunk);
+      mem = NULL;
+    }
+    else if (size > iusize(size)) {                         // Too big for this allocator.
+      mem = NULL;
+    }
+    else {                                                  // Grow or shrink.
+      size = roundup(size, minchunksize);                   // Align size requirement first.
+      if (chunk->size >= size) {                            // Shrink the current chunk.
+        if (chunk->size - size >= enough2split) {           // Remainder big enough to split off?
+          do {
+            bothlocked = 0;
+            if (trylock(chunk)) {
+              succ = chunk2succ(chunk);
+              if (trylock(succ)) {
+                bothlocked = 1;
+                rem = split(chunk, size);
+                succ->prev = rem;
+                succ->pif = 1;
+                atomic_inc32(& ctx->numchunks);
+              }
+              else {                                        // Could not lock successor.
+                unlock(chunk);                              // Release lock for others to make progress.
+                ctx->contcb(ctx);
+              }
+            }
+          } while (! bothlocked);                           // Retry locking.
+          unlock(succ);
+          unlock(chunk);
+        }
+      }
+      else {                                                // Enlarge current chunk or find a new one.
+        do {
+          bothlocked = 0;
+          if (trylock(chunk)) {
+            succ = chunk2succ(chunk);
+            if (trylock(succ)) {
+              bothlocked = 1;
+              if (! succ->ciu) {                            // Only if successor isn't being used.
+                if (chunk->size + succ->size >= size) {     // We can grow into the successor!
+                  newmem = mem;                             // So we don't need a new memory block.
+                  succ = merge(chunk, succ);                // Essentially both merge; succ is the new successor!
+                  atomic_dec32(& ctx->numchunks);           // Since we merged with our successor.
+                  if (! trylock(succ)) {                    // Try to get a lock on the new successor.
+                    unlock(chunk);
+                    locktuple(ctx, chunk, succ);            // Unlock chunk and get both locks.
+                  }
+                  succ->pif = 0;                            // Set already in case we don't split next.
+                  if (chunk->size - size >= enough2split) { // Can we split of a remainder chunk?
+                    rem = split(chunk, size);
+                    succ->prev = rem;
+                    succ->pif = 1;
+                    atomic_inc32(& ctx->numchunks);         // One more chunk again, since we just split.
+                  }
+                }
+              }
+            }
+            else {                                          // Could not lock successor.
+              unlock(chunk);                                // Release lock for others to make progress.
+              ctx->contcb(ctx);
+            }
+          }
+        } while (! bothlocked);                             // Retry locking.
+        unlock(succ);
+        unlock(chunk);
+        if (! newmem) {                                     // Need to find a new memory block.
+          newmem = umalloc(ctx, size, chunk->tags);
+          if (newmem) {                                     // Copy over the old contents.
+            memcpy(newmem, mem, chunk->size);
+            freechunk(ctx, chunk);                          // Release the old chunk.
+            mem = newmem;
+          }
+          else {
+            mem = NULL;                                     // Reallocation failed.
+          }
+        }
+      }
+    }
+  }
+  else {                                                    // Work as malloc.
+    mem = umalloc(ctx, size, tags);
+  }
+
+  return mem;
+
+}
+
+#endif // UREALLOC
 
 static void contcb(umemctx_t umem) { (void)umem; }          // Do nothing contention callback.
 

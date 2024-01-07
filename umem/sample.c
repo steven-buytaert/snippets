@@ -42,7 +42,7 @@ typedef struct Block_t {
 typedef struct Mut_t {            // Mutator Thread Context.
   umemctx_t         umem;         // Micro Memory to use.
   pthread_t         thread;
-  Block_t           blocks[128];  // Collection of blocks.
+  Block_t           blocks[512];  // Collection of blocks.
   uint64_t          ops;          // Total operation count.
   uint32_t          inuse;        // Number of bytes in use.
   uint32_t          filled;       // Number of slots filled in blocks.
@@ -75,13 +75,14 @@ static void * mutate(void * arg) {
   uint32_t  s;
   umemctx_t umem = mut->umem;
   Block_t * b;
+  void *    mem;
 
   while (mut->run) {
-    what = rand() & 0b11;
+    what = rand() & 0b111;
     if (mut->releaseonly) { what = 2; }                     // 2 is slower coalescing release.
 
     switch (what) {    
-      case 0: case 1: {                                     // Allocate.
+      case 0: case 1: case 4: case 5: {                     // Allocate; most prefered command.
         if (mut->filled < NUM(mut->blocks)) {               // Only allocate if slots left.
           do {
             s = (uint32_t) rand() % NUM(mut->blocks);
@@ -126,7 +127,29 @@ static void * mutate(void * arg) {
         }
         break;
       }
-    
+      
+      case 6: case 7: {                                     // Reallocate existing block.
+        if (mut->filled) {                                  // Only reallocate if blocks left.
+          do {
+            s = (uint32_t) rand() % NUM(mut->blocks);
+          } while (! mut->blocks[s].mem);                   // Find an occupied slot.
+          b = & mut->blocks[s];
+          assert(blockOK(b, mut->tid));
+          size = 1 + (uint32_t) (rand() % 256);             // Select a new size.
+          mem = urealloc(umem, b->mem, size, 0x00);         // Tags of current block will be used.
+          if (mem) {                                        // Realloc worked.
+            mut->ops++;
+            mut->inuse += (size - b->size);                 // Update number of bytes in use up or down.
+            if (size > b->size) {                           // Block has grown.
+              memset(mem, b->fill, size);                   // Refill whole block.
+            }
+            b->mem = mem;
+            b->size = size;
+          }
+        }
+        break;
+      }
+      
     }
   }
   
@@ -159,6 +182,8 @@ int main(int argc, char * argv[]) {
   uint32_t  inuse;
   uint32_t  seconds = 0;
   uint32_t  releasing = 0;
+  
+  static const uint32_t mbyte = 1024 * 1024;
 
   do {
     o = getopt_long(argc, argv, "hn:s:", Options, & ai);
@@ -172,8 +197,9 @@ int main(int argc, char * argv[]) {
 
       case 's': {
         spacesz = (uint32_t) atoi(optarg);
-        spacesz = spacesz > 10 * 1024 ? spacesz : 10 * 1024;
-        spacesz = iusize(spacesz);                          // Limit to what we can represent.
+        if (spacesz > (2 * mbyte) - 1) {                    // Limit to what we can represent.
+          spacesz = (2 * mbyte) - 1;
+        }
         break;
       }
 
@@ -195,6 +221,7 @@ int main(int argc, char * argv[]) {
   
   initUMemCtx(& UMem, space, spacesz);
   UMem.contcb = contCb;                                     // Override do nothing contention callback.
+  assert(UMem.uncmalloc);                                   // Check it was properly initialized.
 
   for (i = 0; i < numthr; i++) {
     memset(& muts[i], 0x00, sizeof(Mut_t));
@@ -215,8 +242,9 @@ int main(int argc, char * argv[]) {
     uint32_t d = s / (3600 * 24); s -= d * 3600 * 24;
     uint32_t h = s / 3600;        s -= h * 3600;
     uint32_t m = s / 60;          s -= m * 60;
-    printf("%u chunks, %u cont/sec, %u day%s, %u hour%s, %u minute%s, %u second%s%s.\n", 
-        UMem.numchunks, UMem.count,
+    printf("%u chunk%s, %u cont/sec, %u day%s, %u hour%s, %u minute%s, %u second%s%s.\n", 
+        UMem.numchunks,  UMem.numchunks == 1 ? "" : "s",
+        UMem.count,
         d, d == 1 ? "" : "s",
         h, h == 1 ? "" : "s",
         m, m == 1 ? "" : "s", 

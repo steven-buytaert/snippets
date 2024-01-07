@@ -40,7 +40,7 @@ enhances the checking for errors; e.g.
 assert((succ->header = 0, 1));  // Clear when debugging; succ no longer exists.
 ```
 
-To build and run the extremely simple multithreaded sample application:
+To build and run the trivial multithreaded sample application:
 
 ```
 $ gcc -Wall -Wconversion -Wextra -Wpadded -Werror -I . -o sample sample.c umem.c -lpthread
@@ -56,8 +56,8 @@ is pressed. Every second the number of bytes in use per thread, and in
 total, is shown, as well as the number of chunks currently in the memory
 manager and the contention rate per second, on the memory manager.
 
-The sample application will perform some simple checks to see if the block
-contents have been tampered with, before releasing the block. The simple
+The sample application will perform some checks to see if the block
+contents have been tampered with, before releasing the block. The
 thread id, allocated at the start, is used as the tags content for each
 block and is also checked upon.
 
@@ -65,6 +65,4 @@ Every 16 seconds of operation, the monitor thread will force all mutator
 threads to only use the slow release; that means that all chunks should
 again coalesce into the single starting chunk.
 
-TODO: realloc like implementation
-
-TODO: reduce contention by not always starting with the same chunk.
+TODO: reduce contention by not always starting with the start chunk.

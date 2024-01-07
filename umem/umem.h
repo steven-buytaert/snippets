@@ -62,21 +62,7 @@ static const uint32_t chunkhdrsz = sizeof(uint32_t);
 
 static const uint32_t minchunksize = 8;
 
-/*
-
-  Important notes:
-  
-  The prev field of the Chunk_t structure, is part of the memory of the preceeding
-  chunk!
-
-  Despite this fact, the manipulation of chunk->ciu and succ->pif always must be done
-  under lock of both chunk and succ; succ->prev *can* be written under lock of chunk alone,
-  since the succ->prev fields memory belongs to chunk, but the succ->pif that goes along
-  with it, can only be changed under succ lock.
-
-*/
-
-#define iusize(S) ({ 0x001fffffu & (S); })
+#define iusize(S) ({ 0x001fffffu & ((uint32_t) S); })
 
 typedef enum {
   UMemIt_Stop     = 0,            // Stop iteration; *keep* current locks; iterate returns 0!
@@ -220,5 +206,21 @@ inline static uint32_t alignedok(void * mem) {              // Return non zero w
 // Initialize a context.
 
 void initUMemCtx(umemctx_t umem, uint8_t space[], uint32_t sz);
+
+/*
+  The urealloc function will only be build, when the UREALLOC guard
+  is defined. It works like the known realloc. The passed tags argument
+  is only used when the passed memory pointer is NULL and the function
+  should work like malloc. In any other case, the tags of the passed
+  memory block will be reused for the reallocation.
+*/
+
+#define UREALLOC 1
+
+#if defined(UREALLOC)
+
+void * urealloc(umemctx_t ctx, void * mem, uint32_t size, uint8_t tags);
+
+#endif // UREALLOC
 
 #endif // UMEMMAN_H
