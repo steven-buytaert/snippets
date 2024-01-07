@@ -96,6 +96,7 @@ static void * mutate(void * arg) {
             b->mem = umem->uncmalloc(umem, size, mut->tid); // Faster.
           }
           if (b->mem) {
+            assert(0 == ((uintptr_t) b->mem & 0b111));      // Assert proper worst case alignment.
             b->fill = (uint8_t) rand() & 0xff;
             memset(b->mem, b->fill, size);                  // Fill the block.
             b->size = size;
