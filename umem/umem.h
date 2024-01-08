@@ -58,9 +58,12 @@ typedef struct Chunk_t {          // ---- Memory of previous chunk -------------
 
 static const uint32_t chunkhdrsz = sizeof(uint32_t);
 
-// Minimum chunk size; must be a binary number aligned for worst case.
+// Minimum chunk size; it depends on the bit width of the system. We want to
+// avoid memory overhead for embedded systems as much as possible, but we
+// do want all memory allocated blocks to start on a worst case 8 byte aligned
+// boundary; also see the alignedok() function below.
 
-static const uint32_t minchunksize = 8;
+static const uint32_t minchunksize = sizeof(void *);
 
 #define iusize(S) ({ 0x001fffffu & ((uint32_t) S); })
 
@@ -199,7 +202,7 @@ inline static uint32_t alignedok(void * mem) {              // Return non zero w
 
   uintptr_t ptr = (uintptr_t) mem;
   
-  return (ptr & (minchunksize - 1)) ? 0 : 1;
+  return ! (ptr & 0b111);                                   // Return 1 when aligned on an 8 byte boundary.
 
 }
 

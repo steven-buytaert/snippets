@@ -52,7 +52,7 @@ static chunk_t split(chunk_t c2s, uint32_t size) {          // Split at given si
   uint32_t sucsize = c2s->size - size - chunkhdrsz;         // Successor size.
 
   assert(c2s->lock);                                        // Must be locked.
-  assert(size == roundup(size, sizeof(void *)));            // Should have been properly rounded already.
+  assert(size == roundup(size, chunkhdrsz));                // Should have been properly rounded already.
   assert(c2s->size >= size);                                // Chunk should be big enough for requested split.
 
   assert(sucsize >= minchunksize + 4);                      // +4 amount we might need for alignment.
@@ -350,7 +350,7 @@ static void * umalloc(umemctx_t umem, uint32_t sz, uint8_t tags) { // Slow path 
 
   if (sz < minchunksize) { sz = minchunksize; }             // Ensure we have a proper size.
   if (sz > iusize(sz)) { return NULL; }                     // Too large.
-  Iter.size = roundup(sz, sizeof(void *));
+  Iter.size = roundup(sz, chunkhdrsz);
 
   Iter.start = umem->start;
   Iter.found = NULL;
@@ -406,8 +406,7 @@ static void * uncmalloc(umemctx_t umem, uint32_t sz, uint8_t tags) { // Least co
 
   if (sz < minchunksize) { sz = minchunksize; }             // Ensure we have a proper size.
   if (sz > iusize(sz)) { return NULL; }                     // Too large.
-
-  Iter.size = roundup(sz, sizeof(void *));
+  Iter.size = roundup(sz, chunkhdrsz);
 
   Iter.found = NULL;
 
@@ -462,7 +461,8 @@ void * urealloc(umemctx_t ctx, void * mem, uint32_t size, uint8_t tags) {
       mem = NULL;
     }
     else {                                                  // Grow or shrink.
-      size = roundup(size, sizeof(void *));                 // Align size requirement first.
+      if (size < minchunksize) { size = minchunksize; }     // Ensure we have a proper size.
+      size = roundup(size, chunkhdrsz);                     // Align size requirement first.
       if (chunk->size >= size) {                            // Shrink the current chunk.
         if (chunk->size - size >= enough2split) {           // Remainder big enough to split off?
           do {
@@ -551,8 +551,6 @@ void initUMemCtx(umemctx_t ctx, uint8_t space[], uint32_t size) {
   Mem_t   Mem;
   Mem_t   Start;
   chunk_t start;
-
-  assert(roundup(minchunksize, sizeof(uint64_t)) == minchunksize);
 
   memset(ctx, 0x00, sizeof(UMemCtx_t));                     // Clear everything.
 
