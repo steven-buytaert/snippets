@@ -585,8 +585,8 @@ void initUMemCtx(umemctx_t ctx, uint8_t space[], uint32_t size) {
   
     trylock(start);                                         // Lock required for chunk2succ; should succeed.
     Mem.chunk = chunk2succ(start);                          // End chunk, but header not part of space.
-    Mem.addr -= chunkhdrsz;                                 // End chunk header now part of space.
-    start->size = iusize(start->size - chunkhdrsz);         // Subtracted from total size.
+    Mem.addr -= 2 * chunkhdrsz;                             // End chunk header now part of space.
+    start->size = iusize(start->size - 2 * chunkhdrsz);     // Subtracted from total size.
     Mem.chunk->header = 0;                                  // Clear end chunk header.
     Mem.chunk->pif = 1;                                     // But start chunk starts free.
     Mem.chunk->prev = Start.chunk;
