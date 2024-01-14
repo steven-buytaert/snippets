@@ -31,7 +31,7 @@ manager systems like malloc/free.
   number of 8 byte units.
 
 There are a lot of assert statements in the code to check that the required
-invariant conditions remain honoured. Some assert statements also contain a
+invariant conditions remain honored. Some assert statements also contain a
 comma operator, with the last operand being a 1, to satisfy the assert
 statement and where the previous comma operands perform an operation that
 enhances the checking for errors; e.g.
@@ -40,7 +40,7 @@ enhances the checking for errors; e.g.
 assert((succ->header = 0, 1));  // Clear when debugging; succ no longer exists.
 ```
 
-To build and run the trivial multithreaded sample application:
+To build and run the trivial multi-threaded sample application:
 
 ```
 $ gcc -Wall -Wconversion -Wextra -Wpadded -Werror -I . -o sample sample.c umem.c -lpthread
@@ -51,9 +51,9 @@ NOTE: one can also use clang for building the sample or add any
 optimization flags to the compiler command line.
 
 The sample application will just run the given number of threads (default is
-2) in parallel, allocating and releasing memory, randomly, until control-c
-is pressed. Every second the number of bytes in use per thread, and in
-total, is shown, as well as the number of chunks currently in the memory
+2) in parallel, allocating, reallocating and releasing memory, randomly,
+until control-c is pressed. Every second the number of bytes in use per thread,
+and in total, is shown, as well as the number of chunks currently in the memory
 manager and the contention rate per second, on the memory manager.
 
 The sample application will perform some checks to see if the block
@@ -65,4 +65,8 @@ Every 16 seconds of operation, the monitor thread will force all mutator
 threads to only use the slow release; that means that all chunks should
 again coalesce into the single starting chunk.
 
+The application doesn't call the uamalloc function during the testing. That
+is left as a TODO.
+
 TODO: reduce contention by not always starting with the start chunk.
+

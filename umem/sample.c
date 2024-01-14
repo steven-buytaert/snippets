@@ -12,7 +12,7 @@
 
 /*
 
-  This is an extremely simple multithread demonstrator of the micro manager.
+  This is a simple multithread demonstrator of the micro memory manager.
 
   Each thread does nothing else than randomly either allocate or release a
   block of memory. In case of allocation, it clears the received memory. In
@@ -89,12 +89,15 @@ static void * mutate(void * arg) {
           } while (mut->blocks[s].mem);                     // Find a vacant slot.
           size = 1 + (uint32_t) (rand() % 256);             // Select a proper size.
           b = & mut->blocks[s];
+          b->mem = NULL;
           if (0 == what) {
-            b->mem = umem->malloc(umem, size, mut->tid);    // Slow.
+            b->mem = umalloc(umem, size, mut->tid);         // Slow.
           }
+#if defined(UMEMFAST)
           else {
-            b->mem = umem->uncmalloc(umem, size, mut->tid); // Faster.
+            b->mem = umalloc_fast(umem, size, mut->tid);    // Faster.
           }
+#endif
           if (b->mem) {
             assert(0 == ((uintptr_t) b->mem & 0b111));      // Assert proper worst case alignment.
             b->fill = (uint8_t) rand() & 0xff;
@@ -115,12 +118,16 @@ static void * mutate(void * arg) {
           } while (! mut->blocks[s].mem);                   // Find an occupied slot.
           b = & mut->blocks[s];
           assert(blockOK(b, mut->tid));
+#if defined(UMEMFAST)
           if (2 == what) {
-            umem->free(umem, b->mem);                       // Slow release.
+            ufree(umem, b->mem);                            // Slow release.
           }
           else {
-            umem->uncfree(umem, b->mem);                    // Faster release.
+            ufree_fast(umem, b->mem);                       // Faster release.
           }
+#else
+          ufree(umem, b->mem);                              // Only slow release.
+#endif
           mut->filled--;                                    // Update slot and count.
           b->mem = NULL;
           mut->inuse -= b->size;
@@ -130,6 +137,7 @@ static void * mutate(void * arg) {
       }
       
       case 6: case 7: {                                     // Reallocate existing block.
+#if defined(UREALLOC)
         if (mut->filled) {                                  // Only reallocate if blocks left.
           do {
             s = (uint32_t) rand() % NUM(mut->blocks);
@@ -148,6 +156,7 @@ static void * mutate(void * arg) {
             b->size = size;
           }
         }
+#endif
         break;
       }
       
@@ -220,9 +229,9 @@ int main(int argc, char * argv[]) {
   space = malloc(spacesz);
   assert(space);
   
-  initUMemCtx(& UMem, space, spacesz);
+  uint32_t stat = initUMemCtx(& UMem, space, spacesz);
+  assert(stat);                                             // Check it was properly initialized.
   UMem.contcb = contCb;                                     // Override do nothing contention callback.
-  assert(UMem.uncmalloc);                                   // Check it was properly initialized.
 
   for (i = 0; i < numthr; i++) {
     memset(& muts[i], 0x00, sizeof(Mut_t));

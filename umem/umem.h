@@ -11,8 +11,6 @@ typedef struct UMemCtx_t *  umemctx_t;
 typedef struct UMemIter_t * umemiter_t;
 
 typedef void     (*ucontcb_t)(umemctx_t umem);
-typedef void *   (*umalloc_t)(umemctx_t umem, uint32_t sz, uint8_t tags);
-typedef void     (*ufree_t)(umemctx_t umem, void * mem);
 typedef uint32_t (*uiter_t)(umemiter_t iter);
 
 typedef struct UMemCtx_t {        // Micro Memory Manager Context.
@@ -31,10 +29,6 @@ typedef struct UMemCtx_t {        // Micro Memory Manager Context.
   chunk_t         start;          // Starting chunk; forever with pif clear.
   chunk_t         c2free;         // List of chunks to be freed.
   uint8_t       * space;          // Space provided by user to be managed.
-  umalloc_t       malloc;         // Best fit effort allocation.
-  umalloc_t       uncmalloc;      // Less contented allocation; NULL return does NOT always means OOM!
-  ufree_t         free;           // Release the memory again, slowest, coalescing path.
-  ufree_t         uncfree;        // Uncontended free function; real freeing work done later.
   uiter_t         iterate;        // Iterate over all chunks.
 } UMemCtx_t;
 
@@ -77,13 +71,15 @@ typedef UMemItStat_t (*icb_t)(umemiter_t iter, chunk_t c);
 
 typedef struct UMemIter_t {       // UMem Iteration Context.
   umemctx_t       umem;
-  chunk_t         start;          // Chunk to start iteration from.
-  chunk_t         succ;           // The locked successor of the passed chunk.
   const icb_t     cb;
+  chunk_t         start;          // Chunk to start iteration from.
+  chunk_t         succ;           // [Set by iterator] The locked successor of the passed chunk.
   chunk_t         found;          // During allocation, chunk that fits the size.
   chunk_t         succ2found;     // Successor of the found chunk, if any.
-  uint32_t        size;           // In case of allocation search, required size.
+  uint8_t         pad[4];
+  uint32_t        size;           // In search4chunk, required size.
   uint32_t        count;          // Generic counter; available to callback.
+  uint32_t        align;          // In search4chunk, alignment required; only used for uamalloc.
 } UMemIter_t;
 
 typedef union Mem_t {             // Memory calculation union.
@@ -91,6 +87,7 @@ typedef union Mem_t {             // Memory calculation union.
   void *          mem;
   uint8_t *       addr;           // For adding/substracting raw sizes.
   uintptr_t       check;          // For checking alignment.
+  uintptr_t       calc;           // For calculation.
 } Mem_t;
 
 /*
@@ -206,16 +203,47 @@ inline static uint32_t alignedok(void * mem) {              // Return non zero w
 
 }
 
-// Initialize a context.
+// Initialize a context; returns zero when passed space is too small.
 
-void initUMemCtx(umemctx_t umem, uint8_t space[], uint32_t sz);
+uint32_t initUMemCtx(umemctx_t umem, uint8_t space[], uint32_t sz);
+
+// Basic allocation function; it does NOT clear the allocated memory. It searches
+// for a best fitting chunk, unless there is high contention. Under high contention
+// not all chunks might be visited for a best fit.
+
+void * umalloc(umemctx_t umem, uint32_t sz, uint8_t tags);
+
+// Basic memory release function; it releases the memory and coalesces it with other
+// neighboring chunks if they are free too.
+
+void ufree(umemctx_t umem, void * mem);
+
+#define UMEMFAST
+
+#if defined(UMEMFAST)
+
+// A malloc version that only does a first fit for a matching chunk; faster than umalloc.
+
+void * umalloc_fast(umemctx_t umem, uint32_t sz, uint8_t tags);
+
+// A very fast function to release the memory; the memory is put on a free list that
+// is cleaned by regular calls to ufree or umalloc.
+
+void ufree_fast(umemctx_t umem, void * mem);
+
+#endif // UMEMFAST
 
 /*
   The urealloc function will only be build, when the UREALLOC guard
   is defined. It works like the known realloc. The passed tags argument
   is only used when the passed memory pointer is NULL and the function
   should work like malloc. In any other case, the tags of the passed
-  memory block will be reused for the reallocation.
+  memory block will be reused for the reallocation. Note that in the case
+  where the block is shrinked, the exact same block address will be returned.
+  When a block is to be increased, a new address might be returned. If you pass
+  a block that has been allocated with uamalloc and ask it for increasing the
+  block, there is NO guarantee that the newly returned block is allocated
+  at the proper boundary.
 */
 
 #define UREALLOC 1
@@ -225,5 +253,23 @@ void initUMemCtx(umemctx_t umem, uint8_t space[], uint32_t sz);
 void * urealloc(umemctx_t ctx, void * mem, uint32_t size, uint8_t tags);
 
 #endif // UREALLOC
+
+/*
+  The uamalloc function can be used to allocate a block of memory on a given
+  alignment boundary. It will only be build when UAMALLOC has been defined.
+  Note that the requested alignment of the block, is NOWHERE stored. So when a
+  block that has been allocated with uamalloc, is used in urealloc for increasing
+  its size, the aligment is NOT guaranteed. Offering suc a block to urealloc for
+  shrinking, will retain the alignment, as the same block is returned; see urealloc
+  documentation above.
+*/
+
+#define UAMALLOC 1
+
+#if defined(UAMALLOC)
+
+void * uamalloc(umemctx_t ctx, uint32_t sz, uint8_t tags, uint32_t align);
+
+#endif // UAMALLOC
 
 #endif // UMEMMAN_H
