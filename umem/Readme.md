@@ -4,13 +4,20 @@ This micro manager implements a system to manage a block of given
 memory so that one can allocate blocks of memory from it and release the
 blocks back later, like regular malloc and free.
 
-There are some restrictions and other differences versus other memory
-manager systems like malloc/free.
+The foreseen main usage is in embedded systems, where one has to manage
+several memory regions of a limited size. Other scenarios for usage are
+possible.
 
-* It allows multi threaded operation by implementing micro locks in each
-  chunk separately. I.e. it does not require an overall mutex and is
-  therefore not depending on any OS support. It does require a compiler that
-  implements the GCC atomic operation primitives.
+There are some restrictions and other differences versus other general
+memory manager systems, like malloc/free.
+
+* It allows concurrent operations by implementing micro locks in each
+  chunk separately. I.e. it does not require an overall mutex that locks 
+  the whole operation and is therefore **not** depending on any OS support.
+  It does require a compiler that implements the [GCC atomic operation
+  primitives](https://gcc.gnu.org/wiki/Atomic). Note that if these are not
+  available, the atomic compare and swap basic operation could be
+  implemented by means of some inline assembly.
 
 * It provides 2 different flavors for allocation and releasing of memory;
   an uncontended path, for calling e.g. from an IRQ where you never want a
@@ -28,7 +35,26 @@ manager systems like malloc/free.
 * Since some bits are being used for tags and other household information,
   only 21 bits are available for the size of a chunk. Currently, the size is
   encoded as number of bytes of the chunk, but could easily be changed into
-  number of 8 byte units.
+  the number of 8 byte units. Another possibility is to reduce the number of
+  tags bits. Check the header file for the Chunk_t structure.
+
+* It provides a urealloc functionwith the same semantics as the regular realloc.
+  When a block is offered for shrinking, it will return the same block
+  address after shrinking. This is important for blocks that have been
+  allocated with uamalloc. See next bullet.
+
+* It provides an uamalloc function, that allows for allocating blocks of
+  memory on other memory alignments than the standard worst case alignment
+  of uamalloc. See the restrictions on usage of these blocks later on with
+  urealloc however; in case of enlargement, the alignement is no longer
+  guaranteed.
+
+Since the urealloc and uamalloc, as well as the faster
+umalloc_fast/ufree_fast operations are not always required, they are build
+conditionally. See the header file for enabling or disabling these
+functions. If they are not enabled, the basic umalloc/ufree operation only
+requires a few kilobytes of text size (don't forget to use -DNDEBUG to
+remove the assert statements).
 
 There are a lot of assert statements in the code to check that the required
 invariant conditions remain honored. Some assert statements also contain a
@@ -63,10 +89,16 @@ block and is also checked upon.
 
 Every 16 seconds of operation, the monitor thread will force all mutator
 threads to only use the slow release; that means that all chunks should
-again coalesce into the single starting chunk.
+again coalesce into the single starting chunk. The application will check
+that this is the case by asserting the number of bytes in use is 0 and the
+number of chunks in the memory manager has coagulated back into the single
+starting chunk.
 
-The application doesn't call the uamalloc function during the testing. That
-is left as a TODO.
-
-TODO: reduce contention by not always starting with the start chunk.
+TODO: reduce contention by not always starting with the start chunk. But
+that is not that straightforward, as you need a starting chunk that is
+immutable, to find another chunk, locking each in between. A possibility
+would be to divide the starting space in X starting chunks and randomly
+choose a starting point; this however would complicate the implementation
+and is, I think, better done on a higher level, if needed for the
+implementation.
 
