@@ -20,7 +20,7 @@
 
   The process of allocation/release for each thread runs forever until control-c
   is pressed.
-  
+
   The monitor thread, will dump some statistics, each second;
     - the number of current chunks in the micro manager
     - the contention rate per second (see the contention callback).
@@ -29,7 +29,7 @@
       currently allocated and that mutator thread.
     - at the end, the total number of bytes in use; since it is calculated without
       any locking, this is just a snapshot.
-  
+
 */
 
 typedef struct Block_t {
@@ -58,11 +58,11 @@ static uint32_t blockOK(Block_t * block, uint8_t tags) {    // Return non zero w
 
   uint32_t  ok = mem2chunk(block->mem)->tags == tags;;
   uint8_t * c = block->mem;
-  
+
   for (uint32_t i = 0; ok && i < block->size; i++, c++) {
     ok = (*c == block->fill);
   }
-  
+
   return ok;
 
 }
@@ -79,23 +79,30 @@ static void * mutate(void * arg) {
 
   while (mut->run) {
     what = rand() & 0b111;
-    if (mut->releaseonly) { what = 2; }                     // 2 is slower coalescing release.
+    if (mut->releaseonly) { what = 4; }                     // 4 is slower coalescing release.
 
-    switch (what) {    
-      case 0: case 1: case 4: case 5: {                     // Allocate; most prefered command.
+    switch (what) {
+      case 0: case 1: case 2: case 3: {                     // Allocate; most prefered command.
         if (mut->filled < NUM(mut->blocks)) {               // Only allocate if slots left.
           do {
             s = (uint32_t) rand() % NUM(mut->blocks);
           } while (mut->blocks[s].mem);                     // Find a vacant slot.
           size = 1 + (uint32_t) (rand() % 256);             // Select a proper size.
           b = & mut->blocks[s];
-          b->mem = NULL;
+          b->mem = NULL;                                    // Preset in case UMEMFAST/UAMALLOC not defined.
           if (0 == what) {
             b->mem = umalloc(umem, size, mut->tid);         // Slow.
           }
 #if defined(UMEMFAST)
-          else {
+          else if (1 == what || 2 == what) {
             b->mem = umalloc_fast(umem, size, mut->tid);    // Faster.
+          }
+#endif
+#if defined(UAMALLOC)
+          else {
+            uint32_t ma = (1u << (2 + (rand() & 0b111)));   // Get some alignment between 4 and 256.
+            b->mem = uamalloc(umem, size, mut->tid, ma);
+            assert(! ((uintptr_t) b->mem & (ma - 1)));      // Check aligment; b->mem can be NULL.
           }
 #endif
           if (b->mem) {
@@ -110,8 +117,8 @@ static void * mutate(void * arg) {
         }
         break;
       }
-    
-      case 2: case 3: {                                     // Release.
+
+      case 4: case 5: {                                     // Release.
         if (mut->filled) {                                  // Only release if blocks left.
           do {
             s = (uint32_t) rand() % NUM(mut->blocks);
@@ -119,7 +126,7 @@ static void * mutate(void * arg) {
           b = & mut->blocks[s];
           assert(blockOK(b, mut->tid));
 #if defined(UMEMFAST)
-          if (2 == what) {
+          if (4 == what) {
             ufree(umem, b->mem);                            // Slow release.
           }
           else {
@@ -135,7 +142,7 @@ static void * mutate(void * arg) {
         }
         break;
       }
-      
+
       case 6: case 7: {                                     // Reallocate existing block.
 #if defined(UREALLOC)
         if (mut->filled) {                                  // Only reallocate if blocks left.
@@ -159,12 +166,12 @@ static void * mutate(void * arg) {
 #endif
         break;
       }
-      
+
     }
   }
-  
+
   return NULL;
-  
+
 }
 
 static void contCb(umemctx_t umem) {                        // Contention callback for sample.
@@ -192,7 +199,7 @@ int main(int argc, char * argv[]) {
   uint32_t  inuse;
   uint32_t  seconds = 0;
   uint32_t  releasing = 0;
-  
+
   static const uint32_t mbyte = 1024 * 1024;
 
   do {
@@ -228,7 +235,7 @@ int main(int argc, char * argv[]) {
   assert(muts);
   space = malloc(spacesz);
   assert(space);
-  
+
   uint32_t stat = initUMemCtx(& UMem, space, spacesz);
   assert(stat);                                             // Check it was properly initialized.
   UMem.contcb = contCb;                                     // Override do nothing contention callback.
@@ -243,21 +250,22 @@ int main(int argc, char * argv[]) {
   }
 
   while (1) {
+    uint32_t check4zero = (releasing == 2) ? 1 : 0;         // See if we can safely check for 0.
     sleep(1);
     if (releasing) { releasing--; }                         // Decrement release counter.
-    if (seconds && 0 == (seconds & 0xf)) {
-      releasing = 1;
+    if (seconds && 0 == (seconds & 0xf)) {                  // Every 16 seconds, release for 2 seconds.
+      releasing = 2;
     }
     uint32_t s = ++seconds;
     uint32_t d = s / (3600 * 24); s -= d * 3600 * 24;
     uint32_t h = s / 3600;        s -= h * 3600;
     uint32_t m = s / 60;          s -= m * 60;
-    printf("%u chunk%s, %u cont/sec, %u day%s, %u hour%s, %u minute%s, %u second%s%s.\n", 
+    printf("%u chunk%s, %u cont/sec, %u day%s, %u hour%s, %u minute%s, %u second%s%s.\n",
         UMem.numchunks,  UMem.numchunks == 1 ? "" : "s",
         UMem.count,
         d, d == 1 ? "" : "s",
         h, h == 1 ? "" : "s",
-        m, m == 1 ? "" : "s", 
+        m, m == 1 ? "" : "s",
         s, s == 1 ? "" : "s",
         releasing ? ", only release" : "");
     UMem.count = 0;
@@ -267,9 +275,13 @@ int main(int argc, char * argv[]) {
       inuse += muts[i].inuse;
       muts[i].releaseonly = releasing ? 1 : 0;
     }
-    printf("%u bytes in use of %u.\n", inuse, spacesz);
+    printf("%u bytes in use of %u; %u chunk%s.\n",
+      inuse, spacesz,
+      UMem.numchunks, UMem.numchunks == 1 ? "" : "s");
+    assert(! check4zero || 0 == inuse);                     // Check for leaks.
+    assert(! check4zero || 1 == UMem.numchunks);            // Should have coagulated into starting chunk.
   }
-   
+
   return 0;
-  
+
 }
