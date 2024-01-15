@@ -17,7 +17,7 @@ static uint32_t trylock(chunk_t chunk) {
   Des.lock = 1;
 
   return CAX(& chunk->header, & Exp.header, & Des.header);
-  
+
 }
 
 static void unlock(chunk_t chunk) {
@@ -75,14 +75,14 @@ static chunk_t split(chunk_t c2s, uint32_t size) {          // Split at given si
   assert(alignedok(Succ.chunk->u08));
 
   return Succ.chunk;
-  
+
 }
 
 static chunk_t merge(chunk_t c2m, chunk_t suc) {            // Merge chunk with successor; return new successor.
 
   assert(c2m->lock && suc->lock);                           // Both must be locked.
   assert(chunk2succ(c2m) == suc);                           // Must really be the successor.
-  
+
   c2m->size = iusize(c2m->size + suc->size + chunkhdrsz);   // First set proper final size.
 
   return chunk2succ(c2m);                                   // Return new successor.
@@ -117,10 +117,16 @@ static uint32_t start2end(umemiter_t iter, chunk_t start, chunk_t end) {
         }
         break;
       }
-        
+
       case UMemIt_Keep: {                                   // In case callback wants to keep the lock ...
         keepsucc = 1;                                       // ... we also keep the lock on the successor.
         break;
+      }
+
+      default: {                                            // Bad answer; unlock all and return incomplete.
+        unlock(c);
+        unlock(iter->succ);
+        return 0;
       }
     }
 
@@ -143,8 +149,8 @@ static uint32_t iterate(umemiter_t iter) {                  // Iterator; return 
     }
     full = start2end(iter, iter->start, umem->end);
   }
-  
-  if (full) {
+
+  if (full) {                                               // Only if the first part did a complete iteration.
     if (iter->start > umem->start) {                        // We started in the middle.
       if (! trylock(umem->start)) {
         return 0;
@@ -295,7 +301,7 @@ static void * iter2mem(umemiter_t iter, uint8_t tags) {     // Use found iterato
 // is required untill the tie breaking point. The needcomplete is *only* relevant
 // when a chunk was found already!
 
-static void search4chunk(UMemIter_t *iter, uint32_t sz, uint32_t needcomplete) {   
+static void search4chunk(UMemIter_t *iter, uint32_t sz, uint32_t needcomplete) {
 
   umemctx_t  umem = iter->umem;
   chunk_t    succ;
@@ -321,7 +327,7 @@ static void search4chunk(UMemIter_t *iter, uint32_t sz, uint32_t needcomplete) {
         if (! needcomplete) { break; }                      // Full scan not needed.
         if (++count > breakat) {                            // We tried enough times, this one is it.
           umem->tiesbroken++;
-          break; 
+          break;
         }
         iter->found->ciu = 0;                               // Release claim again.
         unlock(iter->found);                                // Let others make progress; unlock in same ...
@@ -336,18 +342,18 @@ static void search4chunk(UMemIter_t *iter, uint32_t sz, uint32_t needcomplete) {
 static UMemItStat_t bestFitCb(umemiter_t iter, chunk_t c) { // Best fit walking over all chunks.
 
   UMemItStat_t status = UMemIt_Unlock;
-  
+
   assert(c->lock);
   assert(iter->succ == chunk2succ(c));
   assert(iter->succ->lock);
-  
+
   if (! c->ciu && c->size >= iter->size) {                  // Free and big enough?
     if (iter->found && c->size < iter->found->size) {       // A tighter fit.
       assert(iter->found->lock);                            // Both found and ...
       assert(iter->succ2found->lock);                       // its successor should have been kept locked.
       iter->found->ciu = 0;                                 // We no longer claim it in use.
       unlock(iter->found);                                  // Unlock the previous ones, first found ...
-      if (c != iter->succ2found) { 
+      if (c != iter->succ2found) {
         unlock(iter->succ2found);                           // ... then successor. Same order as locking.
       }
       iter->found = NULL;                                   // This will ensure c is added below.
@@ -362,7 +368,7 @@ static UMemItStat_t bestFitCb(umemiter_t iter, chunk_t c) { // Best fit walking 
   }
 
   return status;
-  
+
 }
 
 void * umalloc(umemctx_t umem, uint32_t sz, uint8_t tags) { // Slow path umalloc.
@@ -371,7 +377,7 @@ void * umalloc(umemctx_t umem, uint32_t sz, uint8_t tags) { // Slow path umalloc
     .umem = umem,
     .cb   = bestFitCb,
   };
-  
+
   search4chunk(& Iter, sz, 1);                              // Search for a fitting chunk; complete scan.
 
   return iter2mem(& Iter, tags);
@@ -383,20 +389,20 @@ void * umalloc(umemctx_t umem, uint32_t sz, uint8_t tags) { // Slow path umalloc
 static UMemItStat_t firstFitCb(umemiter_t iter, chunk_t c) {// First fit walking over all chunks.
 
   UMemItStat_t status = UMemIt_Unlock;
-  
+
   assert(c->lock);
   assert(iter->succ == chunk2succ(c));
   assert(iter->succ->lock);
-  
+
   if (! c->ciu && c->size >= iter->size) {                  // Free and big enough?
     iter->found = c;
     iter->succ2found = iter->succ;
     c->ciu = 1;                                             // Claim it in use already.
     status = UMemIt_Stop;                                   // Keep the chunk and stop here.
   }
-  
+
   return status;
-  
+
 }
 
 // Least contented path umalloc. If this returns NULL, it does not necessarily
@@ -583,7 +589,7 @@ void * urealloc(umemctx_t ctx, void * mem, uint32_t size, uint8_t tags) {
 /*
    Check if we can split of a chunk, so to create an aligned
    chunk as a result of the split. Example
- 
+
    chunk_t  req = NULL;                     // Chunk we want to be aligned.
    uint32_t size = 512;                     // We need a 512 byte chunk ...
    if (split4align(chunk, & size, 256)) {   // ... aligned on a 256 byte boundary.
@@ -622,7 +628,7 @@ static uint32_t split4align(chunk_t chunk, uint32_t *size, uint32_t align) {
   uint32_t b2r = (uint32_t)(Mem.addr - chunk->u08);         // Bytes required for rounding up to alignment.
 
   b2r -= chunkhdrsz;                                        // Take into account the header for the new chunk.
-  
+
   if (chunk->size <= b2r + *size) { return 0; }             // Chunk not big enough.
 
   *size = b2r; return 1;                                    // A proper split is possible.
@@ -641,11 +647,11 @@ static UMemItStat_t alignCb(umemiter_t iter, chunk_t c) {   // Find a chunk big 
 
   UMemItStat_t status = UMemIt_Unlock;
   uint32_t     size;
-  
+
   assert(c->lock);
   assert(iter->succ == chunk2succ(c));
   assert(iter->succ->lock);
-  
+
   if (! c->ciu && c->size >= iter->size) {                  // Free and big enough for trying?
     size = c->size;                                         // Make temporary copy we can pass as reference.
     if (split4align(c, & size, iter->align)) {
@@ -657,7 +663,7 @@ static UMemItStat_t alignCb(umemiter_t iter, chunk_t c) {   // Find a chunk big 
   }
 
   return status;
-  
+
 }
 void * uamalloc(umemctx_t ctx, uint32_t size, uint8_t tags, uint32_t align) {
 
@@ -668,13 +674,13 @@ void * uamalloc(umemctx_t ctx, uint32_t size, uint8_t tags, uint32_t align) {
     .size  = size,
     .align = nextPo2(align),
   };
-  
+
   uint32_t splitat = size;
 
   if (8 == Iter.align) { return umalloc(ctx, size, tags); } // Normal alignment, use normal malloc.
-  
+
   search4chunk(& Iter, size, 0);                            // Search for a fitting chunk; no full scan needed.
-  
+
   if (Iter.found) {
     split4align(Iter.found, & splitat, Iter.align);         // Call split4align on it again.
     if (splitat) {                                          // splitat can be 0 if already aligned OK.
@@ -745,7 +751,8 @@ uint32_t initUMemCtx(umemctx_t ctx, uint8_t space[], uint32_t size) {
     unlock(start);
     stat = 1;
   }
-  
+
   return stat;
 
 }
+
