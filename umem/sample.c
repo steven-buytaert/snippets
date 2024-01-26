@@ -78,7 +78,7 @@ static void * mutate(void * arg) {
   void *    mem;
 
   while (mut->run) {
-    what = rand() & 0b111;
+    what = rand() & 0b111;                                  // Randomly select an operation.
     if (mut->releaseonly) { what = 4; }                     // 4 is slower coalescing release.
 
     switch (what) {
@@ -106,7 +106,7 @@ static void * mutate(void * arg) {
           }
 #endif
           if (b->mem) {
-            assert(0 == ((uintptr_t) b->mem & 0b111));      // Assert proper worst case alignment.
+            assert(alignedok(b->mem));                      // Assert proper worst case alignment.
             b->fill = (uint8_t) rand() & 0xff;
             memset(b->mem, b->fill, size);                  // Fill the block.
             b->size = size;
@@ -252,7 +252,7 @@ int main(int argc, char * argv[]) {
   while (1) {
     uint32_t check4zero = (releasing == 2) ? 1 : 0;         // See if we can safely check for 0.
     sleep(1);
-    if (releasing) { releasing--; }                         // Decrement release counter.
+    if (releasing) { releasing--; }
     if (seconds && 0 == (seconds & 0xf)) {                  // Every 16 seconds, release for 2 seconds.
       releasing = 2;
     }
@@ -278,6 +278,7 @@ int main(int argc, char * argv[]) {
     printf("%u bytes in use of %u; %u chunk%s.\n",
       inuse, spacesz,
       UMem.numchunks, UMem.numchunks == 1 ? "" : "s");
+    if (check4zero) { UMem.clean(& UMem); }                 // If checking for leaks, clean up the context first.
     assert(! check4zero || 0 == inuse);                     // Check for leaks.
     assert(! check4zero || 1 == UMem.numchunks);            // Should have coagulated into starting chunk.
   }

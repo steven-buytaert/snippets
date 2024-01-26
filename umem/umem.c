@@ -715,7 +715,6 @@ uint32_t initUMemCtx(umemctx_t ctx, uint8_t space[], uint32_t size) {
 
   if (space && size > 256 && size == iusize(size)) {        // Check if reasonable arguments.
 
-    ctx->contcb = contcb;
     ctx->space = space;
     ctx->size = size;
 
@@ -737,6 +736,8 @@ uint32_t initUMemCtx(umemctx_t ctx, uint8_t space[], uint32_t size) {
 
     ctx->breakat = 12;
     ctx->iterate = iterate;
+    ctx->clean = clean;
+    ctx->contcb = contcb;
 
     trylock(start);                                         // Lock required for chunk2succ; should succeed.
     Mem.chunk = chunk2succ(start);                          // End chunk, but header not part of space.
@@ -755,4 +756,3 @@ uint32_t initUMemCtx(umemctx_t ctx, uint8_t space[], uint32_t size) {
   return stat;
 
 }
-

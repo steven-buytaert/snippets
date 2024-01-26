@@ -10,7 +10,7 @@ typedef struct Chunk_t *    chunk_t;
 typedef struct UMemCtx_t *  umemctx_t;
 typedef struct UMemIter_t * umemiter_t;
 
-typedef void     (*ucontcb_t)(umemctx_t umem);
+typedef void     (*umemfun_t)(umemctx_t umem);
 typedef uint32_t (*uiter_t)(umemiter_t iter);
 
 typedef struct UMemCtx_t {        // Micro Memory Manager Context.
@@ -24,7 +24,8 @@ typedef struct UMemCtx_t {        // Micro Memory Manager Context.
   uint16_t        tiesbroken;     // Number of times the tie was broken; see umalloc.
   uint32_t        numchunks;      // Total number of chunks.
   uint32_t        size;           // Total number of bytes at space.
-  ucontcb_t       contcb;         // Contention callback; default does nothing.
+  umemfun_t       contcb;         // Contention callback; default does nothing.
+  umemfun_t       clean;          // Cleanup any chunks on the freelist, if any.
   chunk_t         end;            // Virtual end chunk; size 0 and forever with ciu set.
   chunk_t         start;          // Starting chunk; forever with pif clear.
   chunk_t         c2free;         // List of chunks to be freed.
@@ -98,7 +99,7 @@ typedef union Mem_t {             // Memory calculation union.
                64 bits                              32 bits
 
         +----+----+----+----+                +----+----+----+----+
-        |    prev           | <--- chunk     |                   |           
+        |    prev           | <--- chunk     |                   |
         +----+----+----+----+                +----+----+----+----+
         |    prev           |                |     prev          | <--- chunk
   ------+----+----+----+----+----------------+----+----+----+----+-------------
@@ -113,21 +114,21 @@ typedef union Mem_t {             // Memory calculation union.
 */
 
 inline static chunk_t mem2chunk(void * mem) {
- 
+
   Mem_t Mem = { .mem = mem };
- 
+
   Mem.addr -= sizeof(chunk_t);
   Mem.addr -= chunkhdrsz;
 
   return Mem.chunk;
- 
+
 }
- 
+
 /*
                64 bits                              32 bits
- 
+
         +----+----+----+----+                +----+----+----+----+
-  1000  |    prev           | <--- chunk     |                   |           
+  1000  |    prev           | <--- chunk     |                   |
         +----+----+----+----+                +----+----+----+----+
   1004  |    prev           |                |     prev          | <--- chunk
   ------+----+----+----+----+----------------+----+----+----+----+-------------
@@ -144,24 +145,24 @@ inline static chunk_t mem2chunk(void * mem) {
   1028  |    header         |                |    header         |
 
 */
- 
+
 inline static chunk_t chunk2succ(chunk_t chunk) {
- 
+
   Mem_t Mem = { .chunk = chunk };
 
   assert(chunk->lock);                                      // Size should not change under our feet.
- 
+
   Mem.addr += chunk->size + chunkhdrsz;
 
   return Mem.chunk;
- 
+
 }
 
 /*
                64 bits                               32 bits
- 
+
         +----+----+----+----+                +----+----+----+----+
-   992  |    prev           | <--- chunk     |                   |           
+   992  |    prev           | <--- chunk     |                   |
         +----+----+----+----+                +----+----+----+----+
    996  |    prev           |                |     prev          | <--- chunk
   ------+----+----+----+----+----------------+----+----+----+----+-------------
@@ -172,25 +173,25 @@ inline static chunk_t chunk2succ(chunk_t chunk) {
   1008  |                   |                |                   |
         +----+----+----+----+                +----+----+----+----+
         :                   :                :                   :
- 
+
 */
- 
+
 inline static chunk_t raw2chunk(uint8_t bytes[], uint32_t num) {
- 
+
   Mem_t Mem = { .addr = bytes };
- 
+
   Mem.addr -= sizeof(chunk_t);
 
   assert(& Mem.chunk->header == (uint32_t *) bytes);
-  
-  assert(! (num & ~0x001fffffu));
- 
+
+  assert(iusize(num) == num);
+
   Mem.chunk->size = iusize(num - chunkhdrsz);
- 
+
   Mem.chunk->pif  = 0;
   Mem.chunk->ciu  = 0;
   Mem.chunk->lock = 0;
- 
+
   return Mem.chunk;
 
 }
@@ -198,7 +199,7 @@ inline static chunk_t raw2chunk(uint8_t bytes[], uint32_t num) {
 inline static uint32_t alignedok(void * mem) {              // Return non zero when worst case aligned.
 
   uintptr_t ptr = (uintptr_t) mem;
-  
+
   return ! (ptr & 0b111);                                   // Return 1 when aligned on an 8 byte boundary.
 
 }
