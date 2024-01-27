@@ -38,15 +38,15 @@ memory manager systems, like malloc/free.
   the number of 8 byte units. Another possibility is to reduce the number of
   tags bits. Check the header file for the Chunk_t structure.
 
-* It provides a urealloc functionwith the same semantics as the regular realloc.
+* It provides a urealloc function with the same semantics as the stdlib realloc.
   When a block is offered for shrinking, it will return the same block
-  address after shrinking. This is important for blocks that have been
+  after shrinking. This is important for blocks that have been
   allocated with uamalloc. See next bullet.
 
 * It provides an uamalloc function, that allows for allocating blocks of
   memory on other memory alignments than the standard worst case alignment
   of uamalloc. See the restrictions on usage of these blocks later on with
-  urealloc however; in case of enlargement, the alignement is no longer
+  urealloc however; in case of enlargement, the alignment is no longer
   guaranteed.
 
 Since the urealloc and uamalloc, as well as the faster
