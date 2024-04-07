@@ -13,7 +13,16 @@ typedef const struct ECB_TC_t {   // ECB Test Case.
   uint8_t         pad[4];
 } ECB_TC_t;
 
-// A few tests from the Known Answer Test vectors.
+typedef struct CMAC_TC_t {        // AES CMAC Test Case.
+  uint32_t        mlen;           // Plaintext message length, can be 0.
+  uint32_t        keysize;        // Key size in bits.
+  uint8_t *       key;
+  uint8_t *       txt;            // Plaintext.
+  uint8_t *       tag;            // Expected AES CMAC value.
+} CMAC_TC_t;
+
+// A few AES ECB tests from the Known Answer Test vectors.
+// https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Algorithm-Validation-Program/documents/aes/AESAVS.pdf
 
 static const ECB_TC_t ECB_TC[] = {
   // ECBGFSbox128.rsp
@@ -92,13 +101,9 @@ static const ECB_TC_t ECB_TC[] = {
 
 };
 
-typedef struct CMAC_TC_t {
-  uint32_t        mlen;
-  uint32_t        keysize;
-  uint8_t *       key;
-  uint8_t *       txt;
-  uint8_t *       tag;
-} CMAC_TC_t;
+
+// AES CMAC Tests
+// https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/AES_CMAC.pdf
 
 static const CMAC_TC_t CMAC_TC[] = {
   { .mlen = 0, .keysize = 128, 
@@ -196,7 +201,7 @@ int main(int argc, char * argv[]) {
 
   ECBCtx_t *   ecb = & ECBTest.ECB;                         // Shorthand.
   ECB_TC_t *   etc;
-  AESTypeNum_t t;
+  AESTypeNum_t t = AES_128;                                 // Avoid uninitialized warning when -DNDEBUG defined.
   uint32_t     i;
   
   for (i = 0, etc = ECB_TC; etc->key; etc++, i++) {         // Run ECB encrypt/decrypt testcases.
@@ -207,13 +212,13 @@ int main(int argc, char * argv[]) {
       default: assert(0);
     }
 
-    yaes_init_ECB(ecb, etc->key, t);
+    yaes_ecb_init(ecb, etc->key, t);
     memcpy(ecb->state, etc->txt, sizeof(etc->txt));         // Load context.
     
-    yaes_encrypt_ECB(ecb);
+    yaes_ecb_encrypt(ecb);
     assert(! memcmp(ecb->state, etc->ciphertxt, sizeof(etc->txt)));
 
-    yaes_decrypt_ECB(ecb);
+    yaes_ecb_decrypt(ecb);
     assert(! memcmp(ecb->state, etc->txt, sizeof(etc->txt)));
   }
 
@@ -236,7 +241,7 @@ int main(int argc, char * argv[]) {
       default: assert(0);
     }
 
-    yaes_init_CMAC(& CMACTest.CMAC, ctc->key, t);
+    yaes_cmac_init(& CMACTest.CMAC, ctc->key, t);
 
     yaes_cmac_finish(& CMACTest.CMAC, ctc->txt, ctc->mlen);
 

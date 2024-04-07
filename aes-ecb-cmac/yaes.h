@@ -46,11 +46,11 @@ typedef struct AES_CMAC_t {       // RFC 4493 Context; note that the tag is ECBC
   ECBCtx_t        ECBCtx;
 } AES_CMAC_t;
 
-uint32_t yaes_init_ECB(ECBCtx_t * ctx, const uint8_t key[], AESTypeNum_t type);
-void     yaes_encrypt_ECB(ECBCtx_t * ctx);
-void     yaes_decrypt_ECB(ECBCtx_t * ctx);
+uint32_t yaes_ecb_init(ECBCtx_t * ctx, const uint8_t key[], AESTypeNum_t type);
+void     yaes_ecb_encrypt(ECBCtx_t * ctx);
+void     yaes_ecb_decrypt(ECBCtx_t * ctx);
 
-uint32_t yaes_init_CMAC(AES_CMAC_t * ctx, const uint8_t key[], AESTypeNum_t type);
+uint32_t yaes_cmac_init(AES_CMAC_t * ctx, const uint8_t key[], AESTypeNum_t type);
 void     yaes_cmac_feed(AES_CMAC_t * ctx, const uint8_t msg[], uint32_t size);
 void     yaes_cmac_finish(AES_CMAC_t * ctx, const uint8_t msg[], uint32_t size);
 

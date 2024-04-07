@@ -139,7 +139,7 @@ make snippet which is kind of obvious).
 
   ```console
   $ cd aes-ecb-cmac/
-  $ gcc -Os -o sample -Wall -Werror -I . sample.c yaes.c
+  $ gcc -Os -o sample -Wall -Werror -Wconversion -I . sample.c yaes.c
   $ ./sample
   Done 12 ECB tests.
   Done 13 AES CMAC tests.

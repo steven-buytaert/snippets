@@ -24,6 +24,8 @@ typedef union ECBCol_t * col_t;
 
  The CBC-CMAC notes:
  https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38B.pdf
+ and of course, the spec itself for the AES CMAC.
+ https://www.rfc-editor.org/rfc/rfc4493.html
 
  AES is a specific implementation of the Rijndael algorithm; in the AES case, Nb is always 4 (4 columns).
 
@@ -244,7 +246,7 @@ static uint8_t gmul(uint8_t a, uint8_t b) {                 // Galois multiply a
 
 }
 
-static uint8_t xtime(uint8_t v) {                           // Literally from the spec; multiply v with 2 in the Galois field.
+static uint8_t xtime(uint8_t v) {                           // Literally from the spec; same as return gmul(2, v);
 
   return (uint8_t) ((v << 1) ^ (((v >> 7) & 1) * 0x1b));    // Always EXOR; operation involves no conditional, constant timing.
   
@@ -351,7 +353,7 @@ static void expandKey(ctx_t ctx, AESType_t * type) {
 
 }
 
-uint32_t yaes_init_ECB(ECBCtx_t * ctx, const uint8_t key[], AESTypeNum_t type) {
+uint32_t yaes_ecb_init(ECBCtx_t * ctx, const uint8_t key[], AESTypeNum_t type) {
 
   if (! ctx || ! key) { return 0; }                         // Initial check.
 
@@ -378,7 +380,7 @@ static void addRoundKey(ECBCtx_t * ctx, uint32_t round) {
 
 }
 
-void yaes_encrypt_ECB(ECBCtx_t * ctx) {
+void yaes_ecb_encrypt(ECBCtx_t * ctx) {
 
   uint32_t    round = 1;
   AESType_t * type = & AESTypes[ctx->type];
@@ -396,7 +398,7 @@ void yaes_encrypt_ECB(ECBCtx_t * ctx) {
 
 }
 
-void yaes_decrypt_ECB(ECBCtx_t * ctx) {
+void yaes_ecb_decrypt(ECBCtx_t * ctx) {
 
   AESType_t * type = & AESTypes[ctx->type];
   uint32_t    round = type->Nr;
@@ -447,7 +449,7 @@ static void GenerateSubkey(ECBCtx_t * ecb, AES_CMAC_t * ctx) {
 
   memset(& ecb->state, 0x00, sizeof(ecb->state));           // Step 1.  L := AES-128(K, const_Zero);
 
-  yaes_encrypt_ECB(ecb);                                    // ECB State is now L.
+  yaes_ecb_encrypt(ecb);                                    // ECB State is now L.
   
   shiftLeft(ctx->K1, ecb->state);                           // Step 2. K1 := L << 1;
 
@@ -463,13 +465,13 @@ static void GenerateSubkey(ECBCtx_t * ecb, AES_CMAC_t * ctx) {
 
 }
 
-uint32_t yaes_init_CMAC(AES_CMAC_t * ctx, const uint8_t key[], AESTypeNum_t type) {
+uint32_t yaes_cmac_init(AES_CMAC_t * ctx, const uint8_t key[], AESTypeNum_t type) {
 
   if (! ctx || ! key) { return 0; }
 
   ECBCtx_t * ecb = & ctx->ECBCtx;
 
-  (void) yaes_init_ECB(ecb, key, type);                     // Should return 1.
+  (void) yaes_ecb_init(ecb, key, type);                     // Should return 1.
 
   GenerateSubkey(ecb, ctx);
 
@@ -501,26 +503,26 @@ void yaes_cmac_feed(AES_CMAC_t * ctx, const uint8_t msg[], uint32_t size) {
     src        += todo;
   }
 
-  if (size) {                                               // Bytes remaining after top up, process the unprocessed block first.
+  if (size) {                                               // There's a full unprocessed block and enough remainder bytes.
     assert(blocksize == ecb->numun);                        // Must be a full block.
     XORWith(ecb->state, ctx->un);
-    yaes_encrypt_ECB(ecb);
+    yaes_ecb_encrypt(ecb);
     ecb->numun = 0;
   }
 
   n = size / blocksize;                                     // Number of full blocks remaining.
 
-  while (n) {
-    assert(0 == ecb->numun);                                // Internal block must be empty.
-    XORWith(ecb->state, src);
-    yaes_encrypt_ECB(ecb);
+  while (n) {                                               // Step 6.  for i := 1 to n-1 do
+    assert(0 == ecb->numun);                                // (Internal block must be empty.)
+    XORWith(ecb->state, src);                               // Step 6.  Y := X XOR M_i;
+    yaes_ecb_encrypt(ecb);                                  // Step 6.  X := AES-128(K,Y);
     src  += blocksize;
     size -= blocksize;
     n    -= 1;
     if (size == blocksize) { break; }                       // Always keep an unprocessed block for the final round.
   }
 
-  if (size) {                                               // Save remainder for next time.
+  if (size) {                                               // Save remainder for next time, if any.
     assert(size <= blocksize);
     assert(0 == ecb->numun);
     memcpy(ctx->un, src, size);
@@ -533,9 +535,9 @@ static void padblock(uint8_t block[16], uint32_t from) {
 
   assert(from <= 15);
 
-  block[from] = 0x80;
+  block[from++] = 0x80;
 
-  for (uint32_t i = from + 1; i < blocksize; i++) {
+  for (uint32_t i = from; i < blocksize; i++) {
     block[i] = 0x00;
   }
 
@@ -557,6 +559,6 @@ void yaes_cmac_finish(AES_CMAC_t * ctx, const uint8_t msg[], uint32_t size) {
     XORWith(ecb->state, ctx->un);
   }
 
-  yaes_encrypt_ECB(ecb);
+  yaes_ecb_encrypt(ecb);
 
 }
