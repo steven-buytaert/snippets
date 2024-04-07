@@ -132,3 +132,15 @@ make snippet which is kind of obvious).
   memory, much like standard malloc and free. It uses microlocks on each
   chunk of memory, in stead of a global mutex for which OS support is
   required. Main use is in embedded systems.
+
+* aes-ecb-cmac: yet another AES ECB and CMAC implementation. Does not claim
+  to be safe. The provided sample runs some AES known answer test vectors
+  and some CMAC test cases.
+
+  ```console
+  $ cd aes-ecb-cmac/
+  $ gcc -Os -o sample -Wall -Werror -I . sample.c yaes.c
+  $ ./sample
+  Done 12 ECB tests.
+  Done 13 AES CMAC tests.
+  ```
