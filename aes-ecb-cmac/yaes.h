@@ -40,8 +40,6 @@ typedef struct ECBCtx_t {
 } ECBCtx_t;
 
 typedef struct AES_CMAC_t {       // RFC 4493 Context; note that the tag is ECBCtx.state after finish.
-  uint8_t         K1[16];
-  uint8_t         K2[16];
   uint8_t         un[16];         // Unprocessed block bytes.
   ECBCtx_t        ECBCtx;
 } AES_CMAC_t;

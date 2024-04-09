@@ -220,6 +220,8 @@ int main(int argc, char * argv[]) {
 
     yaes_ecb_decrypt(ecb);
     assert(! memcmp(ecb->state, etc->txt, sizeof(etc->txt)));
+
+    memset(ecb->state, 0x00, sizeof(ecb->state));           // Clear for side channel leakage prevention.
   }
 
   printf("Done %u ECB tests.\n", i);
@@ -246,7 +248,8 @@ int main(int argc, char * argv[]) {
     yaes_cmac_finish(& CMACTest.CMAC, ctc->txt, ctc->mlen);
 
     assert(! memcmp(ecb->state, ctc->tag, sizeof(ecb->state)));
-    
+
+    memset(ecb->state, 0x00, sizeof(ecb->state));           // Clear for side channel leakage prevention.
   }
 
   printf("Done %u AES CMAC tests.\n", i);

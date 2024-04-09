@@ -135,7 +135,11 @@ make snippet which is kind of obvious).
 
 * aes-ecb-cmac: yet another AES ECB and CMAC implementation. Does not claim
   to be safe. The provided sample runs some AES known answer test vectors
-  and some CMAC test cases.
+  and some CMAC test cases. The required K1 or K2 CMAC key is only generated
+  at the finishing step. There are no dependencies to any libc function except
+  memcpy and memset. If the ECB state needs clearing because of side channel
+  leakage prevention, this needs to be done by the caller. See the sample
+  code.
 
   ```console
   $ cd aes-ecb-cmac/

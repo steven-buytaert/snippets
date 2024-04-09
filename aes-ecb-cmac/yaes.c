@@ -438,7 +438,12 @@ static void XORWith(uint8_t dst[16], const uint8_t with[16]) {
 
 }
 
-static void GenerateSubkey(ECBCtx_t * ecb, AES_CMAC_t * ctx) {
+static void genSubkey(AES_CMAC_t * ctx, uint8_t K[], uint32_t genK2) {
+
+  uint8_t state[16];                                        // To temporary save the ECB state.
+  uint8_t K2[16];
+
+  ECBCtx_t * ecb = & ctx->ECBCtx;
 
   static const uint8_t Rb[] = {
     0x00, 0x00, 0x00, 0x00,
@@ -447,21 +452,28 @@ static void GenerateSubkey(ECBCtx_t * ecb, AES_CMAC_t * ctx) {
     0x00, 0x00, 0x00, 0x87
   };
 
-  memset(& ecb->state, 0x00, sizeof(ecb->state));           // Step 1.  L := AES-128(K, const_Zero);
+  memcpy(state, ecb->state, sizeof(ecb->state));            // Save current ECB state.
+
+  memset(ecb->state, 0x00, sizeof(ecb->state));             // Step 1.  L := AES-128(K, const_Zero);
 
   yaes_ecb_encrypt(ecb);                                    // ECB State is now L.
   
-  shiftLeft(ctx->K1, ecb->state);                           // Step 2. K1 := L << 1;
+  shiftLeft(K, ecb->state);                                 // Step 2. K1 := L << 1;
 
   if (ecb->state[0] & 0x80) {                               // Step 2. if MSB(L) is NOT equal to 0
-    XORWith(ctx->K1, Rb);                                   //         K1 := (L << 1) XOR const_Rb;
+    XORWith(K, Rb);                                         //         K1 := (L << 1) XOR const_Rb;
   }
 
-  shiftLeft(ctx->K2, ctx->K1);                              // Step 3. K2 := (K1 << 1)
+  if (genK2) {
+    shiftLeft(K2, K);                                       // Step 3. K2 := (K1 << 1)
 
-  if (ctx->K1[0] & 0x80) {                                  // Step 3. if MSB(K1) is NOT equal to 0
-    XORWith(ctx->K2, Rb);                                   //         K2 := (K1 << 1) XOR const_Rb;  
+    if (K[0] & 0x80) {                                      // Step 3. if MSB(K1) is NOT equal to 0
+      XORWith(K2, Rb);                                      //         K2 := (K1 << 1) XOR const_Rb;  
+    }
+    memcpy(K, K2, sizeof(K2));
   }
+
+  memcpy(ecb->state, state, sizeof(ecb->state));            // Restore ECB state.
 
 }
 
@@ -472,8 +484,6 @@ uint32_t yaes_cmac_init(AES_CMAC_t * ctx, const uint8_t key[], AESTypeNum_t type
   ECBCtx_t * ecb = & ctx->ECBCtx;
 
   (void) yaes_ecb_init(ecb, key, type);                     // Should return 1.
-
-  GenerateSubkey(ecb, ctx);
 
   ctx->ECBCtx.numun = 0;
 
@@ -546,19 +556,20 @@ static void padblock(uint8_t block[16], uint32_t from) {
 void yaes_cmac_finish(AES_CMAC_t * ctx, const uint8_t msg[], uint32_t size) {
 
   ECBCtx_t * ecb = & ctx->ECBCtx;
+  uint8_t    K[16];
 
   yaes_cmac_feed(ctx, msg, size);
 
-  if (ecb->numun < blocksize) {                             // Pad the block first and use K2.
-    padblock(ctx->un, ecb->numun);
-    XORWith(ctx->un, ctx->K2);
-    XORWith(ecb->state, ctx->un);
+  if (ecb->numun == blocksize) {                            // Step 4.  if flag is true (no padding)
+    genSubkey(ctx, K, 0);                                   //          then M_last := M_n XOR K1;
   }
-  else {                                                    // Full block, no padding and use K1.
-    XORWith(ctx->un, ctx->K1);
-    XORWith(ecb->state, ctx->un);
+  else {
+    padblock(ctx->un, ecb->numun);                          //          else M_last := padding(M_n) ...
+    genSubkey(ctx, K, 1);                                   //                         ... XOR K2;
   }
 
-  yaes_ecb_encrypt(ecb);
+  XORWith(ctx->un, K);                                      // M_last XOR with K1 or K2.
+  XORWith(ecb->state, ctx->un);                             // Y := M_last XOR X;
+  yaes_ecb_encrypt(ecb);                                    // T := AES-128(K,Y);
 
 }
