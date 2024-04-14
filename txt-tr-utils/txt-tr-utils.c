@@ -1,4 +1,4 @@
-// Copyright 2023 Steven Buytaert
+// Copyright 2023-2024 Steven Buytaert
 
 #include <string.h>
 
@@ -23,7 +23,7 @@ uint32_t trimLeadingSpaces(char * buf) {                    // Remove all leadin
   char * orig = end;
 
   while (*buf == ' ') {
-    memmove(buf, buf + 1, end - buf);
+    memmove(buf, buf + 1, (size_t)(end - buf));
     end -= 1;
   }
 
@@ -43,14 +43,20 @@ uint32_t trimInterSpaces(char * buf) {                      // Trim consecutive 
     else {                                                  // Non space character, evaluate spaces.
       if (spaces > 1) {
         spaces--;                                           // We want to keep 1 space.
-        memmove(cur - spaces, cur, end - cur + 1);
-        end -= spaces;
+        memmove(cur - spaces, cur, (size_t)(end - cur + 1));
+        end   -= spaces;
         count += spaces;
-        cur--;                                              // Start rechecking here; note that cur is always incremented below.
+        cur   -= spaces;                                    // Start rechecking here; note that cur is always incremented below.
       }
       spaces = 0;
     }
     cur++;
+  }
+
+  if (spaces > 1) {                                         // Reduce any final spaces.
+    spaces--;                                               // We want to keep 1 space.
+    memmove(cur - spaces, cur, (size_t)(end - cur + 1));
+    count += spaces;
   }
 
   return count;
@@ -65,7 +71,7 @@ uint32_t turnCont2SingleWord(char * buf) {                  // Change e.g. 'xx- 
 
   while (*cur) {
     if (cur[-1] != ' ' && cur[0] == '-' && cur[1] == ' ') {
-      memmove(cur, cur + 2, end - cur);
+      memmove(cur, cur + 2, (size_t)(end - cur));
       end -= 2;                                             // End has contracted.
       count += 2;
     }
@@ -96,9 +102,9 @@ uint32_t replaceStrWithStr(char * buf, const char * replace, const char * with) 
   char *   src;
   char *   dst;
   uint32_t count = 0;
-  uint32_t withsize = strlen(with);
-  uint32_t replsize = strlen(replace);
-  int32_t  diff = withsize - replsize;
+  uint32_t withsize = (uint32_t) strlen(with);
+  uint32_t replsize = (uint32_t) strlen(replace);
+  int32_t  diff = (int32_t)(withsize - replsize);
 
   for (c = & buf[0]; c < end; c++) {
     if (0 == strncmp(c, replace, replsize)) {               // OK replace here.
@@ -106,10 +112,10 @@ uint32_t replaceStrWithStr(char * buf, const char * replace, const char * with) 
       src = c + replsize;
       dst = c + withsize;
       if (diff > 0) {
-        memmove(dst, src, end - src);                       // Need to increase.
+        memmove(dst, src, (size_t)(end - src));             // Need to increase.
       }
       else if (diff < 0) {
-        memmove(dst, src, end - dst);                       // Need to shrink.
+        memmove(dst, src, (size_t)(end - dst));             // Need to shrink.
       }
       memcpy(c, with, withsize);                            // Insert replacement.
       c += withsize;
@@ -134,12 +140,12 @@ static void chopit(uint32_t rwidth, Reflow_t * reflow) {    // Chop the block to
 
   while (*cur) {
     cur++; width++;
-    if (width == rwidth) {
-      while (*cur != ' ' && *cur) {                         // Never break a word in 2.
-        cur++; width++;
+    if (width + 1 == rwidth) {
+      while (*cur != ' ' && width) {                        // Never break a word in 2; backup to a space.
+        cur--; width--;
       }
       if (*cur) { cur++; }                                  // Make the space part of this line, not the start of the next.
-      reflow->snips[snip] = cur - reflow->text;
+      reflow->snips[snip] = (uint32_t)(cur - reflow->text);
       snip++; line++;
       if (line == reflow->cap4snips) { width = 0; break; }
       width = 0;
@@ -147,7 +153,7 @@ static void chopit(uint32_t rwidth, Reflow_t * reflow) {    // Chop the block to
   }
 
   if (width) {                                              // Do the final snip, if any.
-    reflow->snips[snip] = cur - reflow->text;
+    reflow->snips[snip] = (uint32_t)(cur - reflow->text);
     line++;
     snip++;
   }
