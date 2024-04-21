@@ -9,7 +9,7 @@ called hci-spec2src.h and has now been renamed hci-spec2src-5.3.h.
 A new version has been generated from version 5.4 of the specification. The
 structure of this new version has been changed, so that any unclarities with
 respect to versioned command and event versions should now be gone. Each
-command or event as an array of instances; each instance referring to a
+command or event has an array of instances; each instance referring to a
 version of the command or event, with all parameter and return fields, if
 applicable, for that version.
 
@@ -17,12 +17,12 @@ So unversioned commands and events have a single instance, versioned
 commands and events have multiple instances. Also in this 5.4 version, the
 OGF, if applicable is part of the data.
 
-The data could be useful for generating encoding or decoding functions, or
-for the generation of the HCI packets in header files.
+These files could be useful for generating encoding or decoding functions, or
+for the generation of the HCI packets as structs in header files. The only
+limit is your imagination.
 
 The Bluetooth Core Specification, version 5.4, was downloaded from [the
-Bluetooth 5.4 website here] 
-(https://www.bluetooth.com/specifications/specs/core-specification-5-4/).
+Bluetooth 5.4 website here](https://www.bluetooth.com/specifications/specs/core-specification-5-4/).
 
 The text that was parsed, is generated from the downloaded core specification as
 follows.
