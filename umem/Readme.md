@@ -102,3 +102,13 @@ choose a starting point; this however would complicate the implementation
 and is, I think, better done on a higher level, if needed for the
 implementation.
 
+Object code text size of the manager, when compiled with the different
+features, going from basic to full functionality.
+
+| text size |         flavour                          |
+|-----------|------------------------------------------|
+|   2128    | umem-no-realloc-no-fast-no-align.o       |
+|   2876    | umem-with-realloc-no-fast-no-align.o     |
+|   3236    | umem-with-realloc-with-fast-no-align.o   |
+|   3832    | umem-with-realloc-with-fast-with-align.o |
+
