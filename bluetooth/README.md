@@ -41,3 +41,9 @@ the text was not changed.
 
 Even then, this code is provided 'as is'; there is no guarantee that the
 parsing did not introduce any errors.
+
+As example how a generated header file, generated from the specification
+source could look like, the file hci-types-5.4.h is included. It was
+generated from the hci-spec2src-5.4.h file, with some help of the t2c-types
+types and functions found elsewhere in this repo. The code for this
+generator itself, is not in the repo (yet).
