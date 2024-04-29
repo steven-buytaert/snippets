@@ -562,12 +562,14 @@ typedef struct HCI_LE_Add_Device_To_Resolving_List_Cmd_t {
 typedef struct HCI_LE_Adv_Report_Evt_t {
   uint8_t                  Subevent_Code;
   uint8_t                  Num_Reports;
-  uint8_t                  Event_Type;
-  uint8_t                  Address_Type;
-  BD_Addr_t                Address;
-  uint8_t                  Data_Length;
-  uint8_t  *               Data;
-  uint8_t                  RSSI;
+  struct {
+    uint8_t                Event_Type;
+    uint8_t                Address_Type;
+    BD_Addr_t              Address;
+    uint8_t                Data_Length;
+    uint8_t  *             Data;
+    uint8_t                RSSI;
+  } Reports[0];
 } HCI_LE_Adv_Report_Evt_t;
 
 // 7.7.65.18 LE Advertising Set Terminated event
@@ -998,19 +1000,21 @@ typedef struct HCI_LE_Enhanced_Read_Transmit_Power_Level_Ret_t {
 typedef struct HCI_LE_Extended_Adv_Report_Evt_t {
   uint8_t                  Subevent_Code;
   uint8_t                  Num_Reports;
-  uint16_t                 Event_Type;
-  uint8_t                  Address_Type;
-  BD_Addr_t                Address;
-  uint8_t                  Primary_PHY;
-  uint8_t                  Secondary_PHY;
-  uint8_t                  Advertising_SID;
-  uint8_t                  TX_Power;
-  uint8_t                  RSSI;
-  uint16_t                 Periodic_Adv_Interval;
-  uint8_t                  Direct_Address_Type;
-  BD_Addr_t                Direct_Address;
-  uint8_t                  Data_Length;
-  uint8_t  *               Data;
+  struct {
+    uint16_t               Event_Type;
+    uint8_t                Address_Type;
+    BD_Addr_t              Address;
+    uint8_t                Primary_PHY;
+    uint8_t                Secondary_PHY;
+    uint8_t                Advertising_SID;
+    uint8_t                TX_Power;
+    uint8_t                RSSI;
+    uint16_t               Periodic_Adv_Interval;
+    uint8_t                Direct_Address_Type;
+    BD_Addr_t              Direct_Address;
+    uint8_t                Data_Length;
+    uint8_t  *             Data;
+  } Reports[0];
 } HCI_LE_Extended_Adv_Report_Evt_t;
 
 // 7.8.66 LE Extended Create Connection command
@@ -1215,13 +1219,15 @@ typedef struct HCI_LE_Periodic_Adv_Response_Report_Evt_t {
   uint8_t                  Subevent;
   uint8_t                  Tx_Status;
   uint8_t                  Num_Responses;
-  uint8_t                  Tx_Power;
-  uint8_t                  RSSI;
-  uint8_t                  CTE_Type;
-  uint8_t                  Response_Slot;
-  uint8_t                  Data_Status;
-  uint8_t                  Data_Length;
-  uint8_t  *               Data;
+  struct {
+    uint8_t                Tx_Power;
+    uint8_t                RSSI;
+    uint8_t                CTE_Type;
+    uint8_t                Response_Slot;
+    uint8_t                Data_Status;
+    uint8_t                Data_Length;
+    uint8_t  *             Data;
+  } Responses[0];
 } HCI_LE_Periodic_Adv_Response_Report_Evt_t;
 
 // 7.7.65.36 LE Periodic Advertising Subevent Data Request event
@@ -2175,11 +2181,13 @@ typedef struct HCI_LE_Set_Periodic_Adv_Response_Data_Ret_t {
 typedef struct HCI_LE_Set_Periodic_Adv_Subevent_Data_Cmd_t {
   uint8_t                  Advertising_Handle;
   uint8_t                  Num_Subevents;
-  uint8_t                  Subevent;
-  uint8_t                  Response_Slot_Start;
-  uint8_t                  Response_Slot_Count;
-  uint8_t                  Subevent_Data_Length;
-  uint8_t  *               Subevent_Data;
+  struct {
+    uint8_t                Subevent;
+    uint8_t                Response_Slot_Start;
+    uint8_t                Response_Slot_Count;
+    uint8_t                Subevent_Data_Length;
+    uint8_t  *             Subevent_Data;
+  } Subevents[0];
 } HCI_LE_Set_Periodic_Adv_Subevent_Data_Cmd_t;
 
 typedef struct HCI_LE_Set_Periodic_Adv_Subevent_Data_Ret_t {
@@ -2925,8 +2933,10 @@ typedef struct HCI_Read_Local_Supported_Codec_Capabilities_Cmd_t {
 typedef struct HCI_Read_Local_Supported_Codec_Capabilities_Ret_t {
   uint8_t                  Status;
   uint8_t                  Num_Codec_Capabilities;
-  uint8_t                  Codec_Capability_Length;
-  uint8_t  *               Codec_Capability;
+  struct {
+    uint8_t                Codec_Capability_Length;
+    uint8_t  *             Codec_Capability;
+  } Codec_Capabilities[0];
 } HCI_Read_Local_Supported_Codec_Capabilities_Ret_t;
 
 // 7.4.8 Read Local Supported Codecs command
