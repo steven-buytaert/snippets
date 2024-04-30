@@ -1,16 +1,24 @@
 #ifndef BT_HCI_SPEC_H
 #define BT_HCI_SPEC_H
 
+// Copyright 2024 Steven Buytaert
+
 #include <stdint.h>
 
 typedef struct HCI_Feature_t {
   const char *      name;
   uint32_t          used;         // Number of times it is used by a condition.
   uint32_t          enable;       // Set to non zero to enable.
+#if defined(EXTRA4FEAT)
+  EXTRA4FEAT                      // Define extra members if needed.
+#endif
 } HCI_Feature_t;
 
 typedef struct HCI_Event_t {
   const char *      name;
+#if defined(EXTRA4EVENT)
+  EXTRA4EVENT                     // Define extra members if needed.
+#endif
 } HCI_Event_t;
 
 typedef struct HCI_Feat4Cond_t {  // Couples a feature to a condition.
@@ -28,12 +36,18 @@ typedef struct HCI_Cond_t {
   const uint32_t *  LE;
   HCI_Feat4Cond_t * Features;
   uint32_t          enable;       // Set to non zero to enable.
+#if defined(EXTRA4COND)
+  EXTRA4COND                      // Define extra members if needed.
+#endif
 } HCI_Cond_t;
 
 typedef struct HCI_Field_t {
   const char *      name;
   const char *      ref2size;
   uint8_t           octets;
+#if defined(EXTRA4FIELD)
+  EXTRA4FIELD                     // Define extra members if needed.
+#endif
 } HCI_Field_t;
 
 typedef struct HCI_Inst_t {       // HCI Command or Event instance; at least 1 for each HCI.
@@ -52,6 +66,9 @@ typedef struct HCI_Inst_t {       // HCI Command or Event instance; at least 1 f
   } Cond;
   HCI_Field_t *     CoE;          // Command or Event parameter fields.
   HCI_Field_t *     Ret;          // Return parameter fields, if applicable.
+#if defined(EXTRA4INST)
+  EXTRA4INST                      // Define extra members if needed.
+#endif
 } HCI_Inst_t;
 
 typedef struct HCI_t {            // HCI Command or Event.
@@ -68,7 +85,12 @@ typedef struct HCI_t {            // HCI Command or Event.
   const char *      LE;
   uint32_t          numevts;
   HCI_Event_t *     Events;       // Events generated.
+#if defined(EXTRA4HCI)
+  EXTRA4HCI                       // Define extra members if needed.
+#endif
 } HCI_t;
+
+extern HCI_t HCITable[396];
 
 #ifdef INCLUDE_SPECS
 
@@ -1203,12 +1225,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Advertising Report event", .iscmd = 0, .subevent = 0x02, .section = "7.7.65.2", .version = "4.0", .BREDR = "E", .LE = "C.98",
+  { .title = "LE Advertising Report event", .iscmd = 0, .section = "7.7.65.2", .version = "4.0", .BREDR = "E", .LE = "C.98",
     .summary = "The HCI_LE_Advertising_Report event indicates that an advertising or "
                "scan response packet has been received.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Advertising_Report", .code = 0x003e, .numcoe = 8, .numret = 0,  .Cond = { "E", "C.98" },
+      { .name = "HCI_LE_Advertising_Report", .code = 0x003e, .subevent = 0x02, .numcoe = 8, .numret = 0,  .Cond = { "E", "C.98" },
         .CoE = (HCI_Field_t[8]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Num_Reports",                                    .octets =   1 },
@@ -1223,12 +1245,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Advertising Set Terminated event", .iscmd = 0, .subevent = 0x12, .section = "7.7.65.18", .version = "5.0", .BREDR = "E", .LE = "C.17",
+  { .title = "LE Advertising Set Terminated event", .iscmd = 0, .section = "7.7.65.18", .version = "5.0", .BREDR = "E", .LE = "C.17",
     .summary = "The HCI_LE_Advertising_Set_Terminated event indicates that "
                "advertising in a given advertising set has stopped.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Advertising_Set_Terminated", .code = 0x003e, .numcoe = 5, .numret = 0,  .Cond = { "E", "C.17" },
+      { .name = "HCI_LE_Advertising_Set_Terminated", .code = 0x003e, .subevent = 0x12, .numcoe = 5, .numret = 0,  .Cond = { "E", "C.17" },
         .CoE = (HCI_Field_t[5]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -1264,12 +1286,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE BIG Sync Established event", .iscmd = 0, .subevent = 0x1d, .section = "7.7.65.29", .version = "5.2", .BREDR = "E", .LE = "C.42",
+  { .title = "LE BIG Sync Established event", .iscmd = 0, .section = "7.7.65.29", .version = "5.2", .BREDR = "E", .LE = "C.42",
     .summary = "The HCI_LE_BIG_Sync_Established event indicates that the Controller "
                "has completed an attempt to synchronize with the requested BISes.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_BIG_Sync_Established", .code = 0x003e, .numcoe = 12, .numret = 0,  .Cond = { "E", "C.42" },
+      { .name = "HCI_LE_BIG_Sync_Established", .code = 0x003e, .subevent = 0x1d, .numcoe = 12, .numret = 0,  .Cond = { "E", "C.42" },
         .CoE = (HCI_Field_t[12]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -1288,12 +1310,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE BIG Sync Lost event", .iscmd = 0, .subevent = 0x1e, .section = "7.7.65.30", .version = "5.2", .BREDR = "E", .LE = "C.42",
+  { .title = "LE BIG Sync Lost event", .iscmd = 0, .section = "7.7.65.30", .version = "5.2", .BREDR = "E", .LE = "C.42",
     .summary = "The HCI_LE_BIG_Sync_Lost event indicates that the Controller stopped "
                "synchronizing with a BIG.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_BIG_Sync_Lost", .code = 0x003e, .numcoe = 3, .numret = 0,  .Cond = { "E", "C.42" },
+      { .name = "HCI_LE_BIG_Sync_Lost", .code = 0x003e, .subevent = 0x1e, .numcoe = 3, .numret = 0,  .Cond = { "E", "C.42" },
         .CoE = (HCI_Field_t[3]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "BIG_Handle",                                     .octets =   1 },
@@ -1324,13 +1346,13 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE BIGInfo Advertising Report event", .iscmd = 0, .subevent = 0x22, .section = "7.7.65.34", .version = "5.2", .BREDR = "E", .LE = "C.54",
+  { .title = "LE BIGInfo Advertising Report event", .iscmd = 0, .section = "7.7.65.34", .version = "5.2", .BREDR = "E", .LE = "C.54",
     .summary = "The HCI_LE_BIGInfo_Advertising_Report event indicates that the "
                "Controller has received an Advertising PDU that contained a BIGInfo "
                "field.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_BIGInfo_Advertising_Report", .code = 0x003e, .numcoe = 14, .numret = 0,  .Cond = { "E", "C.54" },
+      { .name = "HCI_LE_BIGInfo_Advertising_Report", .code = 0x003e, .subevent = 0x22, .numcoe = 14, .numret = 0,  .Cond = { "E", "C.54" },
         .CoE = (HCI_Field_t[14]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Sync_Handle",                                    .octets =   2 },
@@ -1351,12 +1373,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Channel Selection Algorithm event", .iscmd = 0, .subevent = 0x14, .section = "7.7.65.20", .version = "5.0", .BREDR = "E", .LE = "C.23",
+  { .title = "LE Channel Selection Algorithm event", .iscmd = 0, .section = "7.7.65.20", .version = "5.0", .BREDR = "E", .LE = "C.23",
     .summary = "The HCI_LE_Channel_Selection_Algorithm event indicates the channel "
                "selection algorithm used on a connection.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Channel_Selection_Algorithm", .code = 0x003e, .numcoe = 3, .numret = 0,  .Cond = { "E", "C.23" },
+      { .name = "HCI_LE_Channel_Selection_Algorithm", .code = 0x003e, .subevent = 0x14, .numcoe = 3, .numret = 0,  .Cond = { "E", "C.23" },
         .CoE = (HCI_Field_t[3]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Connection_Handle",                              .octets =   2 },
@@ -1366,12 +1388,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE CIS Established event", .iscmd = 0, .subevent = 0x19, .section = "7.7.65.25", .version = "5.2", .BREDR = "E", .LE = "C.38",
+  { .title = "LE CIS Established event", .iscmd = 0, .section = "7.7.65.25", .version = "5.2", .BREDR = "E", .LE = "C.38",
     .summary = "The HCI_LE_CIS_Established event indicates that the Controller "
                "established a CIS.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_CIS_Established", .code = 0x003e, .numcoe = 17, .numret = 0,  .Cond = { "E", "C.38" },
+      { .name = "HCI_LE_CIS_Established", .code = 0x003e, .subevent = 0x19, .numcoe = 17, .numret = 0,  .Cond = { "E", "C.38" },
         .CoE = (HCI_Field_t[17]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -1395,12 +1417,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE CIS Request event", .iscmd = 0, .subevent = 0x1a, .section = "7.7.65.26", .version = "5.2", .BREDR = "E", .LE = "C.40",
+  { .title = "LE CIS Request event", .iscmd = 0, .section = "7.7.65.26", .version = "5.2", .BREDR = "E", .LE = "C.40",
     .summary = "The HCI_LE_CIS_Request event indicates that the Peripheral's "
                "Controller received a request from the Central to create a CIS.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_CIS_Request", .code = 0x003e, .numcoe = 5, .numret = 0,  .Cond = { "E", "C.40" },
+      { .name = "HCI_LE_CIS_Request", .code = 0x003e, .subevent = 0x1a, .numcoe = 5, .numret = 0,  .Cond = { "E", "C.40" },
         .CoE = (HCI_Field_t[5]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "ACL_Connection_Handle",                          .octets =   2 },
@@ -1477,12 +1499,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Connection Complete event", .iscmd = 0, .subevent = 0x01, .section = "7.7.65.1", .version = "4.0", .BREDR = "E", .LE = "C.3",
+  { .title = "LE Connection Complete event", .iscmd = 0, .section = "7.7.65.1", .version = "4.0", .BREDR = "E", .LE = "C.3",
     .summary = "The HCI_LE_Connection_Complete event indicates to the Host that a new "
                "connection has been created.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Connection_Complete", .code = 0x003e, .numcoe = 10, .numret = 0,  .Cond = { "E", "C.3" },
+      { .name = "HCI_LE_Connection_Complete", .code = 0x003e, .subevent = 0x01, .numcoe = 10, .numret = 0,  .Cond = { "E", "C.3" },
         .CoE = (HCI_Field_t[10]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -1547,13 +1569,13 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Connection IQ Report event", .iscmd = 0, .subevent = 0x16, .section = "7.7.65.22", .version = "5.1", .BREDR = "E", .LE = "C.25",
+  { .title = "LE Connection IQ Report event", .iscmd = 0, .section = "7.7.65.22", .version = "5.1", .BREDR = "E", .LE = "C.25",
     .summary = "The HCI_LE_Connection_IQ_Report event is used to report IQ samples "
                "from the Constant Tone Extension field of a received packet "
                "containing an LL_CTE_RSP PDU.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Connection_IQ_Report", .code = 0x003e, .numcoe = 13, .numret = 0,  .Cond = { "E", "C.25" },
+      { .name = "HCI_LE_Connection_IQ_Report", .code = 0x003e, .subevent = 0x16, .numcoe = 13, .numret = 0,  .Cond = { "E", "C.25" },
         .CoE = (HCI_Field_t[13]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Connection_Handle",                              .octets =   2 },
@@ -1596,12 +1618,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Connection Update Complete event", .iscmd = 0, .subevent = 0x03, .section = "7.7.65.3", .version = "4.0", .BREDR = "E", .LE = "C.3",
+  { .title = "LE Connection Update Complete event", .iscmd = 0, .section = "7.7.65.3", .version = "4.0", .BREDR = "E", .LE = "C.3",
     .summary = "The HCI_LE_Connection_Update_Complete event indicates the completion "
                "of the process to change the connection parameters.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Connection_Update_Complete", .code = 0x003e, .numcoe = 6, .numret = 0,  .Cond = { "E", "C.3" },
+      { .name = "HCI_LE_Connection_Update_Complete", .code = 0x003e, .subevent = 0x03, .numcoe = 6, .numret = 0,  .Cond = { "E", "C.3" },
         .CoE = (HCI_Field_t[6]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -1614,12 +1636,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Connectionless IQ Report event", .iscmd = 0, .subevent = 0x15, .section = "7.7.65.21", .version = "5.1", .BREDR = "E", .LE = "C.28",
+  { .title = "LE Connectionless IQ Report event", .iscmd = 0, .section = "7.7.65.21", .version = "5.1", .BREDR = "E", .LE = "C.28",
     .summary = "The HCI_LE_Connectionless_IQ_Report event reports IQ information from "
                "the Constant Tone Extension of a received advertising packet.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Connectionless_IQ_Report", .code = 0x003e, .numcoe = 12, .numret = 0,  .Cond = { "E", "C.28" },
+      { .name = "HCI_LE_Connectionless_IQ_Report", .code = 0x003e, .subevent = 0x15, .numcoe = 12, .numret = 0,  .Cond = { "E", "C.28" },
         .CoE = (HCI_Field_t[12]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Sync_Handle",                                    .octets =   2 },
@@ -1665,13 +1687,13 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Create BIG Complete event", .iscmd = 0, .subevent = 0x1b, .section = "7.7.65.27", .version = "5.2", .BREDR = "E", .LE = "C.41",
+  { .title = "LE Create BIG Complete event", .iscmd = 0, .section = "7.7.65.27", .version = "5.2", .BREDR = "E", .LE = "C.41",
     .summary = "The HCI_LE_Create_BIG_Complete event indicates that the Controller "
                "completed an attempt to create the BISes that were requested by the "
                "Host.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Create_BIG_Complete", .code = 0x003e, .numcoe = 14, .numret = 0,  .Cond = { "E", "C.41" },
+      { .name = "HCI_LE_Create_BIG_Complete", .code = 0x003e, .subevent = 0x1b, .numcoe = 14, .numret = 0,  .Cond = { "E", "C.41" },
         .CoE = (HCI_Field_t[14]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -1791,13 +1813,13 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE CTE Request Failed event", .iscmd = 0, .subevent = 0x17, .section = "7.7.65.23", .version = "5.1", .BREDR = "E", .LE = "C.25",
+  { .title = "LE CTE Request Failed event", .iscmd = 0, .section = "7.7.65.23", .version = "5.1", .BREDR = "E", .LE = "C.25",
     .summary = "The HCI_LE_CTE_Request_Failed event indicates a problem with a "
                "request generated by an HCI_LE_Connection_CTE_Request_Enable command "
                "for a peer device to send Constant Tone Extensions.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_CTE_Request_Failed", .code = 0x003e, .numcoe = 3, .numret = 0,  .Cond = { "E", "C.25" },
+      { .name = "HCI_LE_CTE_Request_Failed", .code = 0x003e, .subevent = 0x17, .numcoe = 3, .numret = 0,  .Cond = { "E", "C.25" },
         .CoE = (HCI_Field_t[3]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -1807,12 +1829,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Data Length Change event", .iscmd = 0, .subevent = 0x07, .section = "7.7.65.7", .version = "4.2", .BREDR = "E", .LE = "C.8",
+  { .title = "LE Data Length Change event", .iscmd = 0, .section = "7.7.65.7", .version = "4.2", .BREDR = "E", .LE = "C.8",
     .summary = "The HCI_LE_Data_Length_Change event is used to indicate a change in "
                "the maximum packet sizes by the Link Layer.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Data_Length_Change", .code = 0x003e, .numcoe = 6, .numret = 0,  .Cond = { "E", "C.8" },
+      { .name = "HCI_LE_Data_Length_Change", .code = 0x003e, .subevent = 0x07, .numcoe = 6, .numret = 0,  .Cond = { "E", "C.8" },
         .CoE = (HCI_Field_t[6]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Connection_Handle",                              .octets =   2 },
@@ -1825,7 +1847,7 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Directed Advertising Report event", .iscmd = 0, .subevent = 0x0b, .section = "7.7.65.11", .version = "4.2", .BREDR = "E", .LE = "C.63",
+  { .title = "LE Directed Advertising Report event", .iscmd = 0, .section = "7.7.65.11", .version = "4.2", .BREDR = "E", .LE = "C.63",
     .summary = "The HCI_LE_Directed_Advertising_Report event indicates that directed "
                "advertisements have been received where the advertiser is using a "
                "resolvable private address for the TargetA field in the "
@@ -1833,7 +1855,7 @@ HCI_t HCITable[] = {
                "event to the Host.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Directed_Advertising_Report", .code = 0x003e, .numcoe = 8, .numret = 0,  .Cond = { "E", "C.63" },
+      { .name = "HCI_LE_Directed_Advertising_Report", .code = 0x003e, .subevent = 0x0b, .numcoe = 8, .numret = 0,  .Cond = { "E", "C.63" },
         .CoE = (HCI_Field_t[8]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Num_Reports",                                    .octets =   1 },
@@ -1890,14 +1912,14 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Enhanced Connection Complete event", .iscmd = 0, .subevent = 0x29, .section = "7.7.65.10", .version = "4.2 5.4", .BREDR = "E", .LE = "[v1] C.24 [v2] C.69",
+  { .title = "LE Enhanced Connection Complete event", .iscmd = 0, .section = "7.7.65.10", .version = "4.2 5.4", .BREDR = "E", .LE = "[v1] C.24 [v2] C.69",
     .summary = "The HCI_LE_Enhanced_Connection_Complete event indicates to the Host "
                "that a new connection has been created. This event contains the "
                "additional parameters of the local and peer resolvable private "
                "addresses.",
 
     .numinst = 2, .Inst = (HCI_Inst_t[2]) {
-      { .name = "HCI_LE_Enhanced_Connection_Complete [v2]", .code = 0x003e, .numcoe = 14, .numret = 0,  .Cond = { "E", "C.69" },
+      { .name = "HCI_LE_Enhanced_Connection_Complete [v2]", .code = 0x003e, .subevent = 0x29, .numcoe = 14, .numret = 0,  .Cond = { "E", "C.69" },
         .CoE = (HCI_Field_t[14]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -1915,7 +1937,7 @@ HCI_t HCITable[] = {
           { .name = "Sync_Handle",                                    .octets =   2 },
         },
       },
-      { .name = "HCI_LE_Enhanced_Connection_Complete [v1]", .code = 0x003e, .numcoe = 12, .numret = 0,  .Cond = { "E", "C.24" },
+      { .name = "HCI_LE_Enhanced_Connection_Complete [v1]", .code = 0x003e, .subevent = 0x0a, .numcoe = 12, .numret = 0,  .Cond = { "E", "C.24" },
         .CoE = (HCI_Field_t[12]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -1959,12 +1981,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Extended Advertising Report event", .iscmd = 0, .subevent = 0x0d, .section = "7.7.65.13", .version = "5.0", .BREDR = "E", .LE = "C.19",
+  { .title = "LE Extended Advertising Report event", .iscmd = 0, .section = "7.7.65.13", .version = "5.0", .BREDR = "E", .LE = "C.19",
     .summary = "The HCI_LE_Extended_Advertising_Report event indicates that an "
                "advertising packet has been received.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Extended_Advertising_Report", .code = 0x003e, .numcoe = 15, .numret = 0,  .Cond = { "E", "C.19" },
+      { .name = "HCI_LE_Extended_Advertising_Report", .code = 0x003e, .subevent = 0x0d, .numcoe = 15, .numret = 0,  .Cond = { "E", "C.19" },
         .CoE = (HCI_Field_t[15]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Num_Reports",                                    .octets =   1 },
@@ -2061,12 +2083,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Generate DHKey Complete event", .iscmd = 0, .subevent = 0x09, .section = "7.7.65.9", .version = "4.2", .BREDR = "E", .LE = "O",
+  { .title = "LE Generate DHKey Complete event", .iscmd = 0, .section = "7.7.65.9", .version = "4.2", .BREDR = "E", .LE = "O",
     .summary = "The HCI_LE_Generate_DHKey_Complete event indicates that LE "
                "Diffie-Hellman key generation has been completed by the Controller.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Generate_DHKey_Complete", .code = 0x003e, .numcoe = 3, .numret = 0,  .Cond = { "E", "O" },
+      { .name = "HCI_LE_Generate_DHKey_Complete", .code = 0x003e, .subevent = 0x09, .numcoe = 3, .numret = 0,  .Cond = { "E", "O" },
         .CoE = (HCI_Field_t[3]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -2164,12 +2186,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Long Term Key Request event", .iscmd = 0, .subevent = 0x05, .section = "7.7.65.5", .version = "4.0", .BREDR = "E", .LE = "C.61",
+  { .title = "LE Long Term Key Request event", .iscmd = 0, .section = "7.7.65.5", .version = "4.0", .BREDR = "E", .LE = "C.61",
     .summary = "The HCI_LE_Long_Term_Key_Request event indicates that a Long Term Key "
                "is required for a connection.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Long_Term_Key_Request", .code = 0x003e, .numcoe = 4, .numret = 0,  .Cond = { "E", "C.61" },
+      { .name = "HCI_LE_Long_Term_Key_Request", .code = 0x003e, .subevent = 0x05, .numcoe = 4, .numret = 0,  .Cond = { "E", "C.61" },
         .CoE = (HCI_Field_t[4]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Connection_Handle",                              .octets =   2 },
@@ -2242,12 +2264,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Path Loss Threshold event", .iscmd = 0, .subevent = 0x20, .section = "7.7.65.32", .version = "5.2", .BREDR = "E", .LE = "C.52",
+  { .title = "LE Path Loss Threshold event", .iscmd = 0, .section = "7.7.65.32", .version = "5.2", .BREDR = "E", .LE = "C.52",
     .summary = "The HCI_LE_Path_Loss_Threshold event is used to report a path loss "
                "threshold crossing on an ACL connection.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Path_Loss_Threshold", .code = 0x003e, .numcoe = 4, .numret = 0,  .Cond = { "E", "C.52" },
+      { .name = "HCI_LE_Path_Loss_Threshold", .code = 0x003e, .subevent = 0x20, .numcoe = 4, .numret = 0,  .Cond = { "E", "C.52" },
         .CoE = (HCI_Field_t[4]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Connection_Handle",                              .octets =   2 },
@@ -2299,12 +2321,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Periodic Advertising Report event", .iscmd = 0, .subevent = 0x25, .section = "7.7.65.15", .version = "5.0 5.4", .BREDR = "E", .LE = "[v1] C.21 [v2] C.68",
+  { .title = "LE Periodic Advertising Report event", .iscmd = 0, .section = "7.7.65.15", .version = "5.0 5.4", .BREDR = "E", .LE = "[v1] C.21 [v2] C.68",
     .summary = "The HCI_LE_Periodic_Advertising_Report event indicates that a "
                "periodic advertising packet has been received.",
 
     .numinst = 2, .Inst = (HCI_Inst_t[2]) {
-      { .name = "HCI_LE_Periodic_Advertising_Report [v2]", .code = 0x003e, .numcoe = 10, .numret = 0,  .Cond = { "E", "C.68" },
+      { .name = "HCI_LE_Periodic_Advertising_Report [v2]", .code = 0x003e, .subevent = 0x25, .numcoe = 10, .numret = 0,  .Cond = { "E", "C.68" },
         .CoE = (HCI_Field_t[10]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Sync_Handle",                                    .octets =   2 },
@@ -2318,7 +2340,7 @@ HCI_t HCITable[] = {
           { .name = "Data",                                                         .ref2size = "Data_Length" },
         },
       },
-      { .name = "HCI_LE_Periodic_Advertising_Report [v1]", .code = 0x003e, .numcoe = 8, .numret = 0,  .Cond = { "E", "C.21" },
+      { .name = "HCI_LE_Periodic_Advertising_Report [v1]", .code = 0x003e, .subevent = 0x0f, .numcoe = 8, .numret = 0,  .Cond = { "E", "C.21" },
         .CoE = (HCI_Field_t[8]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Sync_Handle",                                    .octets =   2 },
@@ -2381,12 +2403,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Periodic Advertising Subevent Data Request event", .iscmd = 0, .subevent = 0x27, .section = "7.7.65.36", .version = "5.4", .BREDR = "E", .LE = "C.67",
+  { .title = "LE Periodic Advertising Subevent Data Request event", .iscmd = 0, .section = "7.7.65.36", .version = "5.4", .BREDR = "E", .LE = "C.67",
     .summary = "The HCI_LE_Periodic_Advertising_Subevent_Data_Request event is used "
                "to request subevent data from a Host.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Periodic_Advertising_Subevent_Data_Request", .code = 0x003e, .numcoe = 4, .numret = 0,  .Cond = { "E", "C.67" },
+      { .name = "HCI_LE_Periodic_Advertising_Subevent_Data_Request", .code = 0x003e, .subevent = 0x27, .numcoe = 4, .numret = 0,  .Cond = { "E", "C.67" },
         .CoE = (HCI_Field_t[4]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Advertising_Handle",                             .octets =   1 },
@@ -2397,13 +2419,13 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Periodic Advertising Sync Established event", .iscmd = 0, .subevent = 0x24, .section = "7.7.65.14", .version = "5.0 5.4", .BREDR = "E", .LE = "[v1] C.16 [v2] C.68",
+  { .title = "LE Periodic Advertising Sync Established event", .iscmd = 0, .section = "7.7.65.14", .version = "5.0 5.4", .BREDR = "E", .LE = "[v1] C.16 [v2] C.68",
     .summary = "The HCI_LE_Periodic_Advertising_Sync_Established event indicates that "
                "the Controller has started receiving periodic advertising packets "
                "from an advertiser.",
 
     .numinst = 2, .Inst = (HCI_Inst_t[2]) {
-      { .name = "HCI_LE_Periodic_Advertising_Sync_Established [v2]", .code = 0x003e, .numcoe = 13, .numret = 0,  .Cond = { "E", "C.68" },
+      { .name = "HCI_LE_Periodic_Advertising_Sync_Established [v2]", .code = 0x003e, .subevent = 0x24, .numcoe = 13, .numret = 0,  .Cond = { "E", "C.68" },
         .CoE = (HCI_Field_t[13]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -2420,7 +2442,7 @@ HCI_t HCITable[] = {
           { .name = "Response_Slot_Spacing",                          .octets =   1 },
         },
       },
-      { .name = "HCI_LE_Periodic_Advertising_Sync_Established [v1]", .code = 0x003e, .numcoe = 9, .numret = 0,  .Cond = { "E", "C.16" },
+      { .name = "HCI_LE_Periodic_Advertising_Sync_Established [v1]", .code = 0x003e, .subevent = 0x0e, .numcoe = 9, .numret = 0,  .Cond = { "E", "C.16" },
         .CoE = (HCI_Field_t[9]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -2436,12 +2458,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Periodic Advertising Sync Lost event", .iscmd = 0, .subevent = 0x10, .section = "7.7.65.16", .version = "5.0", .BREDR = "E", .LE = "C.21",
+  { .title = "LE Periodic Advertising Sync Lost event", .iscmd = 0, .section = "7.7.65.16", .version = "5.0", .BREDR = "E", .LE = "C.21",
     .summary = "The HCI_LE_Periodic_Advertising_Sync_Lost event indicates the "
                "Controller has ended receiving a periodic advertising train.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Periodic_Advertising_Sync_Lost", .code = 0x003e, .numcoe = 2, .numret = 0,  .Cond = { "E", "C.21" },
+      { .name = "HCI_LE_Periodic_Advertising_Sync_Lost", .code = 0x003e, .subevent = 0x10, .numcoe = 2, .numret = 0,  .Cond = { "E", "C.21" },
         .CoE = (HCI_Field_t[2]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Sync_Handle",                                    .octets =   2 },
@@ -2473,13 +2495,13 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Periodic Advertising Sync Transfer Received event", .iscmd = 0, .subevent = 0x26, .section = "7.7.65.24", .version = "5.1 5.4", .BREDR = "E", .LE = "[v1] C.35 [v2] C.68",
+  { .title = "LE Periodic Advertising Sync Transfer Received event", .iscmd = 0, .section = "7.7.65.24", .version = "5.1 5.4", .BREDR = "E", .LE = "[v1] C.35 [v2] C.68",
     .summary = "The HCI_LE_Periodic_Advertising_Sync_Transfer_Received event reports "
                "reception of periodic advertising synchronization information from a "
                "connected Controller.",
 
     .numinst = 2, .Inst = (HCI_Inst_t[2]) {
-      { .name = "HCI_LE_Periodic_Advertising_Sync_Transfer_Received [v2]", .code = 0x003e, .numcoe = 15, .numret = 0,  .Cond = { "E", "C.68" },
+      { .name = "HCI_LE_Periodic_Advertising_Sync_Transfer_Received [v2]", .code = 0x003e, .subevent = 0x26, .numcoe = 15, .numret = 0,  .Cond = { "E", "C.68" },
         .CoE = (HCI_Field_t[15]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -2498,7 +2520,7 @@ HCI_t HCITable[] = {
           { .name = "Response_Slot_Spacing",                          .octets =   1 },
         },
       },
-      { .name = "HCI_LE_Periodic_Advertising_Sync_Transfer_Received [v1]", .code = 0x003e, .numcoe = 11, .numret = 0,  .Cond = { "E", "C.35" },
+      { .name = "HCI_LE_Periodic_Advertising_Sync_Transfer_Received [v1]", .code = 0x003e, .subevent = 0x18, .numcoe = 11, .numret = 0,  .Cond = { "E", "C.35" },
         .CoE = (HCI_Field_t[11]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -2535,12 +2557,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE PHY Update Complete event", .iscmd = 0, .subevent = 0x0c, .section = "7.7.65.12", .version = "5.0", .BREDR = "E", .LE = "C.11",
+  { .title = "LE PHY Update Complete event", .iscmd = 0, .section = "7.7.65.12", .version = "5.0", .BREDR = "E", .LE = "C.11",
     .summary = "The HCI_LE_PHY_Update_Complete event is used to inform the Host of "
                "the current PHY.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_PHY_Update_Complete", .code = 0x003e, .numcoe = 5, .numret = 0,  .Cond = { "E", "C.11" },
+      { .name = "HCI_LE_PHY_Update_Complete", .code = 0x003e, .subevent = 0x0c, .numcoe = 5, .numret = 0,  .Cond = { "E", "C.11" },
         .CoE = (HCI_Field_t[5]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -2736,12 +2758,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Read Local P-256 Public Key Complete event", .iscmd = 0, .subevent = 0x08, .section = "7.7.65.8", .version = "4.2", .BREDR = "E", .LE = "O",
+  { .title = "LE Read Local P-256 Public Key Complete event", .iscmd = 0, .section = "7.7.65.8", .version = "4.2", .BREDR = "E", .LE = "O",
     .summary = "The HCI_LE_Read_Local_P-256_Public_Key_Complete event is generated "
                "when local P-256 key generation is complete.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Read_Local_P-256_Public_Key_Complete", .code = 0x003e, .numcoe = 4, .numret = 0,  .Cond = { "E", "O" },
+      { .name = "HCI_LE_Read_Local_P-256_Public_Key_Complete", .code = 0x003e, .subevent = 0x08, .numcoe = 4, .numret = 0,  .Cond = { "E", "O" },
         .CoE = (HCI_Field_t[4]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -2927,13 +2949,13 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Read Remote Features Complete event", .iscmd = 0, .subevent = 0x04, .section = "7.7.65.4", .version = "4.0", .BREDR = "E", .LE = "C.3",
+  { .title = "LE Read Remote Features Complete event", .iscmd = 0, .section = "7.7.65.4", .version = "4.0", .BREDR = "E", .LE = "C.3",
     .summary = "The HCI_LE_Read_Remote_Features_Complete event indicates the "
                "completion of the process to read the features used on a connection "
                "and the features supported by a remote LE device.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Read_Remote_Features_Complete", .code = 0x003e, .numcoe = 4, .numret = 0,  .Cond = { "E", "C.3" },
+      { .name = "HCI_LE_Read_Remote_Features_Complete", .code = 0x003e, .subevent = 0x04, .numcoe = 4, .numret = 0,  .Cond = { "E", "C.3" },
         .CoE = (HCI_Field_t[4]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -3119,13 +3141,13 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Remote Connection Parameter Request event", .iscmd = 0, .subevent = 0x06, .section = "7.7.65.6", .version = "4.1", .BREDR = "E", .LE = "C.6",
+  { .title = "LE Remote Connection Parameter Request event", .iscmd = 0, .section = "7.7.65.6", .version = "4.1", .BREDR = "E", .LE = "C.6",
     .summary = "The LE Remote Connection Parameter Request event is used to indicate "
                "to the Host that the remote device is requesting a change in the "
                "connection parameters.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Remote_Connection_Parameter_Request", .code = 0x003e, .numcoe = 6, .numret = 0,  .Cond = { "E", "C.6" },
+      { .name = "HCI_LE_Remote_Connection_Parameter_Request", .code = 0x003e, .subevent = 0x06, .numcoe = 6, .numret = 0,  .Cond = { "E", "C.6" },
         .CoE = (HCI_Field_t[6]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Connection_Handle",                              .octets =   2 },
@@ -3326,13 +3348,13 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Request Peer SCA Complete event", .iscmd = 0, .subevent = 0x1f, .section = "7.7.65.31", .version = "5.2", .BREDR = "E", .LE = "C.95",
+  { .title = "LE Request Peer SCA Complete event", .iscmd = 0, .section = "7.7.65.31", .version = "5.2", .BREDR = "E", .LE = "C.95",
     .summary = "The HCI_LE_Request_Peer_SCA_Complete event indicates that the "
                "Controller completed the attempt to read the Sleep Clock Accuracy "
                "(SCA) of the peer device.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Request_Peer_SCA_Complete", .code = 0x003e, .numcoe = 4, .numret = 0,  .Cond = { "E", "C.95" },
+      { .name = "HCI_LE_Request_Peer_SCA_Complete", .code = 0x003e, .subevent = 0x1f, .numcoe = 4, .numret = 0,  .Cond = { "E", "C.95" },
         .CoE = (HCI_Field_t[4]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -3343,12 +3365,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Scan Request Received event", .iscmd = 0, .subevent = 0x13, .section = "7.7.65.19", .version = "5.0", .BREDR = "E", .LE = "C.17",
+  { .title = "LE Scan Request Received event", .iscmd = 0, .section = "7.7.65.19", .version = "5.0", .BREDR = "E", .LE = "C.17",
     .summary = "The HCI_LE_Scan_Request_Received event indicates that a scan request "
                "has been received.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Scan_Request_Received", .code = 0x003e, .numcoe = 4, .numret = 0,  .Cond = { "E", "C.17" },
+      { .name = "HCI_LE_Scan_Request_Received", .code = 0x003e, .subevent = 0x13, .numcoe = 4, .numret = 0,  .Cond = { "E", "C.17" },
         .CoE = (HCI_Field_t[4]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Advertising_Handle",                             .octets =   1 },
@@ -3359,11 +3381,11 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Scan Timeout event", .iscmd = 0, .subevent = 0x11, .section = "7.7.65.17", .version = "5.0", .BREDR = "E", .LE = "C.19",
+  { .title = "LE Scan Timeout event", .iscmd = 0, .section = "7.7.65.17", .version = "5.0", .BREDR = "E", .LE = "C.19",
     .summary = "The HCI_LE_Scan_Timeout event indicates that scanning has finished.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Scan_Timeout", .code = 0x003e, .numcoe = 1, .numret = 0,  .Cond = { "E", "C.19" },
+      { .name = "HCI_LE_Scan_Timeout", .code = 0x003e, .subevent = 0x11, .numcoe = 1, .numret = 0,  .Cond = { "E", "C.19" },
         .CoE = (HCI_Field_t[1]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
         },
@@ -4481,12 +4503,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Subrate Change event", .iscmd = 0, .subevent = 0x23, .section = "7.7.65.35", .version = "5.3", .BREDR = "E", .LE = "C.57",
+  { .title = "LE Subrate Change event", .iscmd = 0, .section = "7.7.65.35", .version = "5.3", .BREDR = "E", .LE = "C.57",
     .summary = "The HCI_LE_Subrate_Change event indicates that a new subrate factor "
                "has been applied to an existing ACL connection.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Subrate_Change", .code = 0x003e, .numcoe = 7, .numret = 0,  .Cond = { "E", "C.57" },
+      { .name = "HCI_LE_Subrate_Change", .code = 0x003e, .subevent = 0x23, .numcoe = 7, .numret = 0,  .Cond = { "E", "C.57" },
         .CoE = (HCI_Field_t[7]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -4541,12 +4563,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Terminate BIG Complete event", .iscmd = 0, .subevent = 0x1c, .section = "7.7.65.28", .version = "5.2", .BREDR = "E", .LE = "C.41",
+  { .title = "LE Terminate BIG Complete event", .iscmd = 0, .section = "7.7.65.28", .version = "5.2", .BREDR = "E", .LE = "C.41",
     .summary = "The HCI_LE_Terminate_BIG_Complete event indicates that the "
                "transmission of all the BISes in the BIG have been terminated.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Terminate_BIG_Complete", .code = 0x003e, .numcoe = 3, .numret = 0,  .Cond = { "E", "C.41" },
+      { .name = "HCI_LE_Terminate_BIG_Complete", .code = 0x003e, .subevent = 0x1c, .numcoe = 3, .numret = 0,  .Cond = { "E", "C.41" },
         .CoE = (HCI_Field_t[3]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "BIG_Handle",                                     .octets =   1 },
@@ -4573,12 +4595,12 @@ HCI_t HCITable[] = {
     },
   },
 
-  { .title = "LE Transmit Power Reporting event", .iscmd = 0, .subevent = 0x21, .section = "7.7.65.33", .version = "5.2", .BREDR = "E", .LE = "C.51",
+  { .title = "LE Transmit Power Reporting event", .iscmd = 0, .section = "7.7.65.33", .version = "5.2", .BREDR = "E", .LE = "C.51",
     .summary = "The HCI_LE_Transmit_Power_Reporting event is used to report the "
                "transmit power level on the ACL connection.",
 
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
-      { .name = "HCI_LE_Transmit_Power_Reporting", .code = 0x003e, .numcoe = 8, .numret = 0,  .Cond = { "E", "C.51" },
+      { .name = "HCI_LE_Transmit_Power_Reporting", .code = 0x003e, .subevent = 0x21, .numcoe = 8, .numret = 0,  .Cond = { "E", "C.51" },
         .CoE = (HCI_Field_t[8]) {
           { .name = "Subevent_Code",                                  .octets =   1 },
           { .name = "Status",                                         .octets =   1 },
@@ -8031,7 +8053,7 @@ HCI_t HCITable[] = {
     .numinst = 1, .Inst = (HCI_Inst_t[1]) {
       { .name = "HCI_Write_Link_Supervision_Timeout", .OCF = 0x0037, .numcoe = 2, .numret = 2, .octet = 11, .bit = 1, .Cond = { "O", "E" },
         .CoE = (HCI_Field_t[2]) {
-          { .name = "Handle",                                         .octets =   2 },
+          { .name = "Connection_Handle",                              .octets =   2 },
           { .name = "Link_Supervision_Timeout",                       .octets =   2 },
         },
         .Ret = (HCI_Field_t[2]) {
