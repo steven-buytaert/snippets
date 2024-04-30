@@ -56,6 +56,7 @@ typedef struct HCI_Inst_t {       // HCI Command or Event instance; at least 1 f
     uint16_t        OCF;          // For a command.
     uint16_t        code;         // For an event.
   };
+  uint8_t           subevent;     // For a meta event, the subevent code.
   uint8_t           numcoe;       // Number of command or event parameters.
   uint8_t           numret;       // Number of return parameters.
   uint8_t           bit;          // Bit number and ...
@@ -74,7 +75,6 @@ typedef struct HCI_Inst_t {       // HCI Command or Event instance; at least 1 f
 typedef struct HCI_t {            // HCI Command or Event.
   uint8_t           iscmd;        // Non zero for a command, zero for an event.
   uint8_t           OGF;          // OGF; when set implies iscmd non zero.
-  uint8_t           subevent;     // Subevent code (only non zero for meta events).
   uint8_t           numinst;      // Number of instances.
   HCI_Inst_t *      Inst;
   const char *      section;      // Section number.
