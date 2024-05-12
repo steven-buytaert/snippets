@@ -47,3 +47,25 @@ source could look like, the file hci-types-5.4.h is included. It was
 generated from the hci-spec2src-5.4.h file, with some help of the t2c-types
 types and functions found elsewhere in this repo. The code for this
 generator itself, is not in the repo (yet).
+
+## HCI Packet Encoder and Decoder
+
+In the folder codec, there is a packet encoder and decoder implementation,
+still under construction (e.g. the count modifier is not yet implemented).
+The encoder/decoder uses tables that are generated from the types that are
+generated from the source.
+
+The file hci-tables.c is generated and contains the instructions to encode
+and decode the packets from/to the structures that are defined in the
+hci-types.h header file.
+
+The encoder/decoder is only for the 5.4 Bluetooh specifications.
+
+There is no sample code (yet) to demonstrate the use of the encoder/decoder
+but the public API that is in hci-codec.h is pretty straightforward; one
+structure and 2 API functions.
+
+All the other
+files contain internals only and some stuff used during the generation of
+the tables themselves.
+
