@@ -7,6 +7,8 @@
 
 #include <stdint.h>
 
+#define __packed__
+
 typedef enum HCI_Pkt_Type_t {
    type_CMD                   = 0x01,
    type_ACL                   = 0x02,
@@ -47,7 +49,7 @@ typedef struct HCI_ACL_t {
     uint16_t                  BC     :  2;
   };
   uint16_t                    length;
-} HCI_ACL_t;
+} __packed__ HCI_ACL_t;
 
 typedef struct HCI_SYN_t {
   uint8_t                     type;            // type_SYN.
@@ -57,7 +59,7 @@ typedef struct HCI_SYN_t {
     uint16_t                         :  2;
   };
   uint16_t                    length;
-} HCI_SYN_t;
+} __packed__ HCI_SYN_t;
 
 typedef struct HCI_Evt_t {
   uint8_t                     type;            // type_EVT.
@@ -77,7 +79,7 @@ typedef struct HCI_ISO_t {
     uint16_t                  length : 14;
     uint16_t                         :  2;
   };
-} HCI_ISO_t;
+} __packed__ HCI_ISO_t;
 
 typedef struct Status_BD_Addr_t {
   uint8_t                     Status;
@@ -88,6 +90,72 @@ typedef struct Status_Conn_Handle_t {
   uint8_t                     Status;
   uint16_t                    Conn_Handle;
 } Status_Conn_Handle_t;
+
+// <no spec> Event / Status / Connection Handle passe partout.
+
+typedef struct Evt_Status_Conn_t {
+  HCI_Evt_t                   Evt;
+  Status_Conn_Handle_t        SC;
+} Evt_Status_Conn_t;
+
+// <no spec> Command / Connection Handle passe partout.
+
+typedef struct Cmd_Conn_Handle_t {
+  HCI_Cmd_t                   Cmd;
+  uint16_t                    Conn_Handle;
+} Cmd_Conn_Handle_t;
+
+// <no spec> Event / Connection Handle passe partout.
+
+typedef struct Evt_Conn_Handle_t {
+  HCI_Evt_t                   Evt;
+  uint16_t                    Conn_Handle;
+} Evt_Conn_Handle_t;
+
+// <no spec> // { Evt / Status } passe partout.
+
+typedef struct Evt_Status_t {
+  HCI_Evt_t                   Evt;
+  uint8_t                     Status;
+} Evt_Status_t;
+
+// <no spec> // { Evt / Status / BD_Addr } passe partout.
+
+typedef struct Evt_Status_Addr_t {
+  HCI_Evt_t                   Evt;
+  Status_BD_Addr_t            SA;
+} Evt_Status_Addr_t;
+
+// 7.7.14 Command Complete event
+
+static const uint8_t Command_Complete_Evt = 0x0e;
+
+typedef struct HCI_Command_Complete_Evt_t {
+  HCI_Evt_t                   Evt;
+  uint8_t                     Num_HCI_Command_Packets;
+  HCI_Opcode_t                Opcode;
+} HCI_Command_Complete_Evt_t;
+
+// <no spec> Command Complete / Status / Address passe partout.
+
+typedef struct CC_Status_Addr_t {
+  HCI_Command_Complete_Evt_t  CCEvt;
+  Status_BD_Addr_t            SA;
+} CC_Status_Addr_t;
+
+// { CCEvt / Status } passe partout.
+
+typedef struct CC_Status_t {
+  HCI_Command_Complete_Evt_t  CCEvt;
+  uint8_t                     Status;
+} CC_Status_t;
+
+// { CCEvt / Status / Conn_Handle } passe partout.
+
+typedef struct CC_Status_Conn_t {
+  HCI_Command_Complete_Evt_t  CCEvt;
+  Status_Conn_Handle_t        SC;
+} CC_Status_Conn_t;
 
 // 7.1.8 Accept Connection Request command
 
@@ -153,16 +221,6 @@ typedef struct HCI_Change_Connection_Packet_Type_Cmd_t {
   uint16_t                    Conn_Handle;
   uint16_t                    Packet_Type;
 } HCI_Change_Connection_Packet_Type_Cmd_t;
-
-// 7.7.14 Command Complete event
-
-static const uint8_t Command_Complete_Evt = 0x0e;
-
-typedef struct HCI_Command_Complete_Evt_t {
-  HCI_Evt_t                   Evt;
-  uint8_t                     Num_HCI_Command_Packets;
-  HCI_Opcode_t                Opcode;
-} HCI_Command_Complete_Evt_t;
 
 // 7.7.15 Command Status event
 

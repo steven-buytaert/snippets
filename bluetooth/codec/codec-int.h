@@ -38,10 +38,12 @@ typedef enum {                    // See the switch/case in de encoder and decod
   laterfix          = 0b001,      // arg = byte width.
   loadloop          = 0b010,      // arg = byte width.
   endloop           = 0b011,
-  countmodif        = 0b100,      // arg = count modifier for next fix or load loop.
+  modif             = 0b100,      // modifier; argument specifies the modification.
   largecopy         = 0b101,      // arg now is skip count; read next 2 bytes for the size.
   RFU               = 0b111,      // Reserved as escape; for future use.
 } CoI_Action_t;
+
+typedef CONST struct CodecTab_t * ctab_t;
 
 typedef struct TE_t {             // Table Element.
   union {
@@ -54,10 +56,11 @@ typedef struct TE_t {             // Table Element.
   uint8_t           coistart;     // Offset in the respective CoI table.
   uint8_t           numcoi : 4;   // Number of table entries for encoding/decoding this type.
   uint8_t           isret  : 1;   // 1 for a return type, 0 for a command.
-  uint8_t                  : 3;   // Reserved for future use.
+  uint8_t           rfu    : 3;   // Reserved for future use.
 #if defined(GENERATE)
   const char *      section;
   const char *      name;
+  ctab_t            ctab;         // The table the entry was added to.
 #endif
 } TE_t;
 
@@ -73,14 +76,18 @@ typedef CONST struct CodecTab_t {
 #endif
 } CodecTab_t;
 
-typedef CONST CodecTab_t * ctab_t;
-
 extern const ctab_t ctabs[9];     // Defined in generated hci-tables.c file.
 
 typedef int32_t (* cmpte_t)(te_t a, te_t b);
 
 inline static int32_t cmpevt(te_t a, te_t b) {
-  return a->code - b->code;
+
+  int32_t cm = a->code - b->code;
+  
+  if (0 == cm) { cm = a->issub - b->issub; }
+  
+  return cm;
+
 }
 
 inline static int32_t cmpcmd(te_t a, te_t b) {

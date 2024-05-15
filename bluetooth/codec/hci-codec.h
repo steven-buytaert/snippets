@@ -12,6 +12,8 @@ typedef enum {
   CReq_OOB       = 1,             // Destination (packet or structure) too small.
   CReq_Not_Found = 2,             // Type (event, command or return) not found.
   CReq_too_Short = 3,             // Source input for decoding or encoding too short.
+  CReq_bad_code  = 4,             // An internal coding error; generator issue.
+  CReq_is_packed = 5,             // Structure is packed; nothing decoded.
 } CodecReqStat_t;
 
 typedef struct CodecReq_t {

@@ -35,7 +35,7 @@ typedef struct CodecCtx_t {       // Codec Context.
   uint8_t *             befskip;  // Last read src position before skip (encoding).
   uint8_t               decoding; // Non zero when decoding.
   uint8_t               fixcap;   // Fixup capacity.
-  uint8_t               modif;    // When non zero; use the given count modifier.
+  uint8_t               bitsset;  // When non zero; use bitset.
   uint8_t               numc;     // Codec instruction stream length.
   codec_t               codec;    // Codec instruction stream.
   ccopy_t               ccopy;    // memcpy for code; either dummy or real.
@@ -143,11 +143,13 @@ static te_t codec4any(const uint8_t any[], uint32_t e4d, ctab_t tr[1]) {  // Sea
         Key.code = evt->subevent[0];
         Key.issub = 1;
         fnd = search4te(ctab, & Key, cmpevt);
+        assert(! fnd || fnd->issub);
       }
       else {                                                // Search on the event code.
         Key.code = evt->code;
         Key.issub = 0;
         fnd = search4te(ctab, & Key, cmpevt);
+        assert(! fnd || ! fnd->issub);
       }
     }
     else if (type_CMD == type) {
@@ -259,9 +261,8 @@ static void intdecode(cctx_t ctx) {                         // Internal decoder.
   for (CoI = *codec; codec < end; codec++, CoI = *codec) {  // Go over the instruction stream.
     if (CoI.inst) {                                         // An action to perform.
       switch (CoI.action) {
-        case countmodif: {
-          assert(CoI.arg);                                  // Must have a non zero modifier.
-          ctx->modif = CoI.arg;                             // Count modifier.
+        case modif: {
+          if (0 == CoI.arg) { ctx->bitsset = 1; }           // Count modifier.
           break;
         }
         
@@ -279,7 +280,7 @@ static void intdecode(cctx_t ctx) {                         // Internal decoder.
           ctx->Src.cur += fixup->num;                       // Skip over the data portion.
           if (isActive(ctx)) { *fixup->ref = NULL; }        // Clear it already when active.
           if (0 == count) numfix--;                         // If nothing to copy, release fixup.
-          ctx->modif = 0;                                   // Reset in any case.
+          ctx->bitsset = 0;                                 // Reset in any case.
           break;
         }
 
@@ -294,17 +295,17 @@ static void intdecode(cctx_t ctx) {                         // Internal decoder.
           ctx->Dst.cur += sizeof(void *);                   // Allocate space for the reference.
           if (isActive(ctx)) { *fixup->ref = NULL; }        // Clear it already when active.
           if (0 == count) numfix--;                         // If nothing to copy, release fixup.
-          ctx->modif = 0;                                   // Reset in any case.
+          ctx->bitsset = 0;                                 // Reset in any case.
           break;
         }
 
         case loadloop: {
           count = *(ctx->Src.cur - 1);                      // Previous src byte is count.
           actloop++;                                        // Go to next loop level.
-          assert(actloop < NUM(Loop));
+          assert(actloop < NUM(Loop));                      // Increase local capacity.
           Loop[actloop].count = count;
           Loop[actloop].start = codec;
-          ctx->modif = 0;                                   // Reset in any case.
+          ctx->bitsset = 0;                                 // Reset in any case.
           if (0 == count) {                                 // Nothing to loop, skip until endloop.
             actloop--;
             for ( ; codec < end; codec++, CoI = *codec) {
@@ -315,7 +316,10 @@ static void intdecode(cctx_t ctx) {                         // Internal decoder.
         }
         
         case endloop: {
-          assert(Loop[actloop].count);                      // Must be an active loop busy.
+          if (! Loop[actloop].count) {                      // There must be an active loop.
+            ctx->Src.status[0] = CReq_bad_code;
+            return;                                         // Immediate stop.
+          }
           Loop[actloop].count--;                            // Decrement active loop count.
           if (Loop[actloop].count) {                        // If count not yet zero, ...
             codec = Loop[actloop].start;                    // ... restart the loop.
@@ -332,7 +336,10 @@ static void intdecode(cctx_t ctx) {                         // Internal decoder.
           break;
         }
         
-        default: assert(0);                                 // Unknown action.
+        default: {
+          ctx->Src.status[0] = CReq_bad_code;
+          return;                                           // Immediate stop.
+        }
       }
     }
     else {
@@ -376,9 +383,8 @@ static void intencode(cctx_t ctx) {                         // Internal encoder.
   for (CoI = *codec; codec < end; codec++, CoI = *codec) {  // Go over the instruction stream.
     if (CoI.inst) {                                         // An action to perform.
       switch (CoI.action) {
-        case countmodif: {
-          assert(CoI.arg);                                  // Must have a non zero modifier.
-          ctx->modif = CoI.arg;                             // Argument determines modifier.
+        case modif: {
+          if (0 == CoI.arg) { ctx->bitsset = 1; }           // Count modifier.
           break;
         }
 
@@ -394,7 +400,7 @@ static void intencode(cctx_t ctx) {                         // Internal encoder.
           ctx->Dst.cur += num;
           add2cur += num;                                   // Will be added later to source cursor.
           ctx->Src.cur += sizeof(void *);
-          ctx->modif = 0;                                   // Reset in any case.
+          ctx->bitsset = 0;                                 // Reset in any case.
           break;
         }
 
@@ -407,17 +413,17 @@ static void intencode(cctx_t ctx) {                         // Internal encoder.
           if (0 == count) numfix--;                         // If nothing to copy, release fixup.
           fixup->delayed = 1;                               // Implicit; only 1 type in encoding.
           ctx->Src.cur += sizeof(void *);
-          ctx->modif = 0;                                   // Reset in any case.
+          ctx->bitsset = 0;                                 // Reset in any case.
           break;
         }
 
         case loadloop: {
           count = *(ctx->befskip - 1);                      // Just before skip, count was written.
           actloop++;                                        // Go to next loop level.
-          assert(actloop < NUM(Loop));
+          assert(actloop < NUM(Loop));                      // Increase local capacity.
           Loop[actloop].count = count;
           Loop[actloop].start = codec;
-          ctx->modif = 0;                                   // Reset in any case.
+          ctx->bitsset = 0;                                 // Reset in any case.
           if (0 == count) {                                 // Nothing to loop, skip until endloop.
             actloop--;
             for ( ; codec < end; codec++, CoI = *codec) {
@@ -428,7 +434,10 @@ static void intencode(cctx_t ctx) {                         // Internal encoder.
         }
         
         case endloop: {
-          assert(Loop[actloop].count);                      // Must be an active loop busy.
+          if (! Loop[actloop].count) {                      // There must be an active loop.
+            ctx->Src.status[0] = CReq_bad_code;
+            return;                                         // Immediate stop.
+          }
           Loop[actloop].count--;                            // Decrement active loop count.
           if (Loop[actloop].count) {                        // If count not yet zero, ...
             codec = Loop[actloop].start;                    // ... restart the loop.
@@ -445,7 +454,10 @@ static void intencode(cctx_t ctx) {                         // Internal encoder.
           break;
         }
                 
-        default: assert(0);                                 // Unknown action.
+        default: {                                          // Unknown action.
+          ctx->Src.status[0] = CReq_bad_code;
+          return;                                           // Immediate stop.
+        }
       }
     }
     else {
@@ -496,13 +508,13 @@ uint32_t pkt2struct(codecreq_t req) {
   req->Struct.status = 0;
 
   if (Ctx.entry) {
+    assert(Ctx.entry->numcoi);                              // Must have at least 1 instruction.
     Ctx.numc = Ctx.entry->numcoi;
     Ctx.codec = & ctab->CoI[Ctx.entry->coistart];
     intdecode(& Ctx);
 
     if (Ctx.Src.status[0]) { return 0; }
     if (Ctx.Dst.status[0]) { return 0; }
-
 
     return (uint32_t) (Ctx.Dst.cur - Ctx.Dst.start);        // Size of the decoded structure.
   }
@@ -516,6 +528,7 @@ uint32_t struct2pkt(codecreq_t req) {
 
    Fixup_t    Fixup[32];
    ctab_t     ctab;
+   uint32_t   encsize;
 
 // Same as decode, just Dec/Enc reversed and a different search function
 
@@ -545,11 +558,12 @@ uint32_t struct2pkt(codecreq_t req) {
   req->Struct.status = 0;
 
   if (Ctx.entry) {
+    assert(Ctx.entry->numcoi);                              // Must have at least 1 instruction.
     Ctx.numc = Ctx.entry->numcoi;
     Ctx.codec = & ctab->CoI[Ctx.entry->coistart];
     intencode(& Ctx);
 
-    uint32_t encsize = (uint32_t) (Ctx.Dst.cur - Ctx.Dst.start);      // Size of the encoded packet.
+    encsize = (uint32_t) (Ctx.Dst.cur - Ctx.Dst.start);     // Size of the encoded packet.
 
     if (isActive(& Ctx)) {
       if (type_EVT == req->Pkt.buf[0]) {

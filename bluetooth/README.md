@@ -75,3 +75,8 @@ structure and 2 API functions.
 All the other
 files contain internals only and some stuff used during the generation of
 the tables themselves.
+
+The current codec tables are generated for a 32 bit little endian machine.
+If requested, I can provide them also for a 64 bit little endian machine.
+Generating them, including the byte swapping instructions for a big endian
+machine, would be possible to implement, but is currently not foreseen.
