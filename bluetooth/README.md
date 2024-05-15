@@ -68,15 +68,27 @@ hci-types-5.4.h header file.
 
 The encoder/decoder (currently) is only for the 5.4 Bluetooth specification.
 
-There is no sample code (yet) to demonstrate the use of the encoder/decoder
-but the public API that is in hci-codec.h is pretty straightforward; one
-structure and 2 API functions.
-
-All the other
-files contain internals only and some stuff used during the generation of
-the tables themselves.
-
 The current codec tables are generated for a 32 bit little endian machine.
 If requested, I can provide them also for a 64 bit little endian machine.
 Generating them, including the byte swapping instructions for a big endian
 machine, would be possible to implement, but is currently not foreseen.
+
+There is a small and simple sample application that shows the decoding and
+encoding steps.
+
+To build the sample code.
+
+```bash 
+$ cd codec
+$ gcc [-m32] -Os -fstack-protector -Wall -Werror -I . -I .. -o sample sample.c hci-codec.c hci-tables.c
+$ size sample
+  text           data     bss     dec     hex filename
+  9902            518       2   10422    28b6 sample
+$ ./sample
+```
+
+Since the tables are generated for use on a 32 bit (embedded) system, make sure the sample
+is compiled in 32 bit mode.
+
+So in a bit more than 10k of code size, all types can be properly encoded
+and decoded.
