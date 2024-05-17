@@ -14,6 +14,7 @@ typedef enum {
   CReq_too_Short = 3,             // Source input for decoding or encoding too short.
   CReq_bad_code  = 4,             // An internal coding error; generator issue.
   CReq_is_packed = 5,             // Structure is packed; nothing decoded.
+  CReq_null_ptr  = 6,             // Reading from a NULL pointer.
 } CodecReqStat_t;
 
 typedef struct CodecReq_t {

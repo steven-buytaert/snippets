@@ -130,10 +130,10 @@ static te_t codec4any(const uint8_t any[], uint32_t e4d, ctab_t tr[1]) {  // Sea
     if (type_EVT == type) {
       const HCI_Evt_t * evt = (const HCI_Evt_t *) any;
       if (0x0e == evt->code) {                              // Command Complete Event.
-        const CCEvt_t * cce = (const CCEvt_t *) any;
-        Key.OCF = cce->Opcode.OCF;
+        Opc.opcode = ru16(& any[4]);
+        Key.OCF = Opc.OCF;
         Key.isret = 1;                                      // Search for corresponding return structure.
-        ctab = opcode2tab(& cce->Opcode);
+        ctab = opcode2tab(& Opc);
         if (ctab) {
           tr[0] = ctab;
           fnd = search4te(ctab, & Key, cmpcmd);
@@ -176,18 +176,34 @@ static te_t codec4dec(const uint8_t pkt[], ctab_t tr[1]) {  // Search proper ent
 static void nocopy(void * dst, const void * src, uint32_t sz) { }
 
 static void docopy(void * dst, const void * src, uint32_t sz) {
-  memcpy(dst, src, sz);
+
+  if (sz) {
+    assert(dst && src);
+    memcpy(dst, src, sz);
+  }
+
 }
 
 static uint32_t isActive(cctx_t ctx) {
   return (ctx->ccopy == docopy) ? 1 : 0;
 }
 
+__attribute__((no_sanitize("undefined")))
 static void check4ReadFrom(cctx_t ctx, stream_t src, const uint8_t * from, uint32_t num) {
 
-  if (from + num > src->limit) {
-    ctx->ccopy = nocopy;
-    src->status[0] = CReq_too_Short;
+  if (num && isActive(ctx)) {
+    if (! from) {
+      ctx->ccopy = nocopy;
+      src->status[0] = CReq_null_ptr;
+    }
+    else if (from + num > src->limit) {
+      ctx->ccopy = nocopy;
+      src->status[0] = CReq_too_Short;
+    }
+    else if (from < src->start) {
+      ctx->ccopy = nocopy;
+      src->status[0] = CReq_OOB;
+    }
   }
 
 }
@@ -259,6 +275,7 @@ static void intdecode(cctx_t ctx) {                         // Internal decoder.
   uint8_t    actloop = 0xff;                                // Active loop index when not 0xff.
   
   for (CoI = *codec; codec < end; codec++, CoI = *codec) {  // Go over the instruction stream.
+    if (ctx->Src.status[0] || ctx->Dst.status[0]) break;    // Stop at error.
     if (CoI.inst) {                                         // An action to perform.
       switch (CoI.action) {
         case modif: {
@@ -299,7 +316,7 @@ static void intdecode(cctx_t ctx) {                         // Internal decoder.
           break;
         }
 
-        case loadloop: {
+        case loop: {
           count = *(ctx->Src.cur - 1);                      // Previous src byte is count.
           actloop++;                                        // Go to next loop level.
           assert(actloop < NUM(Loop));                      // Increase local capacity.
@@ -330,7 +347,7 @@ static void intdecode(cctx_t ctx) {                         // Internal decoder.
           break;
         }
 
-        case largecopy: {
+        case copyws: {
           copy(ctx, CoI2u16(codec + 1), CoI.arg);           // Next 2 bytes is size, argument is skip count.
           codec += 2;                                       // Skip size bytes.
           break;
@@ -381,6 +398,7 @@ static void intencode(cctx_t ctx) {                         // Internal encoder.
   uint32_t   add2cur = 0;
   
   for (CoI = *codec; codec < end; codec++, CoI = *codec) {  // Go over the instruction stream.
+    if (ctx->Src.status[0] || ctx->Dst.status[0]) break;    // Stop at error.
     if (CoI.inst) {                                         // An action to perform.
       switch (CoI.action) {
         case modif: {
@@ -417,7 +435,7 @@ static void intencode(cctx_t ctx) {                         // Internal encoder.
           break;
         }
 
-        case loadloop: {
+        case loop: {
           count = *(ctx->befskip - 1);                      // Just before skip, count was written.
           actloop++;                                        // Go to next loop level.
           assert(actloop < NUM(Loop));                      // Increase local capacity.
@@ -448,7 +466,7 @@ static void intencode(cctx_t ctx) {                         // Internal encoder.
           break;
         }
 
-        case largecopy: {
+        case copyws: {
           copy(ctx, CoI2u16(codec + 1), CoI.arg);           // Next 2 bytes is size, argument is skip count.
           codec += 2;                                       // Skip size bytes.
           break;

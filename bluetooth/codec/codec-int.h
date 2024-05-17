@@ -36,10 +36,10 @@ typedef union CoI_t {             // Copy or Instruction.
 typedef enum {                    // See the switch/case in de encoder and decoder.
   inlinefix         = 0b000,      // arg = byte width.
   laterfix          = 0b001,      // arg = byte width.
-  loadloop          = 0b010,      // arg = byte width.
+  loop              = 0b010,      // arg = byte width.
   endloop           = 0b011,
   modif             = 0b100,      // modifier; argument specifies the modification.
-  largecopy         = 0b101,      // arg now is skip count; read next 2 bytes for the size.
+  copyws            = 0b101,      // arg now is skip count; read next 2 bytes for the size.
   RFU               = 0b111,      // Reserved as escape; for future use.
 } CoI_Action_t;
 
