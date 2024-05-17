@@ -115,15 +115,16 @@ make snippet which is kind of obvious).
   clang -Wall -Werror -Os -I ./ -o sample sample.c resolvepath.c strlcpy-cat.c
   ```
 
-* bluetooth: header files that embodys the Bluetooth 5.3 and 5.4 
-  Host Controller Interface specifications commands and events that
+* bluetooth: header files that embodiess the Bluetooth 5.3 and 5.4 
+  Host Controller Interface specification commands and events that
   can be exchanged. The result of some experimenting with regular
   expressions on the specification text. The parser itself is too
   kludgy to release but the result could be useful for people that
   want to create a code generator for encoding/decoding HCI messages
   or test pattern generation, debugging, etc.
   There is a README in the folder itself and an embryonic encoder decoder
-  has been added in the codec folder.
+  has been added in the codec folder, together with some sample code on how
+  to use it.
 
 * u-locks: some proof of concept code of micro locking a linked list and
   manipulating it with several mutator threads. Uses optimistic
