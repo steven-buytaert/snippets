@@ -1,0 +1,6056 @@
+---
+- section: "7.1.8"
+  title: "Accept Connection Request command"
+  iscmd: true
+  OGF: 1
+  HCI_Accept_Connection_Request:
+    OCF: 9
+    HCI_Accept_Connection_Request_Cmd:
+      - BD_ADDR: 6
+      - Role: 1
+    Events:
+      - HCI_Command_Status:
+      - HCI_Connection_Complete:
+      - HCI_Synchronous_Connection_Complete:
+
+- section: "7.1.27"
+  title: "Accept Synchronous Connection Request command"
+  iscmd: true
+  OGF: 1
+  HCI_Accept_Synchronous_Connection_Request:
+    OCF: 41
+    HCI_Accept_Synchronous_Connection_Request_Cmd:
+      - BD_ADDR: 6
+      - Transmit_Bandwidth: 4
+      - Receive_Bandwidth: 4
+      - Max_Latency: 2
+      - Voice_Setting: 2
+      - Retransmission_Effort: 1
+      - Packet_Type: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_Synchronous_Connection_Complete:
+
+- section: "7.7.75"
+  title: "Authenticated Payload Timeout Expired event"
+  iscmd: false
+  HCI_Authenticated_Payload_Timeout_Expired:
+    code: 87
+    HCI_Authenticated_Payload_Timeout_Expired_Evt:
+      - Connection_Handle: 2
+
+- section: "7.7.6"
+  title: "Authentication Complete event"
+  iscmd: false
+  HCI_Authentication_Complete:
+    code: 6
+    HCI_Authentication_Complete_Evt:
+      - Status: 1
+      - Connection_Handle: 2
+
+- section: "7.1.15"
+  title: "Authentication Requested command"
+  iscmd: true
+  OGF: 1
+  HCI_Authentication_Requested:
+    OCF: 17
+    HCI_Authentication_Requested_Cmd:
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_Link_Key_Request:
+      - HCI_PIN_Code_Request:
+      - HCI_Authentication_Complete:
+
+- section: "7.1.17"
+  title: "Change Connection Link Key command"
+  iscmd: true
+  OGF: 1
+  HCI_Change_Connection_Link_Key:
+    OCF: 21
+    HCI_Change_Connection_Link_Key_Cmd:
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_Link_Key_Notification:
+      - HCI_Change_Connection_Link_Key_Complete:
+
+- section: "7.7.9"
+  title: "Change Connection Link Key Complete event"
+  iscmd: false
+  HCI_Change_Connection_Link_Key_Complete:
+    code: 9
+    HCI_Change_Connection_Link_Key_Complete_Evt:
+      - Status: 1
+      - Connection_Handle: 2
+
+- section: "7.1.14"
+  title: "Change Connection Packet Type command"
+  iscmd: true
+  OGF: 1
+  HCI_Change_Connection_Packet_Type:
+    OCF: 15
+    HCI_Change_Connection_Packet_Type_Cmd:
+      - Connection_Handle: 2
+      - Packet_Type: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_Connection_Packet_Type_Changed:
+
+- section: "7.7.14"
+  title: "Command Complete event"
+  iscmd: false
+  HCI_Command_Complete:
+    code: 14
+    HCI_Command_Complete_Evt:
+      - Num_HCI_Command_Packets: 1
+      - Command_Opcode: 2
+      - Return_Parameters: 1
+
+- section: "7.7.15"
+  title: "Command Status event"
+  iscmd: false
+  HCI_Command_Status:
+    code: 15
+    HCI_Command_Status_Evt:
+      - Status: 1
+      - Num_HCI_Command_Packets: 1
+      - Command_Opcode: 2
+
+- section: "7.3.101"
+  title: "Configure Data Path command"
+  iscmd: true
+  OGF: 3
+  HCI_Configure_Data_Path:
+    OCF: 131
+    HCI_Configure_Data_Path_Cmd:
+      - Data_Path_Direction: 1
+      - Data_Path_ID: 1
+      - Vendor_Specific_Config_Length: 1
+      - Vendor_Specific_Config: 1
+        ref2size: Vendor_Specific_Config_Length
+    HCI_Configure_Data_Path_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.3"
+  title: "Connection Complete event"
+  iscmd: false
+  HCI_Connection_Complete:
+    code: 3
+    HCI_Connection_Complete_Evt:
+      - Status: 1
+      - Connection_Handle: 2
+      - BD_ADDR: 6
+      - Link_Type: 1
+      - Encryption_Enabled: 1
+
+- section: "7.7.29"
+  title: "Connection Packet Type Changed event"
+  iscmd: false
+  HCI_Connection_Packet_Type_Changed:
+    code: 29
+    HCI_Connection_Packet_Type_Changed_Evt:
+      - Status: 1
+      - Connection_Handle: 2
+      - Packet_Type: 2
+
+- section: "7.7.4"
+  title: "Connection Request event"
+  iscmd: false
+  HCI_Connection_Request:
+    code: 4
+    HCI_Connection_Request_Evt:
+      - BD_ADDR: 6
+      - Class_Of_Device: 3
+      - Link_Type: 1
+
+- section: "7.7.73"
+  title: "Connectionless Peripheral Broadcast Channel Map Change event"
+  iscmd: false
+  HCI_Connectionless_Peripheral_Broadcast_Channel_Map_Change:
+    code: 85
+    HCI_Connectionless_Peripheral_Broadcast_Channel_Map_Change_Evt:
+      - Channel_Map: 10
+
+- section: "7.7.69"
+  title: "Connectionless Peripheral Broadcast Receive event"
+  iscmd: false
+  HCI_Connectionless_Peripheral_Broadcast_Receive:
+    code: 81
+    HCI_Connectionless_Peripheral_Broadcast_Receive_Evt:
+      - BD_ADDR: 6
+      - LT_ADDR: 1
+      - Clock: 4
+      - Offset: 4
+      - RX_Status: 1
+      - Fragment: 1
+      - Data_Length: 1
+      - Data: 1
+        ref2size: Data_Length
+
+- section: "7.7.70"
+  title: "Connectionless Peripheral Broadcast Timeout event"
+  iscmd: false
+  HCI_Connectionless_Peripheral_Broadcast_Timeout:
+    code: 82
+    HCI_Connectionless_Peripheral_Broadcast_Timeout_Evt:
+      - BD_ADDR: 6
+      - LT_ADDR: 1
+
+- section: "7.1.7"
+  title: "Create Connection Cancel command"
+  iscmd: true
+  OGF: 1
+  HCI_Create_Connection_Cancel:
+    OCF: 8
+    HCI_Create_Connection_Cancel_Cmd:
+      - BD_ADDR: 6
+    HCI_Create_Connection_Cancel_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+      - HCI_Connection_Complete:
+
+- section: "7.1.5"
+  title: "Create Connection command"
+  iscmd: true
+  OGF: 1
+  HCI_Create_Connection:
+    OCF: 5
+    HCI_Create_Connection_Cmd:
+      - BD_ADDR: 6
+      - Packet_Type: 2
+      - Page_Scan_Repetition_Mode: 1
+      - Reserved: 1
+      - Clock_Offset: 2
+      - Allow_Role_Switch: 1
+    Events:
+      - HCI_Command_Status:
+      - HCI_Connection_Complete:
+
+- section: "7.7.26"
+  title: "Data Buffer Overflow event"
+  iscmd: false
+  HCI_Data_Buffer_Overflow:
+    code: 26
+    HCI_Data_Buffer_Overflow_Evt:
+      - Link_Type: 1
+
+- section: "7.3.87"
+  title: "Delete Reserved LT_ADDR command"
+  iscmd: true
+  OGF: 3
+  HCI_Delete_Reserved_LT_ADDR:
+    OCF: 117
+    HCI_Delete_Reserved_LT_ADDR_Cmd:
+      - LT_ADDR: 1
+    HCI_Delete_Reserved_LT_ADDR_Ret:
+      - Status: 1
+      - LT_ADDR: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.10"
+  title: "Delete Stored Link Key command"
+  iscmd: true
+  OGF: 3
+  HCI_Delete_Stored_Link_Key:
+    OCF: 18
+    HCI_Delete_Stored_Link_Key_Cmd:
+      - BD_ADDR: 6
+      - Delete_All: 1
+    HCI_Delete_Stored_Link_Key_Ret:
+      - Status: 1
+      - Num_Keys_Deleted: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.1.6"
+  title: "Disconnect command"
+  iscmd: true
+  OGF: 1
+  HCI_Disconnect:
+    OCF: 6
+    HCI_Disconnect_Cmd:
+      - Connection_Handle: 2
+      - Reason: 1
+    Events:
+      - HCI_Command_Status:
+      - HCI_Disconnection_Complete:
+      - HCI_LE_CIS_Established:
+
+- section: "7.7.5"
+  title: "Disconnection Complete event"
+  iscmd: false
+  HCI_Disconnection_Complete:
+    code: 5
+    HCI_Disconnection_Complete_Evt:
+      - Status: 1
+      - Connection_Handle: 2
+      - Reason: 1
+
+- section: "7.6.3"
+  title: "Enable Device Under Test Mode command"
+  iscmd: true
+  OGF: 6
+  HCI_Enable_Device_Under_Test_Mode:
+    OCF: 3
+    HCI_Enable_Device_Under_Test_Mode_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.8"
+  title: "Encryption Change event"
+  iscmd: false
+  HCI_Encryption_Change__v2_:
+    code: 89
+    HCI_Encryption_Change__v2__Evt:
+      - Status: 1
+      - Connection_Handle: 2
+      - Encryption_Enabled: 1
+      - Encryption_Key_Size: 1
+  HCI_Encryption_Change__v1_:
+    code: 8
+    HCI_Encryption_Change__v1__Evt:
+      - Status: 1
+      - Connection_Handle: 2
+      - Encryption_Enabled: 1
+
+- section: "7.7.39"
+  title: "Encryption Key Refresh Complete event"
+  iscmd: false
+  HCI_Encryption_Key_Refresh_Complete:
+    code: 48
+    HCI_Encryption_Key_Refresh_Complete_Evt:
+      - Status: 1
+      - Connection_Handle: 2
+
+- section: "7.1.46"
+  title: "Enhanced Accept Synchronous Connection Request command"
+  iscmd: true
+  OGF: 1
+  HCI_Enhanced_Accept_Synchronous_Connection_Request:
+    OCF: 62
+    HCI_Enhanced_Accept_Synchronous_Connection_Request_Cmd:
+      - BD_ADDR: 6
+      - Transmit_Bandwidth: 4
+      - Receive_Bandwidth: 4
+      - Transmit_Coding_Format: 5
+      - Receive_Coding_Format: 5
+      - Transmit_Codec_Frame_Size: 2
+      - Receive_Codec_Frame_Size: 2
+      - Input_Bandwidth: 4
+      - Output_Bandwidth: 4
+      - Input_Coding_Format: 5
+      - Output_Coding_Format: 5
+      - Input_Coded_Data_Size: 2
+      - Output_Coded_Data_Size: 2
+      - Input_PCM_Data_Format: 1
+      - Output_PCM_Data_Format: 1
+      - Input_PCM_Sample_Payload_MSB_Position: 1
+      - Output_PCM_Sample_Payload_MSB_Position: 1
+      - Input_Data_Path: 1
+      - Output_Data_Path: 1
+      - Input_Transport_Unit_Size: 1
+      - Output_Transport_Unit_Size: 1
+      - Max_Latency: 2
+      - Packet_Type: 2
+      - Retransmission_Effort: 1
+    Events:
+      - HCI_Command_Status:
+      - HCI_Synchronous_Connection_Complete:
+
+- section: "7.3.66"
+  title: "Enhanced Flush command"
+  iscmd: true
+  OGF: 3
+  HCI_Enhanced_Flush:
+    OCF: 95
+    HCI_Enhanced_Flush_Cmd:
+      - Handle: 2
+      - Packet_Type: 1
+    Events:
+      - HCI_Command_Status:
+      - HCI_Enhanced_Flush_Complete:
+
+- section: "7.7.47"
+  title: "Enhanced Flush Complete event"
+  iscmd: false
+  HCI_Enhanced_Flush_Complete:
+    code: 57
+    HCI_Enhanced_Flush_Complete_Evt:
+      - Handle: 2
+
+- section: "7.1.45"
+  title: "Enhanced Setup Synchronous Connection command"
+  iscmd: true
+  OGF: 1
+  HCI_Enhanced_Setup_Synchronous_Connection:
+    OCF: 61
+    HCI_Enhanced_Setup_Synchronous_Connection_Cmd:
+      - Connection_Handle: 2
+      - Transmit_Bandwidth: 4
+      - Receive_Bandwidth: 4
+      - Transmit_Coding_Format: 5
+      - Receive_Coding_Format: 5
+      - Transmit_Codec_Frame_Size: 2
+      - Receive_Codec_Frame_Size: 2
+      - Input_Bandwidth: 4
+      - Output_Bandwidth: 4
+      - Input_Coding_Format: 5
+      - Output_Coding_Format: 5
+      - Input_Coded_Data_Size: 2
+      - Output_Coded_Data_Size: 2
+      - Input_PCM_Data_Format: 1
+      - Output_PCM_Data_Format: 1
+      - Input_PCM_Sample_Payload_MSB_Position: 1
+      - Output_PCM_Sample_Payload_MSB_Position: 1
+      - Input_Data_Path: 1
+      - Output_Data_Path: 1
+      - Input_Transport_Unit_Size: 1
+      - Output_Transport_Unit_Size: 1
+      - Max_Latency: 2
+      - Packet_Type: 2
+      - Retransmission_Effort: 1
+    Events:
+      - HCI_Command_Status:
+      - HCI_Synchronous_Connection_Complete:
+      - HCI_Connection_Complete:
+
+- section: "7.1.4"
+  title: "Exit Periodic Inquiry Mode command"
+  iscmd: true
+  OGF: 1
+  HCI_Exit_Periodic_Inquiry_Mode:
+    OCF: 4
+    HCI_Exit_Periodic_Inquiry_Mode_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+      - HCI_Inquiry_Complete:
+
+- section: "7.2.3"
+  title: "Exit Sniff Mode command"
+  iscmd: true
+  OGF: 2
+  HCI_Exit_Sniff_Mode:
+    OCF: 4
+    HCI_Exit_Sniff_Mode_Cmd:
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_Mode_Change:
+
+- section: "7.7.38"
+  title: "Extended Inquiry Result event"
+  iscmd: false
+  HCI_Extended_Inquiry_Result:
+    code: 47
+    HCI_Extended_Inquiry_Result_Evt:
+      - Num_Responses: 1
+      - BD_ADDR: 6
+      - Page_Scan_Repetition_Mode: 1
+      - Reserved: 1
+      - Class_Of_Device: 3
+      - Clock_Offset: 2
+      - RSSI: 1
+      - Extended_Inquiry_Response: 240
+
+- section: "7.2.13"
+  title: "Flow Specification command"
+  iscmd: true
+  OGF: 2
+  HCI_Flow_Specification:
+    OCF: 16
+    HCI_Flow_Specification_Cmd:
+      - Connection_Handle: 2
+      - Unused: 1
+      - Flow_Direction: 1
+      - Service_Type: 1
+      - Token_Rate: 4
+      - Token_Bucket_Size: 4
+      - Peak_Bandwidth: 4
+      - Access_Latency: 4
+    Events:
+      - HCI_Command_Status:
+      - HCI_Flow_Specification_Complete:
+      - HCI_QoS_Setup_Complete:
+
+- section: "7.7.32"
+  title: "Flow Specification Complete event"
+  iscmd: false
+  HCI_Flow_Specification_Complete:
+    code: 33
+    HCI_Flow_Specification_Complete_Evt:
+      - Status: 1
+      - Connection_Handle: 2
+      - Unused: 1
+      - Flow_Direction: 1
+      - Service_Type: 1
+      - Token_Rate: 4
+      - Token_Bucket_Size: 4
+      - Peak_Bandwidth: 4
+      - Access_Latency: 4
+
+- section: "7.3.4"
+  title: "Flush command"
+  iscmd: true
+  OGF: 3
+  HCI_Flush:
+    OCF: 8
+    HCI_Flush_Cmd:
+      - Connection_Handle: 2
+    HCI_Flush_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Flush_Occurred:
+      - HCI_Command_Complete:
+
+- section: "7.7.17"
+  title: "Flush Occurred event"
+  iscmd: false
+  HCI_Flush_Occurred:
+    code: 17
+    HCI_Flush_Occurred_Evt:
+      - Handle: 2
+
+- section: "7.5.11"
+  title: "Get MWS Transport Layer Configuration command"
+  iscmd: true
+  OGF: 5
+  HCI_Get_MWS_Transport_Layer_Configuration:
+    OCF: 12
+    HCI_Get_MWS_Transport_Layer_Configuration_Ret:
+      - Status: 1
+      - Num_Transports: 1
+      - Transport_Layer: 1
+        ref2size: Num_Transports
+      - Num_Baud_Rates: 1
+        ref2size: Num_Transports
+      - To_MWS_Baud_Rate: 4
+        ref2size: Num_Baud_Rates
+      - From_MWS_Baud_Rate: 4
+        ref2size: Num_Baud_Rates
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.16"
+  title: "Hardware Error event"
+  iscmd: false
+  HCI_Hardware_Error:
+    code: 16
+    HCI_Hardware_Error_Evt:
+      - Hardware_Code: 1
+
+- section: "7.2.1"
+  title: "Hold Mode command"
+  iscmd: true
+  OGF: 2
+  HCI_Hold_Mode:
+    OCF: 1
+    HCI_Hold_Mode_Cmd:
+      - Connection_Handle: 2
+      - Hold_Mode_Max_Interval: 2
+      - Hold_Mode_Min_Interval: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_Mode_Change:
+
+- section: "7.3.39"
+  title: "Host Buffer Size command"
+  iscmd: true
+  OGF: 3
+  HCI_Host_Buffer_Size:
+    OCF: 51
+    HCI_Host_Buffer_Size_Cmd:
+      - Host_ACL_Data_Packet_Length: 2
+      - Host_Synchronous_Data_Packet_Length: 1
+      - Host_Total_Num_ACL_Data_Packets: 2
+      - Host_Total_Num_Synchronous_Data_Packets: 2
+    HCI_Host_Buffer_Size_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.40"
+  title: "Host Number Of Completed Packets command"
+  iscmd: true
+  OGF: 3
+  HCI_Host_Number_Of_Completed_Packets:
+    OCF: 53
+    HCI_Host_Number_Of_Completed_Packets_Cmd:
+      - Num_Handles: 1
+      - Connection_Handle: 2
+        ref2size: Num_Handles
+      - Host_Num_Completed_Packets: 2
+        ref2size: Num_Handles
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.1.2"
+  title: "Inquiry Cancel command"
+  iscmd: true
+  OGF: 1
+  HCI_Inquiry_Cancel:
+    OCF: 2
+    HCI_Inquiry_Cancel_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+      - HCI_Inquiry_Complete:
+
+- section: "7.1.1"
+  title: "Inquiry command"
+  iscmd: true
+  OGF: 1
+  HCI_Inquiry:
+    OCF: 1
+    HCI_Inquiry_Cmd:
+      - LAP: 3
+      - Inquiry_Length: 1
+      - Num_Responses: 1
+    Events:
+      - HCI_Command_Status:
+      - HCI_Extended_Inquiry_Result:
+      - HCI_Inquiry_Complete:
+
+- section: "7.7.1"
+  title: "Inquiry Complete event"
+  iscmd: false
+  HCI_Inquiry_Complete:
+    code: 1
+    HCI_Inquiry_Complete_Evt:
+      - Status: 1
+
+- section: "7.7.74"
+  title: "Inquiry Response Notification event"
+  iscmd: false
+  HCI_Inquiry_Response_Notification:
+    code: 86
+    HCI_Inquiry_Response_Notification_Evt:
+      - LAP: 3
+      - RSSI: 1
+
+- section: "7.7.2"
+  title: "Inquiry Result event"
+  iscmd: false
+  HCI_Inquiry_Result:
+    code: 2
+    HCI_Inquiry_Result_Evt:
+      - Num_Responses: 1
+      - BD_ADDR: 6
+        ref2size: Num_Responses
+      - Page_Scan_Repetition_Mode: 1
+        ref2size: Num_Responses
+      - Reserved: 2
+        ref2size: Num_Responses
+      - Class_Of_Device: 3
+        ref2size: Num_Responses
+      - Clock_Offset: 2
+        ref2size: Num_Responses
+
+- section: "7.7.33"
+  title: "Inquiry Result with RSSI event"
+  iscmd: false
+  HCI_Inquiry_Result_with_RSSI:
+    code: 34
+    HCI_Inquiry_Result_with_RSSI_Evt:
+      - Num_Responses: 1
+      - BD_ADDR: 6
+        ref2size: Num_Responses
+      - Page_Scan_Repetition_Mode: 1
+        ref2size: Num_Responses
+      - Reserved: 1
+        ref2size: Num_Responses
+      - Class_Of_Device: 3
+        ref2size: Num_Responses
+      - Clock_Offset: 2
+        ref2size: Num_Responses
+      - RSSI: 1
+        ref2size: Num_Responses
+
+- section: "7.7.40"
+  title: "IO Capability Request event"
+  iscmd: false
+  HCI_IO_Capability_Request:
+    code: 49
+    HCI_IO_Capability_Request_Evt:
+      - BD_ADDR: 6
+
+- section: "7.1.36"
+  title: "IO Capability Request Negative Reply command"
+  iscmd: true
+  OGF: 1
+  HCI_IO_Capability_Request_Negative_Reply:
+    OCF: 52
+    HCI_IO_Capability_Request_Negative_Reply_Cmd:
+      - BD_ADDR: 6
+      - Reason: 1
+    HCI_IO_Capability_Request_Negative_Reply_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.1.29"
+  title: "IO Capability Request Reply command"
+  iscmd: true
+  OGF: 1
+  HCI_IO_Capability_Request_Reply:
+    OCF: 43
+    HCI_IO_Capability_Request_Reply_Cmd:
+      - BD_ADDR: 6
+      - IO_Capability: 1
+      - OOB_Data_Present: 1
+      - Authentication_Requirements: 1
+    HCI_IO_Capability_Request_Reply_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+      - HCI_IO_Capability_Response:
+      - HCI_Remote_OOB_Data_Request:
+
+- section: "7.7.41"
+  title: "IO Capability Response event"
+  iscmd: false
+  HCI_IO_Capability_Response:
+    code: 50
+    HCI_IO_Capability_Response_Evt:
+      - BD_ADDR: 6
+      - IO_Capability: 1
+      - OOB_Data_Present: 1
+      - Authentication_Requirements: 1
+
+- section: "7.7.49"
+  title: "Keypress Notification event"
+  iscmd: false
+  HCI_Keypress_Notification:
+    code: 60
+    HCI_Keypress_Notification_Evt:
+      - BD_ADDR: 6
+      - Notification_Type: 1
+
+- section: "7.8.101"
+  title: "LE Accept CIS Request command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Accept_CIS_Request:
+    OCF: 102
+    HCI_LE_Accept_CIS_Request_Cmd:
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_CIS_Established:
+
+- section: "7.8.16"
+  title: "LE Add Device To Filter Accept List command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Add_Device_To_Filter_Accept_List:
+    OCF: 17
+    HCI_LE_Add_Device_To_Filter_Accept_List_Cmd:
+      - Address_Type: 1
+      - Address: 6
+    HCI_LE_Add_Device_To_Filter_Accept_List_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.70"
+  title: "LE Add Device To Periodic Advertiser List command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Add_Device_To_Periodic_Advertiser_List:
+    OCF: 71
+    HCI_LE_Add_Device_To_Periodic_Advertiser_List_Cmd:
+      - Advertiser_Address_Type: 1
+      - Advertiser_Address: 6
+      - Advertising_SID: 1
+    HCI_LE_Add_Device_To_Periodic_Advertiser_List_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.38"
+  title: "LE Add Device To Resolving List command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Add_Device_To_Resolving_List:
+    OCF: 39
+    HCI_LE_Add_Device_To_Resolving_List_Cmd:
+      - Peer_Identity_Address_Type: 1
+      - Peer_Identity_Address: 6
+      - Peer_IRK: 16
+      - Local_IRK: 16
+    HCI_LE_Add_Device_To_Resolving_List_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.65.2"
+  title: "LE Advertising Report event"
+  iscmd: false
+  HCI_LE_Advertising_Report:
+    code: 62
+    HCI_LE_Advertising_Report_Evt:
+      - Subevent_Code: 1
+        value: 2
+      - Num_Reports: 1
+      - Event_Type: 1
+        ref2size: Num_Reports
+      - Address_Type: 1
+        ref2size: Num_Reports
+      - Address: 6
+        ref2size: Num_Reports
+      - Data_Length: 1
+        ref2size: Num_Reports
+      - Data: 1
+        ref2size: Data_Length
+      - RSSI: 1
+        ref2size: Num_Reports
+
+- section: "7.7.65.18"
+  title: "LE Advertising Set Terminated event"
+  iscmd: false
+  HCI_LE_Advertising_Set_Terminated:
+    code: 62
+    HCI_LE_Advertising_Set_Terminated_Evt:
+      - Subevent_Code: 1
+        value: 18
+      - Status: 1
+      - Advertising_Handle: 1
+      - Connection_Handle: 2
+      - Num_Completed_Extended_Advertising_Events: 1
+
+- section: "7.8.106"
+  title: "LE BIG Create Sync command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_BIG_Create_Sync:
+    OCF: 107
+    HCI_LE_BIG_Create_Sync_Cmd:
+      - BIG_Handle: 1
+      - Sync_Handle: 2
+      - Encryption: 1
+      - Broadcast_Code: 16
+      - MSE: 1
+      - BIG_Sync_Timeout: 2
+      - Num_BIS: 1
+      - BIS: 1
+        ref2size: Num_BIS
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_BIG_Sync_Established:
+
+- section: "7.7.65.29"
+  title: "LE BIG Sync Established event"
+  iscmd: false
+  HCI_LE_BIG_Sync_Established:
+    code: 62
+    HCI_LE_BIG_Sync_Established_Evt:
+      - Subevent_Code: 1
+        value: 29
+      - Status: 1
+      - BIG_Handle: 1
+      - Transport_Latency_BIG: 3
+      - NSE: 1
+      - BN: 1
+      - PTO: 1
+      - IRC: 1
+      - Max_PDU: 2
+      - ISO_Interval: 2
+      - Num_BIS: 1
+      - Connection_Handle: 2
+        ref2size: Num_BIS
+
+- section: "7.7.65.30"
+  title: "LE BIG Sync Lost event"
+  iscmd: false
+  HCI_LE_BIG_Sync_Lost:
+    code: 62
+    HCI_LE_BIG_Sync_Lost_Evt:
+      - Subevent_Code: 1
+        value: 30
+      - BIG_Handle: 1
+      - Reason: 1
+
+- section: "7.8.107"
+  title: "LE BIG Terminate Sync command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_BIG_Terminate_Sync:
+    OCF: 108
+    HCI_LE_BIG_Terminate_Sync_Cmd:
+      - BIG_Handle: 1
+    HCI_LE_BIG_Terminate_Sync_Ret:
+      - Status: 1
+      - BIG_Handle: 1
+    Events:
+      - HCI_Command_Complete:
+      - HCI_LE_BIG_Sync_Established:
+
+- section: "7.7.65.34"
+  title: "LE BIGInfo Advertising Report event"
+  iscmd: false
+  HCI_LE_BIGInfo_Advertising_Report:
+    code: 62
+    HCI_LE_BIGInfo_Advertising_Report_Evt:
+      - Subevent_Code: 1
+        value: 34
+      - Sync_Handle: 2
+      - Num_BIS: 1
+      - NSE: 1
+      - ISO_Interval: 2
+      - BN: 1
+      - PTO: 1
+      - IRC: 1
+      - Max_PDU: 2
+      - SDU_Interval: 3
+      - Max_SDU: 2
+      - PHY: 1
+      - Framing: 1
+      - Encryption: 1
+
+- section: "7.7.65.20"
+  title: "LE Channel Selection Algorithm event"
+  iscmd: false
+  HCI_LE_Channel_Selection_Algorithm:
+    code: 62
+    HCI_LE_Channel_Selection_Algorithm_Evt:
+      - Subevent_Code: 1
+        value: 20
+      - Connection_Handle: 2
+      - Channel_Selection_Algorithm: 1
+
+- section: "7.7.65.25"
+  title: "LE CIS Established event"
+  iscmd: false
+  HCI_LE_CIS_Established:
+    code: 62
+    HCI_LE_CIS_Established_Evt:
+      - Subevent_Code: 1
+        value: 25
+      - Status: 1
+      - Connection_Handle: 2
+      - CIG_Sync_Delay: 3
+      - CIS_Sync_Delay: 3
+      - Transport_Latency_C_To_P: 3
+      - Transport_Latency_P_To_C: 3
+      - PHY_C_To_P: 1
+      - PHY_P_To_C: 1
+      - NSE: 1
+      - BN_C_To_P: 1
+      - BN_P_To_C: 1
+      - FT_C_To_P: 1
+      - FT_P_To_C: 1
+      - Max_PDU_C_To_P: 2
+      - Max_PDU_P_To_C: 2
+      - ISO_Interval: 2
+
+- section: "7.7.65.26"
+  title: "LE CIS Request event"
+  iscmd: false
+  HCI_LE_CIS_Request:
+    code: 62
+    HCI_LE_CIS_Request_Evt:
+      - Subevent_Code: 1
+        value: 26
+      - ACL_Connection_Handle: 2
+      - CIS_Connection_Handle: 2
+      - CIG_ID: 1
+      - CIS_ID: 1
+
+- section: "7.8.60"
+  title: "LE Clear Advertising Sets command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Clear_Advertising_Sets:
+    OCF: 61
+    HCI_LE_Clear_Advertising_Sets_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.15"
+  title: "LE Clear Filter Accept List command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Clear_Filter_Accept_List:
+    OCF: 16
+    HCI_LE_Clear_Filter_Accept_List_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.72"
+  title: "LE Clear Periodic Advertiser List command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Clear_Periodic_Advertiser_List:
+    OCF: 73
+    HCI_LE_Clear_Periodic_Advertiser_List_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.40"
+  title: "LE Clear Resolving List command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Clear_Resolving_List:
+    OCF: 41
+    HCI_LE_Clear_Resolving_List_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.65.1"
+  title: "LE Connection Complete event"
+  iscmd: false
+  HCI_LE_Connection_Complete:
+    code: 62
+    HCI_LE_Connection_Complete_Evt:
+      - Subevent_Code: 1
+        value: 1
+      - Status: 1
+      - Connection_Handle: 2
+      - Role: 1
+      - Peer_Address_Type: 1
+      - Peer_Address: 6
+      - Connection_Interval: 2
+      - Peripheral_Latency: 2
+      - Supervision_Timeout: 2
+      - Central_Clock_Accuracy: 1
+
+- section: "7.8.85"
+  title: "LE Connection CTE Request Enable command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Connection_CTE_Request_Enable:
+    OCF: 86
+    HCI_LE_Connection_CTE_Request_Enable_Cmd:
+      - Connection_Handle: 2
+      - Enable: 1
+      - CTE_Request_Interval: 2
+      - Requested_CTE_Length: 1
+      - Requested_CTE_Type: 1
+    HCI_LE_Connection_CTE_Request_Enable_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+      - HCI_LE_Connection_IQ_Report:
+      - HCI_LE_CTE_Request_Failed:
+
+- section: "7.8.86"
+  title: "LE Connection CTE Response Enable command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Connection_CTE_Response_Enable:
+    OCF: 87
+    HCI_LE_Connection_CTE_Response_Enable_Cmd:
+      - Connection_Handle: 2
+      - Enable: 1
+    HCI_LE_Connection_CTE_Response_Enable_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.65.22"
+  title: "LE Connection IQ Report event"
+  iscmd: false
+  HCI_LE_Connection_IQ_Report:
+    code: 62
+    HCI_LE_Connection_IQ_Report_Evt:
+      - Subevent_Code: 1
+        value: 22
+      - Connection_Handle: 2
+      - RX_PHY: 1
+      - Data_Channel_Index: 1
+      - RSSI: 2
+      - RSSI_Antenna_ID: 1
+      - CTE_Type: 1
+      - Slot_Durations: 1
+      - Packet_Status: 1
+      - Connection_Event_Counter: 2
+      - Sample_Count: 1
+      - I_Sample: 1
+        ref2size: Sample_Count
+      - Q_Sample: 1
+        ref2size: Sample_Count
+
+- section: "7.8.18"
+  title: "LE Connection Update command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Connection_Update:
+    OCF: 19
+    HCI_LE_Connection_Update_Cmd:
+      - Connection_Handle: 2
+      - Connection_Interval_Min: 2
+      - Connection_Interval_Max: 2
+      - Max_Latency: 2
+      - Supervision_Timeout: 2
+      - Min_CE_Length: 2
+      - Max_CE_Length: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_Connection_Update_Complete:
+
+- section: "7.7.65.3"
+  title: "LE Connection Update Complete event"
+  iscmd: false
+  HCI_LE_Connection_Update_Complete:
+    code: 62
+    HCI_LE_Connection_Update_Complete_Evt:
+      - Subevent_Code: 1
+        value: 3
+      - Status: 1
+      - Connection_Handle: 2
+      - Connection_Interval: 2
+      - Peripheral_Latency: 2
+      - Supervision_Timeout: 2
+
+- section: "7.7.65.21"
+  title: "LE Connectionless IQ Report event"
+  iscmd: false
+  HCI_LE_Connectionless_IQ_Report:
+    code: 62
+    HCI_LE_Connectionless_IQ_Report_Evt:
+      - Subevent_Code: 1
+        value: 21
+      - Sync_Handle: 2
+      - Channel_Index: 1
+      - RSSI: 2
+      - RSSI_Antenna_ID: 1
+      - CTE_Type: 1
+      - Slot_Durations: 1
+      - Packet_Status: 1
+      - Periodic_Event_Counter: 2
+      - Sample_Count: 1
+      - I_Sample: 1
+        ref2size: Sample_Count
+      - Q_Sample: 1
+        ref2size: Sample_Count
+
+- section: "7.8.103"
+  title: "LE Create BIG command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Create_BIG:
+    OCF: 104
+    HCI_LE_Create_BIG_Cmd:
+      - BIG_Handle: 1
+      - Advertising_Handle: 1
+      - Num_BIS: 1
+      - SDU_Interval: 3
+      - Max_SDU: 2
+      - Max_Transport_Latency: 2
+      - RTN: 1
+      - PHY: 1
+      - Packing: 1
+      - Framing: 1
+      - Encryption: 1
+      - Broadcast_Code: 16
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_Create_BIG_Complete:
+
+- section: "7.7.65.27"
+  title: "LE Create BIG Complete event"
+  iscmd: false
+  HCI_LE_Create_BIG_Complete:
+    code: 62
+    HCI_LE_Create_BIG_Complete_Evt:
+      - Subevent_Code: 1
+        value: 27
+      - Status: 1
+      - BIG_Handle: 1
+      - BIG_Sync_Delay: 3
+      - Transport_Latency_BIG: 3
+      - PHY: 1
+      - NSE: 1
+      - BN: 1
+      - PTO: 1
+      - IRC: 1
+      - Max_PDU: 2
+      - ISO_Interval: 2
+      - Num_BIS: 1
+      - Connection_Handle: 2
+        ref2size: Num_BIS
+
+- section: "7.8.104"
+  title: "LE Create BIG Test command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Create_BIG_Test:
+    OCF: 105
+    HCI_LE_Create_BIG_Test_Cmd:
+      - BIG_Handle: 1
+      - Advertising_Handle: 1
+      - Num_BIS: 1
+      - SDU_Interval: 3
+      - ISO_Interval: 2
+      - NSE: 1
+      - Max_SDU: 2
+      - Max_PDU: 2
+      - PHY: 1
+      - Packing: 1
+      - Framing: 1
+      - BN: 1
+      - IRC: 1
+      - PTO: 1
+      - Encryption: 1
+      - Broadcast_Code: 16
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_Create_BIG_Complete:
+
+- section: "7.8.99"
+  title: "LE Create CIS command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Create_CIS:
+    OCF: 100
+    HCI_LE_Create_CIS_Cmd:
+      - CIS_Count: 1
+      - CIS_Connection_Handle: 2
+        ref2size: CIS_Count
+      - ACL_Connection_Handle: 2
+        ref2size: CIS_Count
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_CIS_Established:
+
+- section: "7.8.13"
+  title: "LE Create Connection Cancel command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Create_Connection_Cancel:
+    OCF: 14
+    HCI_LE_Create_Connection_Cancel_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+      - HCI_LE_Connection_Complete:
+      - HCI_LE_Enhanced_Connection_Complete [v2]:
+
+- section: "7.8.12"
+  title: "LE Create Connection command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Create_Connection:
+    OCF: 13
+    HCI_LE_Create_Connection_Cmd:
+      - LE_Scan_Interval: 2
+      - LE_Scan_Window: 2
+      - Initiator_Filter_Policy: 1
+      - Peer_Address_Type: 1
+      - Peer_Address: 6
+      - Own_Address_Type: 1
+      - Connection_Interval_Min: 2
+      - Connection_Interval_Max: 2
+      - Max_Latency: 2
+      - Supervision_Timeout: 2
+      - Min_CE_Length: 2
+      - Max_CE_Length: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_Connection_Complete:
+      - HCI_LE_Enhanced_Connection_Complete [v2]:
+      - HCI_LE_Channel_Selection_Algorithm:
+
+- section: "7.7.65.23"
+  title: "LE CTE Request Failed event"
+  iscmd: false
+  HCI_LE_CTE_Request_Failed:
+    code: 62
+    HCI_LE_CTE_Request_Failed_Evt:
+      - Subevent_Code: 1
+        value: 23
+      - Status: 1
+      - Connection_Handle: 2
+
+- section: "7.7.65.7"
+  title: "LE Data Length Change event"
+  iscmd: false
+  HCI_LE_Data_Length_Change:
+    code: 62
+    HCI_LE_Data_Length_Change_Evt:
+      - Subevent_Code: 1
+        value: 7
+      - Connection_Handle: 2
+      - Max_TX_Octets: 2
+      - Max_TX_Time: 2
+      - Max_RX_Octets: 2
+      - Max_RX_Time: 2
+
+- section: "7.7.65.11"
+  title: "LE Directed Advertising Report event"
+  iscmd: false
+  HCI_LE_Directed_Advertising_Report:
+    code: 62
+    HCI_LE_Directed_Advertising_Report_Evt:
+      - Subevent_Code: 1
+        value: 11
+      - Num_Reports: 1
+      - Event_Type: 1
+        ref2size: Num_Reports
+      - Address_Type: 1
+        ref2size: Num_Reports
+      - Address: 6
+        ref2size: Num_Reports
+      - Direct_Address_Type: 1
+        ref2size: Num_Reports
+      - Direct_Address: 6
+        ref2size: Num_Reports
+      - RSSI: 1
+        ref2size: Num_Reports
+
+- section: "7.8.24"
+  title: "LE Enable Encryption command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Enable_Encryption:
+    OCF: 25
+    HCI_LE_Enable_Encryption_Cmd:
+      - Connection_Handle: 2
+      - Random_Number: 8
+      - Encrypted_Diversifier: 2
+      - Long_Term_Key: 16
+    Events:
+      - HCI_Command_Status:
+      - HCI_Encryption_Change [v2]:
+      - HCI_Encryption_Key_Refresh_Complete:
+
+- section: "7.8.22"
+  title: "LE Encrypt command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Encrypt:
+    OCF: 23
+    HCI_LE_Encrypt_Cmd:
+      - Key: 16
+      - Plaintext_Data: 16
+    HCI_LE_Encrypt_Ret:
+      - Status: 1
+      - Encrypted_Data: 16
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.65.10"
+  title: "LE Enhanced Connection Complete event"
+  iscmd: false
+  HCI_LE_Enhanced_Connection_Complete__v2_:
+    code: 62
+    HCI_LE_Enhanced_Connection_Complete__v2__Evt:
+      - Subevent_Code: 1
+        value: 41
+      - Status: 1
+      - Connection_Handle: 2
+      - Role: 1
+      - Peer_Address_Type: 1
+      - Peer_Address: 6
+      - Local_Resolvable_Private_Address: 6
+      - Peer_Resolvable_Private_Address: 6
+      - Connection_Interval: 2
+      - Peripheral_Latency: 2
+      - Supervision_Timeout: 2
+      - Central_Clock_Accuracy: 1
+      - Advertising_Handle: 1
+      - Sync_Handle: 2
+  HCI_LE_Enhanced_Connection_Complete__v1_:
+    code: 62
+    HCI_LE_Enhanced_Connection_Complete__v1__Evt:
+      - Subevent_Code: 1
+        value: 10
+      - Status: 1
+      - Connection_Handle: 2
+      - Role: 1
+      - Peer_Address_Type: 1
+      - Peer_Address: 6
+      - Local_Resolvable_Private_Address: 6
+      - Peer_Resolvable_Private_Address: 6
+      - Connection_Interval: 2
+      - Peripheral_Latency: 2
+      - Supervision_Timeout: 2
+      - Central_Clock_Accuracy: 1
+
+- section: "7.8.117"
+  title: "LE Enhanced Read Transmit Power Level command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Enhanced_Read_Transmit_Power_Level:
+    OCF: 118
+    HCI_LE_Enhanced_Read_Transmit_Power_Level_Cmd:
+      - Connection_Handle: 2
+      - PHY: 1
+    HCI_LE_Enhanced_Read_Transmit_Power_Level_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+      - PHY: 1
+      - Current_TX_Power_Level: 1
+      - Max_TX_Power_Level: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.65.13"
+  title: "LE Extended Advertising Report event"
+  iscmd: false
+  HCI_LE_Extended_Advertising_Report:
+    code: 62
+    HCI_LE_Extended_Advertising_Report_Evt:
+      - Subevent_Code: 1
+        value: 13
+      - Num_Reports: 1
+      - Event_Type: 2
+        ref2size: Num_Reports
+      - Address_Type: 1
+        ref2size: Num_Reports
+      - Address: 6
+        ref2size: Num_Reports
+      - Primary_PHY: 1
+        ref2size: Num_Reports
+      - Secondary_PHY: 1
+        ref2size: Num_Reports
+      - Advertising_SID: 1
+        ref2size: Num_Reports
+      - TX_Power: 1
+        ref2size: Num_Reports
+      - RSSI: 1
+        ref2size: Num_Reports
+      - Periodic_Advertising_Interval: 2
+        ref2size: Num_Reports
+      - Direct_Address_Type: 1
+        ref2size: Num_Reports
+      - Direct_Address: 6
+        ref2size: Num_Reports
+      - Data_Length: 1
+        ref2size: Num_Reports
+      - Data: 1
+        ref2size: Data_Length
+
+- section: "7.8.66"
+  title: "LE Extended Create Connection command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Extended_Create_Connection__v2_:
+    OCF: 133
+    HCI_LE_Extended_Create_Connection__v2__Cmd:
+      - Advertising_Handle: 1
+      - Subevent: 1
+      - Initiator_Filter_Policy: 1
+      - Own_Address_Type: 1
+      - Peer_Address_Type: 1
+      - Peer_Address: 6
+      - Initiating_PHYs: 1
+      - Scan_Interval: 1
+        ref2size: Initiating_PHYs
+      - Scan_Window: 1
+        ref2size: Initiating_PHYs
+      - Connection_Interval_Min: 1
+        ref2size: Initiating_PHYs
+      - Connection_Interval_Max: 1
+        ref2size: Initiating_PHYs
+      - Max_Latency: 1
+        ref2size: Initiating_PHYs
+      - Supervision_Timeout: 1
+        ref2size: Initiating_PHYs
+      - Min_CE_Length: 1
+        ref2size: Initiating_PHYs
+      - Max_CE_Length: 1
+        ref2size: Initiating_PHYs
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_Enhanced_Connection_Complete [v2]:
+      - HCI_LE_Channel_Selection_Algorithm:
+  HCI_LE_Extended_Create_Connection__v1_:
+    OCF: 67
+    HCI_LE_Extended_Create_Connection__v1__Cmd:
+      - Initiator_Filter_Policy: 1
+      - Own_Address_Type: 1
+      - Peer_Address_Type: 1
+      - Peer_Address: 6
+      - Initiating_PHYs: 1
+      - Scan_Interval: 1
+        ref2size: Initiating_PHYs
+      - Scan_Window: 1
+        ref2size: Initiating_PHYs
+      - Connection_Interval_Min: 1
+        ref2size: Initiating_PHYs
+      - Connection_Interval_Max: 1
+        ref2size: Initiating_PHYs
+      - Max_Latency: 1
+        ref2size: Initiating_PHYs
+      - Supervision_Timeout: 1
+        ref2size: Initiating_PHYs
+      - Min_CE_Length: 1
+        ref2size: Initiating_PHYs
+      - Max_CE_Length: 1
+        ref2size: Initiating_PHYs
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_Enhanced_Connection_Complete [v2]:
+      - HCI_LE_Channel_Selection_Algorithm:
+
+- section: "7.8.37"
+  title: "LE Generate DHKey command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Generate_DHKey__v2_:
+    OCF: 94
+    HCI_LE_Generate_DHKey__v2__Cmd:
+      - Key_X_Coordinate: 32
+      - Key_Y_Coordinate: 32
+      - Key_Type: 1
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_Generate_DHKey_Complete:
+  HCI_LE_Generate_DHKey__v1_:
+    OCF: 38
+    HCI_LE_Generate_DHKey__v1__Cmd:
+      - Key_X_Coordinate: 32
+      - Key_Y_Coordinate: 32
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_Generate_DHKey_Complete:
+
+- section: "7.7.65.9"
+  title: "LE Generate DHKey Complete event"
+  iscmd: false
+  HCI_LE_Generate_DHKey_Complete:
+    code: 62
+    HCI_LE_Generate_DHKey_Complete_Evt:
+      - Subevent_Code: 1
+        value: 9
+      - Status: 1
+      - DH_Key: 32
+
+- section: "7.8.113"
+  title: "LE ISO Read Test Counters command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_ISO_Read_Test_Counters:
+    OCF: 114
+    HCI_LE_ISO_Read_Test_Counters_Cmd:
+      - Connection_Handle: 2
+    HCI_LE_ISO_Read_Test_Counters_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+      - Received_SDU_Count: 4
+      - Missed_SDU_Count: 4
+      - Failed_SDU_Count: 4
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.112"
+  title: "LE ISO Receive Test command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_ISO_Receive_Test:
+    OCF: 113
+    HCI_LE_ISO_Receive_Test_Cmd:
+      - Connection_Handle: 2
+      - Payload_Type: 1
+    HCI_LE_ISO_Receive_Test_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.114"
+  title: "LE ISO Test End command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_ISO_Test_End:
+    OCF: 115
+    HCI_LE_ISO_Test_End_Cmd:
+      - Connection_Handle: 2
+    HCI_LE_ISO_Test_End_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+      - Received_SDU_Count: 4
+      - Missed_SDU_Count: 4
+      - Failed_SDU_Count: 4
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.111"
+  title: "LE ISO Transmit Test command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_ISO_Transmit_Test:
+    OCF: 112
+    HCI_LE_ISO_Transmit_Test_Cmd:
+      - Connection_Handle: 2
+      - Payload_Type: 1
+    HCI_LE_ISO_Transmit_Test_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.65.5"
+  title: "LE Long Term Key Request event"
+  iscmd: false
+  HCI_LE_Long_Term_Key_Request:
+    code: 62
+    HCI_LE_Long_Term_Key_Request_Evt:
+      - Subevent_Code: 1
+        value: 5
+      - Connection_Handle: 2
+      - Random_Number: 8
+      - Encrypted_Diversifier: 2
+
+- section: "7.8.26"
+  title: "LE Long Term Key Request Negative Reply command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Long_Term_Key_Request_Negative_Reply:
+    OCF: 27
+    HCI_LE_Long_Term_Key_Request_Negative_Reply_Cmd:
+      - Connection_Handle: 2
+    HCI_LE_Long_Term_Key_Request_Negative_Reply_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.25"
+  title: "LE Long Term Key Request Reply command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Long_Term_Key_Request_Reply:
+    OCF: 26
+    HCI_LE_Long_Term_Key_Request_Reply_Cmd:
+      - Connection_Handle: 2
+      - Long_Term_Key: 16
+    HCI_LE_Long_Term_Key_Request_Reply_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.94"
+  title: "LE Modify Sleep Clock Accuracy command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Modify_Sleep_Clock_Accuracy:
+    OCF: 95
+    HCI_LE_Modify_Sleep_Clock_Accuracy_Cmd:
+      - Action: 1
+    HCI_LE_Modify_Sleep_Clock_Accuracy_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.65.32"
+  title: "LE Path Loss Threshold event"
+  iscmd: false
+  HCI_LE_Path_Loss_Threshold:
+    code: 62
+    HCI_LE_Path_Loss_Threshold_Evt:
+      - Subevent_Code: 1
+        value: 32
+      - Connection_Handle: 2
+      - Current_Path_Loss: 1
+      - Zone_Entered: 1
+
+- section: "7.8.68"
+  title: "LE Periodic Advertising Create Sync Cancel command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Periodic_Advertising_Create_Sync_Cancel:
+    OCF: 69
+    HCI_LE_Periodic_Advertising_Create_Sync_Cancel_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+      - HCI_LE_Periodic_Advertising_Sync_Established [v2]:
+
+- section: "7.8.67"
+  title: "LE Periodic Advertising Create Sync command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Periodic_Advertising_Create_Sync:
+    OCF: 68
+    HCI_LE_Periodic_Advertising_Create_Sync_Cmd:
+      - Options: 1
+      - Advertising_SID: 1
+      - Advertiser_Address_Type: 1
+      - Advertiser_Address: 6
+      - Skip: 2
+      - Sync_Timeout: 2
+      - Sync_CTE_Type: 1
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_Periodic_Advertising_Sync_Established [v2]:
+      - HCI_LE_Periodic_Advertising_Report [v2]:
+
+- section: "7.7.65.15"
+  title: "LE Periodic Advertising Report event"
+  iscmd: false
+  HCI_LE_Periodic_Advertising_Report__v2_:
+    code: 62
+    HCI_LE_Periodic_Advertising_Report__v2__Evt:
+      - Subevent_Code: 1
+        value: 37
+      - Sync_Handle: 2
+      - TX_Power: 1
+      - RSSI: 1
+      - CTE_Type: 1
+      - Periodic_Event_Counter: 2
+      - Subevent: 1
+      - Data_Status: 1
+      - Data_Length: 1
+      - Data: 1
+        ref2size: Data_Length
+  HCI_LE_Periodic_Advertising_Report__v1_:
+    code: 62
+    HCI_LE_Periodic_Advertising_Report__v1__Evt:
+      - Subevent_Code: 1
+        value: 15
+      - Sync_Handle: 2
+      - TX_Power: 1
+      - RSSI: 1
+      - CTE_Type: 1
+      - Data_Status: 1
+      - Data_Length: 1
+      - Data: 1
+        ref2size: Data_Length
+
+- section: "7.8.90"
+  title: "LE Periodic Advertising Set Info Transfer command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Periodic_Advertising_Set_Info_Transfer:
+    OCF: 91
+    HCI_LE_Periodic_Advertising_Set_Info_Transfer_Cmd:
+      - Connection_Handle: 2
+      - Service_Data: 2
+      - Advertising_Handle: 1
+    HCI_LE_Periodic_Advertising_Set_Info_Transfer_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.65.37"
+  title: "LE Periodic Advertising Response Report event"
+  iscmd: false
+  HCI_LE_Periodic_Advertising_Response_Report:
+    code: 62
+    HCI_LE_Periodic_Advertising_Response_Report_Evt:
+      - Subevent_Code: 1
+        value: 40
+      - Advertising_Handle: 1
+      - Subevent: 1
+      - Tx_Status: 1
+      - Num_Responses: 1
+      - Tx_Power: 1
+        ref2size: Num_Responses
+      - RSSI: 1
+        ref2size: Num_Responses
+      - CTE_Type: 1
+        ref2size: Num_Responses
+      - Response_Slot: 1
+        ref2size: Num_Responses
+      - Data_Status: 1
+        ref2size: Num_Responses
+      - Data_Length: 1
+        ref2size: Num_Responses
+      - Data: 1
+        ref2size: Data_Length
+
+- section: "7.7.65.36"
+  title: "LE Periodic Advertising Subevent Data Request event"
+  iscmd: false
+  HCI_LE_Periodic_Advertising_Subevent_Data_Request:
+    code: 62
+    HCI_LE_Periodic_Advertising_Subevent_Data_Request_Evt:
+      - Subevent_Code: 1
+        value: 39
+      - Advertising_Handle: 1
+      - Subevent_Start: 1
+      - Subevent_Data_Count: 1
+
+- section: "7.7.65.14"
+  title: "LE Periodic Advertising Sync Established event"
+  iscmd: false
+  HCI_LE_Periodic_Advertising_Sync_Established__v2_:
+    code: 62
+    HCI_LE_Periodic_Advertising_Sync_Established__v2__Evt:
+      - Subevent_Code: 1
+        value: 36
+      - Status: 1
+      - Sync_Handle: 2
+      - Advertising_SID: 1
+      - Advertiser_Address_Type: 1
+      - Advertiser_Address: 6
+      - Advertiser_PHY: 1
+      - Periodic_Advertising_Interval: 2
+      - Advertiser_Clock_Accuracy: 1
+      - Num_Subevents: 1
+      - Subevent_Interval: 1
+      - Response_Slot_Delay: 1
+      - Response_Slot_Spacing: 1
+  HCI_LE_Periodic_Advertising_Sync_Established__v1_:
+    code: 62
+    HCI_LE_Periodic_Advertising_Sync_Established__v1__Evt:
+      - Subevent_Code: 1
+        value: 14
+      - Status: 1
+      - Sync_Handle: 2
+      - Advertising_SID: 1
+      - Advertiser_Address_Type: 1
+      - Advertiser_Address: 6
+      - Advertiser_PHY: 1
+      - Periodic_Advertising_Interval: 2
+      - Advertiser_Clock_Accuracy: 1
+
+- section: "7.7.65.16"
+  title: "LE Periodic Advertising Sync Lost event"
+  iscmd: false
+  HCI_LE_Periodic_Advertising_Sync_Lost:
+    code: 62
+    HCI_LE_Periodic_Advertising_Sync_Lost_Evt:
+      - Subevent_Code: 1
+        value: 16
+      - Sync_Handle: 2
+
+- section: "7.8.89"
+  title: "LE Periodic Advertising Sync Transfer command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Periodic_Advertising_Sync_Transfer:
+    OCF: 90
+    HCI_LE_Periodic_Advertising_Sync_Transfer_Cmd:
+      - Connection_Handle: 2
+      - Service_Data: 2
+      - Sync_Handle: 2
+    HCI_LE_Periodic_Advertising_Sync_Transfer_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.65.24"
+  title: "LE Periodic Advertising Sync Transfer Received event"
+  iscmd: false
+  HCI_LE_Periodic_Advertising_Sync_Transfer_Received__v2_:
+    code: 62
+    HCI_LE_Periodic_Advertising_Sync_Transfer_Received__v2__Evt:
+      - Subevent_Code: 1
+        value: 38
+      - Status: 1
+      - Connection_Handle: 2
+      - Service_Data: 2
+      - Sync_Handle: 2
+      - Advertising_SID: 1
+      - Advertiser_Address_Type: 1
+      - Advertiser_Address: 6
+      - Advertiser_PHY: 1
+      - Periodic_Advertising_Interval: 2
+      - Advertiser_Clock_Accuracy: 1
+      - Num_Subevents: 1
+      - Subevent_Interval: 1
+      - Response_Slot_Delay: 1
+      - Response_Slot_Spacing: 1
+  HCI_LE_Periodic_Advertising_Sync_Transfer_Received__v1_:
+    code: 62
+    HCI_LE_Periodic_Advertising_Sync_Transfer_Received__v1__Evt:
+      - Subevent_Code: 1
+        value: 24
+      - Status: 1
+      - Connection_Handle: 2
+      - Service_Data: 2
+      - Sync_Handle: 2
+      - Advertising_SID: 1
+      - Advertiser_Address_Type: 1
+      - Advertiser_Address: 6
+      - Advertiser_PHY: 1
+      - Periodic_Advertising_Interval: 2
+      - Advertiser_Clock_Accuracy: 1
+
+- section: "7.8.69"
+  title: "LE Periodic Advertising Terminate Sync command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Periodic_Advertising_Terminate_Sync:
+    OCF: 70
+    HCI_LE_Periodic_Advertising_Terminate_Sync_Cmd:
+      - Sync_Handle: 2
+    HCI_LE_Periodic_Advertising_Terminate_Sync_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.65.12"
+  title: "LE PHY Update Complete event"
+  iscmd: false
+  HCI_LE_PHY_Update_Complete:
+    code: 62
+    HCI_LE_PHY_Update_Complete_Evt:
+      - Subevent_Code: 1
+        value: 12
+      - Status: 1
+      - Connection_Handle: 2
+      - TX_PHY: 1
+      - RX_PHY: 1
+
+- section: "7.8.23"
+  title: "LE Rand command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Rand:
+    OCF: 24
+    HCI_LE_Rand_Ret:
+      - Status: 1
+      - Random_Number: 8
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.6"
+  title: "LE Read Advertising Physical Channel Tx Power command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Advertising_Channel_Tx_Power:
+    OCF: 7
+    HCI_LE_Read_Advertising_Channel_Tx_Power_Ret:
+      - Status: 1
+      - TX_Power_Level: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.87"
+  title: "LE Read Antenna Information command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Antenna_Information:
+    OCF: 88
+    HCI_LE_Read_Antenna_Information_Ret:
+      - Status: 1
+      - Supported_Switching_Sampling_Rates: 1
+      - Num_Antennae: 1
+      - Max_Switching_Pattern_Length: 1
+      - Max_CTE_Length: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.2"
+  title: "LE Read Buffer Size command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Buffer_Size__v2_:
+    OCF: 96
+    HCI_LE_Read_Buffer_Size__v2__Ret:
+      - Status: 1
+      - LE_ACL_Data_Packet_Length: 2
+      - Total_Num_LE_ACL_Data_Packets: 1
+      - ISO_Data_Packet_Length: 2
+      - Total_Num_ISO_Data_Packets: 1
+    Events:
+      - HCI_Command_Complete:
+  HCI_LE_Read_Buffer_Size__v1_:
+    OCF: 2
+    HCI_LE_Read_Buffer_Size__v1__Ret:
+      - Status: 1
+      - LE_ACL_Data_Packet_Length: 2
+      - Total_Num_LE_ACL_Data_Packets: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.20"
+  title: "LE Read Channel Map command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Channel_Map:
+    OCF: 21
+    HCI_LE_Read_Channel_Map_Cmd:
+      - Connection_Handle: 2
+    HCI_LE_Read_Channel_Map_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+      - Channel_Map: 5
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.14"
+  title: "LE Read Filter Accept List Size command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Filter_Accept_List_Size:
+    OCF: 15
+    HCI_LE_Read_Filter_Accept_List_Size_Ret:
+      - Status: 1
+      - Filter_Accept_List_Size: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.116"
+  title: "LE Read ISO Link Quality command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_ISO_Link_Quality:
+    OCF: 117
+    HCI_LE_Read_ISO_Link_Quality_Cmd:
+      - Connection_Handle: 2
+    HCI_LE_Read_ISO_Link_Quality_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+      - TX_UnACKed_Packets: 4
+      - TX_Flushed_Packets: 4
+      - TX_Last_Subevent_Packets: 4
+      - Retransmitted_Packets: 4
+      - CRC_Error_Packets: 4
+      - RX_Unreceived_Packets: 4
+      - Duplicate_Packets: 4
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.96"
+  title: "LE Read ISO TX Sync command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_ISO_TX_Sync:
+    OCF: 97
+    HCI_LE_Read_ISO_TX_Sync_Cmd:
+      - Connection_Handle: 2
+    HCI_LE_Read_ISO_TX_Sync_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+      - Packet_Sequence_Number: 2
+      - TX_Time_Stamp: 4
+      - Time_Offset: 3
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.36"
+  title: "LE Read Local P-256 Public Key command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Local_P_256_Public_Key:
+    OCF: 37
+    Events:
+      - HCI_Command_Status:
+
+- section: "7.7.65.8"
+  title: "LE Read Local P-256 Public Key Complete event"
+  iscmd: false
+  HCI_LE_Read_Local_P_256_Public_Key_Complete:
+    code: 62
+    HCI_LE_Read_Local_P_256_Public_Key_Complete_Evt:
+      - Subevent_Code: 1
+        value: 8
+      - Status: 1
+      - Key_X_Coordinate: 32
+      - Key_Y_Coordinate: 32
+
+- section: "7.8.43"
+  title: "LE Read Local Resolvable Address command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Local_Resolvable_Address:
+    OCF: 44
+    HCI_LE_Read_Local_Resolvable_Address_Cmd:
+      - Peer_Identity_Address_Type: 1
+      - Peer_Identity_Address: 6
+    HCI_LE_Read_Local_Resolvable_Address_Ret:
+      - Status: 1
+      - Local_Resolvable_Address: 6
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.3"
+  title: "LE Read Local Supported Features command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Local_Supported_Features:
+    OCF: 3
+    HCI_LE_Read_Local_Supported_Features_Ret:
+      - Status: 1
+      - LE_Features: 8
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.57"
+  title: "LE Read Maximum Advertising Data Length command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Maximum_Advertising_Data_Length:
+    OCF: 58
+    HCI_LE_Read_Maximum_Advertising_Data_Length_Ret:
+      - Status: 1
+      - Max_Advertising_Data_Length: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.46"
+  title: "LE Read Maximum Data Length command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Maximum_Data_Length:
+    OCF: 47
+    HCI_LE_Read_Maximum_Data_Length_Ret:
+      - Status: 1
+      - Supported_Max_TX_Octets: 2
+      - Supported_Max_TX_Time: 2
+      - Supported_Max_RX_Octets: 2
+      - Supported_Max_RX_Time: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.58"
+  title: "LE Read Number of Supported Advertising Sets command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Number_of_Supported_Advertising_Sets:
+    OCF: 59
+    HCI_LE_Read_Number_of_Supported_Advertising_Sets_Ret:
+      - Status: 1
+      - Num_Supported_Advertising_Sets: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.42"
+  title: "LE Read Peer Resolvable Address command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Peer_Resolvable_Address:
+    OCF: 43
+    HCI_LE_Read_Peer_Resolvable_Address_Cmd:
+      - Peer_Identity_Address_Type: 1
+      - Peer_Identity_Address: 6
+    HCI_LE_Read_Peer_Resolvable_Address_Ret:
+      - Status: 1
+      - Peer_Resolvable_Address: 6
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.73"
+  title: "LE Read Periodic Advertiser List Size command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Periodic_Advertiser_List_Size:
+    OCF: 74
+    HCI_LE_Read_Periodic_Advertiser_List_Size_Ret:
+      - Status: 1
+      - Periodic_Advertiser_List_Size: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.47"
+  title: "LE Read PHY command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_PHY:
+    OCF: 48
+    HCI_LE_Read_PHY_Cmd:
+      - Connection_Handle: 2
+    HCI_LE_Read_PHY_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+      - TX_PHY: 1
+      - RX_PHY: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.21"
+  title: "LE Read Remote Features command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Remote_Features:
+    OCF: 22
+    HCI_LE_Read_Remote_Features_Cmd:
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_Read_Remote_Features_Complete:
+
+- section: "7.7.65.4"
+  title: "LE Read Remote Features Complete event"
+  iscmd: false
+  HCI_LE_Read_Remote_Features_Complete:
+    code: 62
+    HCI_LE_Read_Remote_Features_Complete_Evt:
+      - Subevent_Code: 1
+        value: 4
+      - Status: 1
+      - Connection_Handle: 2
+      - LE_Features: 8
+
+- section: "7.8.118"
+  title: "LE Read Remote Transmit Power Level command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Remote_Transmit_Power_Level:
+    OCF: 119
+    HCI_LE_Read_Remote_Transmit_Power_Level_Cmd:
+      - Connection_Handle: 2
+      - PHY: 1
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_Transmit_Power_Reporting:
+
+- section: "7.8.41"
+  title: "LE Read Resolving List Size command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Resolving_List_Size:
+    OCF: 42
+    HCI_LE_Read_Resolving_List_Size_Ret:
+      - Status: 1
+      - Resolving_List_Size: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.75"
+  title: "LE Read RF Path Compensation command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_RF_Path_Compensation:
+    OCF: 76
+    HCI_LE_Read_RF_Path_Compensation_Ret:
+      - Status: 1
+      - RF_TX_Path_Compensation_Value: 2
+      - RF_RX_Path_Compensation_Value: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.34"
+  title: "LE Read Suggested Default Data Length command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Suggested_Default_Data_Length:
+    OCF: 35
+    HCI_LE_Read_Suggested_Default_Data_Length_Ret:
+      - Status: 1
+      - Suggested_Max_TX_Octets: 2
+      - Suggested_Max_TX_Time: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.27"
+  title: "LE Read Supported States command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Supported_States:
+    OCF: 28
+    HCI_LE_Read_Supported_States_Ret:
+      - Status: 1
+      - LE_States: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.74"
+  title: "LE Read Transmit Power command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Read_Transmit_Power:
+    OCF: 75
+    HCI_LE_Read_Transmit_Power_Ret:
+      - Status: 1
+      - Min_TX_Power: 1
+      - Max_TX_Power: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.28"
+  title: "LE Receiver Test command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Receiver_Test__v3_:
+    OCF: 79
+    HCI_LE_Receiver_Test__v3__Cmd:
+      - RX_Channel: 1
+      - PHY: 1
+      - Modulation_Index: 1
+      - Expected_CTE_Length: 1
+      - Expected_CTE_Type: 1
+      - Slot_Durations: 1
+      - Switching_Pattern_Length: 1
+      - Antenna_IDs: 1
+        ref2size: Switching_Pattern_Length
+    HCI_LE_Receiver_Test__v3__Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+      - HCI_LE_Connectionless_IQ_Report:
+  HCI_LE_Receiver_Test__v2_:
+    OCF: 51
+    HCI_LE_Receiver_Test__v2__Cmd:
+      - RX_Channel: 1
+      - PHY: 1
+      - Modulation_Index: 1
+    HCI_LE_Receiver_Test__v2__Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+      - HCI_LE_Connectionless_IQ_Report:
+  HCI_LE_Receiver_Test__v1_:
+    OCF: 29
+    HCI_LE_Receiver_Test__v1__Cmd:
+      - RX_Channel: 1
+    HCI_LE_Receiver_Test__v1__Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+      - HCI_LE_Connectionless_IQ_Report:
+
+- section: "7.8.102"
+  title: "LE Reject CIS Request command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Reject_CIS_Request:
+    OCF: 103
+    HCI_LE_Reject_CIS_Request_Cmd:
+      - Connection_Handle: 2
+      - Reason: 1
+    HCI_LE_Reject_CIS_Request_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.65.6"
+  title: "LE Remote Connection Parameter Request event"
+  iscmd: false
+  HCI_LE_Remote_Connection_Parameter_Request:
+    code: 62
+    HCI_LE_Remote_Connection_Parameter_Request_Evt:
+      - Subevent_Code: 1
+        value: 6
+      - Connection_Handle: 2
+      - Interval_Min: 2
+      - Interval_Max: 2
+      - Max_Latency: 2
+      - Timeout: 2
+
+- section: "7.8.32"
+  title: "LE Remote Connection Parameter Request Negative Reply command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Remote_Connection_Parameter_Request_Negative_Reply:
+    OCF: 33
+    HCI_LE_Remote_Connection_Parameter_Request_Negative_Reply_Cmd:
+      - Connection_Handle: 2
+      - Reason: 1
+    HCI_LE_Remote_Connection_Parameter_Request_Negative_Reply_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.31"
+  title: "LE Remote Connection Parameter Request Reply command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Remote_Connection_Parameter_Request_Reply:
+    OCF: 32
+    HCI_LE_Remote_Connection_Parameter_Request_Reply_Cmd:
+      - Connection_Handle: 2
+      - Interval_Min: 2
+      - Interval_Max: 2
+      - Max_Latency: 2
+      - Timeout: 2
+      - Min_CE_Length: 2
+      - Max_CE_Length: 2
+    HCI_LE_Remote_Connection_Parameter_Request_Reply_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.59"
+  title: "LE Remove Advertising Set command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Remove_Advertising_Set:
+    OCF: 60
+    HCI_LE_Remove_Advertising_Set_Cmd:
+      - Advertising_Handle: 1
+    HCI_LE_Remove_Advertising_Set_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.100"
+  title: "LE Remove CIG command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Remove_CIG:
+    OCF: 101
+    HCI_LE_Remove_CIG_Cmd:
+      - CIG_ID: 1
+    HCI_LE_Remove_CIG_Ret:
+      - Status: 1
+      - CIG_ID: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.17"
+  title: "LE Remove Device From Filter Accept List command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Remove_Device_From_Filter_Accept_List:
+    OCF: 18
+    HCI_LE_Remove_Device_From_Filter_Accept_List_Cmd:
+      - Address_Type: 1
+      - Address: 6
+    HCI_LE_Remove_Device_From_Filter_Accept_List_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.71"
+  title: "LE Remove Device From Periodic Advertiser List command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Remove_Device_From_Periodic_Advertiser_List:
+    OCF: 72
+    HCI_LE_Remove_Device_From_Periodic_Advertiser_List_Cmd:
+      - Advertiser_Address_Type: 1
+      - Advertiser_Address: 6
+      - Advertising_SID: 1
+    HCI_LE_Remove_Device_From_Periodic_Advertiser_List_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.39"
+  title: "LE Remove Device From Resolving List command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Remove_Device_From_Resolving_List:
+    OCF: 40
+    HCI_LE_Remove_Device_From_Resolving_List_Cmd:
+      - Peer_Identity_Address_Type: 1
+      - Peer_Identity_Address: 6
+    HCI_LE_Remove_Device_From_Resolving_List_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.110"
+  title: "LE Remove ISO Data Path command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Remove_ISO_Data_Path:
+    OCF: 111
+    HCI_LE_Remove_ISO_Data_Path_Cmd:
+      - Connection_Handle: 2
+      - Data_Path_Direction: 1
+    HCI_LE_Remove_ISO_Data_Path_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.108"
+  title: "LE Request Peer SCA command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Request_Peer_SCA:
+    OCF: 109
+    HCI_LE_Request_Peer_SCA_Cmd:
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_Request_Peer_SCA_Complete:
+
+- section: "7.7.65.31"
+  title: "LE Request Peer SCA Complete event"
+  iscmd: false
+  HCI_LE_Request_Peer_SCA_Complete:
+    code: 62
+    HCI_LE_Request_Peer_SCA_Complete_Evt:
+      - Subevent_Code: 1
+        value: 31
+      - Status: 1
+      - Connection_Handle: 2
+      - Peer_Clock_Accuracy: 1
+
+- section: "7.7.65.19"
+  title: "LE Scan Request Received event"
+  iscmd: false
+  HCI_LE_Scan_Request_Received:
+    code: 62
+    HCI_LE_Scan_Request_Received_Evt:
+      - Subevent_Code: 1
+        value: 19
+      - Advertising_Handle: 1
+      - Scanner_Address_Type: 1
+      - Scanner_Address: 6
+
+- section: "7.7.65.17"
+  title: "LE Scan Timeout event"
+  iscmd: false
+  HCI_LE_Scan_Timeout:
+    code: 62
+    HCI_LE_Scan_Timeout_Evt:
+      - Subevent_Code: 1
+        value: 17
+
+- section: "7.8.44"
+  title: "LE Set Address Resolution Enable command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Address_Resolution_Enable:
+    OCF: 45
+    HCI_LE_Set_Address_Resolution_Enable_Cmd:
+      - Address_Resolution_Enable: 1
+    HCI_LE_Set_Address_Resolution_Enable_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.7"
+  title: "LE Set Advertising Data command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Advertising_Data:
+    OCF: 8
+    HCI_LE_Set_Advertising_Data_Cmd:
+      - Advertising_Data_Length: 1
+      - Advertising_Data: 31
+    HCI_LE_Set_Advertising_Data_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.9"
+  title: "LE Set Advertising Enable command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Advertising_Enable:
+    OCF: 10
+    HCI_LE_Set_Advertising_Enable_Cmd:
+      - Advertising_Enable: 1
+    HCI_LE_Set_Advertising_Enable_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+      - HCI_LE_Connection_Complete:
+      - HCI_LE_Enhanced_Connection_Complete [v2]:
+
+- section: "7.8.5"
+  title: "LE Set Advertising Parameters command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Advertising_Parameters:
+    OCF: 6
+    HCI_LE_Set_Advertising_Parameters_Cmd:
+      - Advertising_Interval_Min: 2
+      - Advertising_Interval_Max: 2
+      - Advertising_Type: 1
+      - Own_Address_Type: 1
+      - Peer_Address_Type: 1
+      - Peer_Address: 6
+      - Advertising_Channel_Map: 1
+      - Advertising_Filter_Policy: 1
+    HCI_LE_Set_Advertising_Parameters_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.52"
+  title: "LE Set Advertising Set Random Address command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Advertising_Set_Random_Address:
+    OCF: 53
+    HCI_LE_Set_Advertising_Set_Random_Address_Cmd:
+      - Advertising_Handle: 1
+      - Random_Address: 6
+    HCI_LE_Set_Advertising_Set_Random_Address_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.97"
+  title: "LE Set CIG Parameters command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_CIG_Parameters:
+    OCF: 98
+    HCI_LE_Set_CIG_Parameters_Cmd:
+      - CIG_ID: 1
+      - SDU_Interval_C_To_P: 3
+      - SDU_Interval_P_To_C: 3
+      - Worst_Case_SCA: 1
+      - Packing: 1
+      - Framing: 1
+      - Max_Transport_Latency_C_To_P: 2
+      - Max_Transport_Latency_P_To_C: 2
+      - CIS_Count: 1
+      - CIS_ID: 1
+        ref2size: CIS_Count
+      - Max_SDU_C_To_P: 2
+        ref2size: CIS_Count
+      - Max_SDU_P_To_C: 2
+        ref2size: CIS_Count
+      - PHY_C_To_P: 1
+        ref2size: CIS_Count
+      - PHY_P_To_C: 1
+        ref2size: CIS_Count
+      - RTN_C_To_P: 1
+        ref2size: CIS_Count
+      - RTN_P_To_C: 1
+        ref2size: CIS_Count
+    HCI_LE_Set_CIG_Parameters_Ret:
+      - Status: 1
+      - CIG_ID: 1
+      - CIS_Count: 1
+      - Connection_Handle: 2
+        ref2size: CIS_Count
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.98"
+  title: "LE Set CIG Parameters Test command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_CIG_Parameters_Test:
+    OCF: 99
+    HCI_LE_Set_CIG_Parameters_Test_Cmd:
+      - CIG_ID: 1
+      - SDU_Interval_C_To_P: 3
+      - SDU_Interval_P_To_C: 3
+      - FT_C_To_P: 1
+      - FT_P_To_C: 1
+      - ISO_Interval: 2
+      - Worst_Case_SCA: 1
+      - Packing: 1
+      - Framing: 1
+      - CIS_Count: 1
+      - CIS_ID: 1
+        ref2size: CIS_Count
+      - NSE: 1
+        ref2size: CIS_Count
+      - Max_SDU_C_To_P: 2
+        ref2size: CIS_Count
+      - Max_SDU_P_To_C: 2
+        ref2size: CIS_Count
+      - Max_PDU_C_To_P: 2
+        ref2size: CIS_Count
+      - Max_PDU_P_To_C: 2
+        ref2size: CIS_Count
+      - PHY_C_To_P: 1
+        ref2size: CIS_Count
+      - PHY_P_To_C: 1
+        ref2size: CIS_Count
+      - BN_C_To_P: 1
+        ref2size: CIS_Count
+      - BN_P_To_C: 1
+        ref2size: CIS_Count
+    HCI_LE_Set_CIG_Parameters_Test_Ret:
+      - Status: 1
+      - CIG_ID: 1
+      - CIS_Count: 1
+      - Connection_Handle: 2
+        ref2size: CIS_Count
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.83"
+  title: "LE Set Connection CTE Receive Parameters command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Connection_CTE_Receive_Parameters:
+    OCF: 84
+    HCI_LE_Set_Connection_CTE_Receive_Parameters_Cmd:
+      - Connection_Handle: 2
+      - Sampling_Enable: 1
+      - Slot_Durations: 1
+      - Switching_Pattern_Length: 1
+      - Antenna_IDs: 1
+        ref2size: Switching_Pattern_Length
+    HCI_LE_Set_Connection_CTE_Receive_Parameters_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.84"
+  title: "LE Set Connection CTE Transmit Parameters command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Connection_CTE_Transmit_Parameters:
+    OCF: 85
+    HCI_LE_Set_Connection_CTE_Transmit_Parameters_Cmd:
+      - Connection_Handle: 2
+      - CTE_Types: 1
+      - Switching_Pattern_Length: 1
+      - Antenna_IDs: 1
+        ref2size: Switching_Pattern_Length
+    HCI_LE_Set_Connection_CTE_Transmit_Parameters_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.81"
+  title: "LE Set Connectionless CTE Transmit Enable command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Connectionless_CTE_Transmit_Enable:
+    OCF: 82
+    HCI_LE_Set_Connectionless_CTE_Transmit_Enable_Cmd:
+      - Advertising_Handle: 1
+      - CTE_Enable: 1
+    HCI_LE_Set_Connectionless_CTE_Transmit_Enable_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.80"
+  title: "LE Set Connectionless CTE Transmit Parameters command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Connectionless_CTE_Transmit_Parameters:
+    OCF: 81
+    HCI_LE_Set_Connectionless_CTE_Transmit_Parameters_Cmd:
+      - Advertising_Handle: 1
+      - CTE_Length: 1
+      - CTE_Type: 1
+      - CTE_Count: 1
+      - Switching_Pattern_Length: 1
+      - Antenna_IDs: 1
+        ref2size: Switching_Pattern_Length
+    HCI_LE_Set_Connectionless_CTE_Transmit_Parameters_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.82"
+  title: "LE Set Connectionless IQ Sampling Enable command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Connectionless_IQ_Sampling_Enable:
+    OCF: 83
+    HCI_LE_Set_Connectionless_IQ_Sampling_Enable_Cmd:
+      - Sync_Handle: 2
+      - Sampling_Enable: 1
+      - Slot_Durations: 1
+      - Max_Sampled_CTEs: 1
+      - Switching_Pattern_Length: 1
+      - Antenna_IDs: 1
+        ref2size: Switching_Pattern_Length
+    HCI_LE_Set_Connectionless_IQ_Sampling_Enable_Ret:
+      - Status: 1
+      - Sync_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+      - HCI_LE_Connectionless_IQ_Report:
+
+- section: "7.8.33"
+  title: "LE Set Data Length command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Data_Length:
+    OCF: 34
+    HCI_LE_Set_Data_Length_Cmd:
+      - Connection_Handle: 2
+      - TX_Octets: 2
+      - TX_Time: 2
+    HCI_LE_Set_Data_Length_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+      - HCI_LE_Data_Length_Change:
+
+- section: "7.8.122"
+  title: "LE Set Data Related Address Changes command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Data_Related_Address_Changes:
+    OCF: 124
+    HCI_LE_Set_Data_Related_Address_Changes_Cmd:
+      - Advertising_Handle: 1
+      - Change_Reasons: 1
+    HCI_LE_Set_Data_Related_Address_Changes_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.92"
+  title: "LE Set Default Periodic Advertising Sync Transfer Parameters command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Default_Periodic_Advertising_Sync_Transfer_Parameters:
+    OCF: 93
+    HCI_LE_Set_Default_Periodic_Advertising_Sync_Transfer_Parameters_Cmd:
+      - Mode: 1
+      - Skip: 2
+      - Sync_Timeout: 2
+      - CTE_Type: 1
+    HCI_LE_Set_Default_Periodic_Advertising_Sync_Transfer_Parameters_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.48"
+  title: "LE Set Default PHY command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Default_PHY:
+    OCF: 49
+    HCI_LE_Set_Default_PHY_Cmd:
+      - All_PHYs: 1
+      - TX_PHYs: 1
+      - RX_PHYs: 1
+    HCI_LE_Set_Default_PHY_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.123"
+  title: "LE Set Default Subrate command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Default_Subrate:
+    OCF: 125
+    HCI_LE_Set_Default_Subrate_Cmd:
+      - Subrate_Min: 2
+      - Subrate_Max: 2
+      - Max_Latency: 2
+      - Continuation_Number: 2
+      - Supervision_Timeout: 2
+    HCI_LE_Set_Default_Subrate_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.1"
+  title: "LE Set Event Mask command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Event_Mask:
+    OCF: 1
+    HCI_LE_Set_Event_Mask_Cmd:
+      - LE_Event_Mask: 8
+    HCI_LE_Set_Event_Mask_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.54"
+  title: "LE Set Extended Advertising Data command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Extended_Advertising_Data:
+    OCF: 55
+    HCI_LE_Set_Extended_Advertising_Data_Cmd:
+      - Advertising_Handle: 1
+      - Operation: 1
+      - Fragment_Preference: 1
+      - Advertising_Data_Length: 1
+      - Advertising_Data: 1
+        ref2size: Advertising_Data_Length
+    HCI_LE_Set_Extended_Advertising_Data_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.56"
+  title: "LE Set Extended Advertising Enable command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Extended_Advertising_Enable:
+    OCF: 57
+    HCI_LE_Set_Extended_Advertising_Enable_Cmd:
+      - Enable: 1
+      - Num_Sets: 1
+      - Advertising_Handle: 1
+        ref2size: Num_Sets
+      - Duration: 2
+        ref2size: Num_Sets
+      - Max_Extended_Advertising_Events: 1
+        ref2size: Num_Sets
+    HCI_LE_Set_Extended_Advertising_Enable_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+      - HCI_LE_Advertising_Set_Terminated:
+      - HCI_LE_Connection_Complete:
+      - HCI_LE_Enhanced_Connection_Complete [v2]:
+      - HCI_LE_Channel_Selection_Algorithm:
+
+- section: "7.8.53"
+  title: "LE Set Extended Advertising Parameters command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Extended_Advertising_Parameters__v2_:
+    OCF: 127
+    HCI_LE_Set_Extended_Advertising_Parameters__v2__Cmd:
+      - Advertising_Handle: 1
+      - Advertising_Event_Properties: 2
+      - Primary_Advertising_Interval_Min: 3
+      - Primary_Advertising_Interval_Max: 3
+      - Primary_Advertising_Channel_Map: 1
+      - Own_Address_Type: 1
+      - Peer_Address_Type: 1
+      - Peer_Address: 6
+      - Advertising_Filter_Policy: 1
+      - Advertising_TX_Power: 1
+      - Primary_Advertising_PHY: 1
+      - Secondary_Advertising_Max_Skip: 1
+      - Secondary_Advertising_PHY: 1
+      - Advertising_SID: 1
+      - Scan_Request_Notification_Enable: 1
+      - Primary_Advertising_PHY_Options: 1
+      - Secondary_Advertising_PHY_Options: 1
+    HCI_LE_Set_Extended_Advertising_Parameters__v2__Ret:
+      - Status: 1
+      - Selected_TX_Power: 1
+    Events:
+      - HCI_Command_Complete:
+  HCI_LE_Set_Extended_Advertising_Parameters__v1_:
+    OCF: 54
+    HCI_LE_Set_Extended_Advertising_Parameters__v1__Cmd:
+      - Advertising_Handle: 1
+      - Advertising_Event_Properties: 2
+      - Primary_Advertising_Interval_Min: 3
+      - Primary_Advertising_Interval_Max: 3
+      - Primary_Advertising_Channel_Map: 1
+      - Own_Address_Type: 1
+      - Peer_Address_Type: 1
+      - Peer_Address: 6
+      - Advertising_Filter_Policy: 1
+      - Advertising_TX_Power: 1
+      - Primary_Advertising_PHY: 1
+      - Secondary_Advertising_Max_Skip: 1
+      - Secondary_Advertising_PHY: 1
+      - Advertising_SID: 1
+      - Scan_Request_Notification_Enable: 1
+    HCI_LE_Set_Extended_Advertising_Parameters__v1__Ret:
+      - Status: 1
+      - Selected_TX_Power: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.65"
+  title: "LE Set Extended Scan Enable command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Extended_Scan_Enable:
+    OCF: 66
+    HCI_LE_Set_Extended_Scan_Enable_Cmd:
+      - Enable: 1
+      - Filter_Duplicates: 1
+      - Duration: 2
+      - Period: 2
+    HCI_LE_Set_Extended_Scan_Enable_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+      - HCI_LE_Extended_Advertising_Report:
+      - HCI_LE_Scan_Timeout:
+
+- section: "7.8.64"
+  title: "LE Set Extended Scan Parameters command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Extended_Scan_Parameters:
+    OCF: 65
+    HCI_LE_Set_Extended_Scan_Parameters_Cmd:
+      - Own_Address_Type: 1
+      - Scanning_Filter_Policy: 1
+      - Scanning_PHYs: 1
+      - Scan_Type: 1
+        ref2size: Scanning_PHYs
+      - Scan_Interval: 1
+        ref2size: Scanning_PHYs
+      - Scan_Window: 1
+        ref2size: Scanning_PHYs
+    HCI_LE_Set_Extended_Scan_Parameters_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.55"
+  title: "LE Set Extended Scan Response Data command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Extended_Scan_Response_Data:
+    OCF: 56
+    HCI_LE_Set_Extended_Scan_Response_Data_Cmd:
+      - Advertising_Handle: 1
+      - Operation: 1
+      - Fragment_Preference: 1
+      - Scan_Response_Data_Length: 1
+      - Scan_Response_Data: 1
+        ref2size: Scan_Response_Data_Length
+    HCI_LE_Set_Extended_Scan_Response_Data_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.19"
+  title: "LE Set Host Channel Classification command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Host_Channel_Classification:
+    OCF: 20
+    HCI_LE_Set_Host_Channel_Classification_Cmd:
+      - Channel_Map: 5
+    HCI_LE_Set_Host_Channel_Classification_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.115"
+  title: "LE Set Host Feature command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Host_Feature:
+    OCF: 116
+    HCI_LE_Set_Host_Feature_Cmd:
+      - Bit_Number: 1
+      - Bit_Value: 1
+    HCI_LE_Set_Host_Feature_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.120"
+  title: "LE Set Path Loss Reporting Enable command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Path_Loss_Reporting_Enable:
+    OCF: 121
+    HCI_LE_Set_Path_Loss_Reporting_Enable_Cmd:
+      - Connection_Handle: 2
+      - Enable: 1
+    HCI_LE_Set_Path_Loss_Reporting_Enable_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+      - HCI_LE_Path_Loss_Threshold:
+
+- section: "7.8.119"
+  title: "LE Set Path Loss Reporting Parameters command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Path_Loss_Reporting_Parameters:
+    OCF: 120
+    HCI_LE_Set_Path_Loss_Reporting_Parameters_Cmd:
+      - Connection_Handle: 2
+      - High_Threshold: 1
+      - High_Hysteresis: 1
+      - Low_Threshold: 1
+      - Low_Hysteresis: 1
+      - Min_Time_Spent: 2
+    HCI_LE_Set_Path_Loss_Reporting_Parameters_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+      - HCI_LE_Path_Loss_Threshold:
+
+- section: "7.8.62"
+  title: "LE Set Periodic Advertising Data command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Periodic_Advertising_Data:
+    OCF: 63
+    HCI_LE_Set_Periodic_Advertising_Data_Cmd:
+      - Advertising_Handle: 1
+      - Operation: 1
+      - Advertising_Data_Length: 1
+      - Advertising_Data: 1
+        ref2size: Advertising_Data_Length
+    HCI_LE_Set_Periodic_Advertising_Data_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.63"
+  title: "LE Set Periodic Advertising Enable command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Periodic_Advertising_Enable:
+    OCF: 64
+    HCI_LE_Set_Periodic_Advertising_Enable_Cmd:
+      - Enable: 1
+      - Advertising_Handle: 1
+    HCI_LE_Set_Periodic_Advertising_Enable_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.61"
+  title: "LE Set Periodic Advertising Parameters command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Periodic_Advertising_Parameters__v2_:
+    OCF: 134
+    HCI_LE_Set_Periodic_Advertising_Parameters__v2__Cmd:
+      - Advertising_Handle: 1
+      - Periodic_Advertising_Interval_Min: 2
+      - Periodic_Advertising_Interval_Max: 2
+      - Periodic_Advertising_Properties: 2
+      - Num_Subevents: 1
+      - Subevent_Interval: 1
+      - Response_Slot_Delay: 1
+      - Response_Slot_Spacing: 1
+      - Num_Response_Slots: 1
+    HCI_LE_Set_Periodic_Advertising_Parameters__v2__Ret:
+      - Status: 1
+      - Advertising_Handle: 1
+    Events:
+      - HCI_Command_Complete:
+  HCI_LE_Set_Periodic_Advertising_Parameters__v1_:
+    OCF: 62
+    HCI_LE_Set_Periodic_Advertising_Parameters__v1__Cmd:
+      - Advertising_Handle: 1
+      - Periodic_Advertising_Interval_Min: 2
+      - Periodic_Advertising_Interval_Max: 2
+      - Periodic_Advertising_Properties: 2
+    HCI_LE_Set_Periodic_Advertising_Parameters__v1__Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.88"
+  title: "LE Set Periodic Advertising Receive Enable command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Periodic_Advertising_Receive_Enable:
+    OCF: 89
+    HCI_LE_Set_Periodic_Advertising_Receive_Enable_Cmd:
+      - Sync_Handle: 2
+      - Enable: 1
+    HCI_LE_Set_Periodic_Advertising_Receive_Enable_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.126"
+  title: "LE Set Periodic Advertising Response Data command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Periodic_Advertising_Response_Data:
+    OCF: 131
+    HCI_LE_Set_Periodic_Advertising_Response_Data_Cmd:
+      - Sync_Handle: 2
+      - Request_Event: 2
+      - Request_Subevent: 1
+      - Response_Subevent: 1
+      - Response_Slot: 1
+      - Response_Data_Length: 1
+      - Response_Data: 1
+        ref2size: Response_Data_Length
+    HCI_LE_Set_Periodic_Advertising_Response_Data_Ret:
+      - Status: 1
+      - Sync_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.125"
+  title: "LE Set Periodic Advertising Subevent Data command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Periodic_Advertising_Subevent_Data:
+    OCF: 130
+    HCI_LE_Set_Periodic_Advertising_Subevent_Data_Cmd:
+      - Advertising_Handle: 1
+      - Num_Subevents: 1
+      - Subevent: 1
+        ref2size: Num_Subevents
+      - Response_Slot_Start: 1
+        ref2size: Num_Subevents
+      - Response_Slot_Count: 1
+        ref2size: Num_Subevents
+      - Subevent_Data_Length: 1
+        ref2size: Num_Subevents
+      - Subevent_Data: 1
+        ref2size: Subevent_Data_Length
+    HCI_LE_Set_Periodic_Advertising_Subevent_Data_Ret:
+      - Status: 1
+      - Advertising_Handle: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.127"
+  title: "LE Set Periodic Sync Subevent command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Periodic_Sync_Subevent:
+    OCF: 132
+    HCI_LE_Set_Periodic_Sync_Subevent_Cmd:
+      - Sync_Handle: 2
+      - Periodic_Advertising_Properties: 2
+      - Num_Subevents: 1
+      - Subevent: 1
+        ref2size: Num_Subevents
+    HCI_LE_Set_Periodic_Sync_Subevent_Ret:
+      - Status: 1
+      - Sync_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.91"
+  title: "LE Set Periodic Advertising Sync Transfer Parameters command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Periodic_Advertising_Sync_Transfer_Parameters:
+    OCF: 92
+    HCI_LE_Set_Periodic_Advertising_Sync_Transfer_Parameters_Cmd:
+      - Connection_Handle: 2
+      - Mode: 1
+      - Skip: 2
+      - Sync_Timeout: 2
+      - CTE_Type: 1
+    HCI_LE_Set_Periodic_Advertising_Sync_Transfer_Parameters_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.49"
+  title: "LE Set PHY command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_PHY:
+    OCF: 50
+    HCI_LE_Set_PHY_Cmd:
+      - Connection_Handle: 2
+      - All_PHYs: 1
+      - TX_PHYs: 1
+      - RX_PHYs: 1
+      - PHY_Options: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_PHY_Update_Complete:
+
+- section: "7.8.77"
+  title: "LE Set Privacy Mode command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Privacy_Mode:
+    OCF: 78
+    HCI_LE_Set_Privacy_Mode_Cmd:
+      - Peer_Identity_Address_Type: 1
+      - Peer_Identity_Address: 6
+      - Privacy_Mode: 1
+    HCI_LE_Set_Privacy_Mode_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.4"
+  title: "LE Set Random Address command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Random_Address:
+    OCF: 5
+    HCI_LE_Set_Random_Address_Cmd:
+      - Random_Address: 6
+    HCI_LE_Set_Random_Address_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.45"
+  title: "LE Set Resolvable Private Address Timeout command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Resolvable_Private_Address_Timeout:
+    OCF: 46
+    HCI_LE_Set_Resolvable_Private_Address_Timeout_Cmd:
+      - RPA_Timeout: 2
+    HCI_LE_Set_Resolvable_Private_Address_Timeout_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.11"
+  title: "LE Set Scan Enable command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Scan_Enable:
+    OCF: 12
+    HCI_LE_Set_Scan_Enable_Cmd:
+      - LE_Scan_Enable: 1
+      - Filter_Duplicates: 1
+    HCI_LE_Set_Scan_Enable_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+      - HCI_LE_Advertising_Report:
+      - HCI_LE_Directed_Advertising_Report:
+
+- section: "7.8.10"
+  title: "LE Set Scan Parameters command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Scan_Parameters:
+    OCF: 11
+    HCI_LE_Set_Scan_Parameters_Cmd:
+      - LE_Scan_Type: 1
+      - LE_Scan_Interval: 2
+      - LE_Scan_Window: 2
+      - Own_Address_Type: 1
+      - Scanning_Filter_Policy: 1
+    HCI_LE_Set_Scan_Parameters_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.8"
+  title: "LE Set Scan Response Data command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Scan_Response_Data:
+    OCF: 9
+    HCI_LE_Set_Scan_Response_Data_Cmd:
+      - Scan_Response_Data_Length: 1
+      - Scan_Response_Data: 31
+    HCI_LE_Set_Scan_Response_Data_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.121"
+  title: "LE Set Transmit Power Reporting Enable command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Set_Transmit_Power_Reporting_Enable:
+    OCF: 122
+    HCI_LE_Set_Transmit_Power_Reporting_Enable_Cmd:
+      - Connection_Handle: 2
+      - Local_Enable: 1
+      - Remote_Enable: 1
+    HCI_LE_Set_Transmit_Power_Reporting_Enable_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+      - HCI_LE_Transmit_Power_Reporting:
+
+- section: "7.8.109"
+  title: "LE Setup ISO Data Path command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Setup_ISO_Data_Path:
+    OCF: 110
+    HCI_LE_Setup_ISO_Data_Path_Cmd:
+      - Connection_Handle: 2
+      - Data_Path_Direction: 1
+      - Data_Path_ID: 1
+      - Codec_ID: 5
+      - Controller_Delay: 3
+      - Codec_Configuration_Length: 1
+      - Codec_Configuration: 1
+        ref2size: Codec_Configuration_Length
+    HCI_LE_Setup_ISO_Data_Path_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.65.35"
+  title: "LE Subrate Change event"
+  iscmd: false
+  HCI_LE_Subrate_Change:
+    code: 62
+    HCI_LE_Subrate_Change_Evt:
+      - Subevent_Code: 1
+        value: 35
+      - Status: 1
+      - Connection_Handle: 2
+      - Subrate_Factor: 2
+      - Peripheral_Latency: 2
+      - Continuation_Number: 2
+      - Supervision_Timeout: 2
+
+- section: "7.8.124"
+  title: "LE Subrate Request command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Subrate_Request:
+    OCF: 126
+    HCI_LE_Subrate_Request_Cmd:
+      - Connection_Handle: 2
+      - Subrate_Min: 2
+      - Subrate_Max: 2
+      - Max_Latency: 2
+      - Continuation_Number: 2
+      - Supervision_Timeout: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_Subrate_Change:
+
+- section: "7.8.105"
+  title: "LE Terminate BIG command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Terminate_BIG:
+    OCF: 106
+    HCI_LE_Terminate_BIG_Cmd:
+      - BIG_Handle: 1
+      - Reason: 1
+    Events:
+      - HCI_Command_Status:
+      - HCI_LE_Terminate_BIG_Complete:
+      - HCI_LE_Create_BIG_Complete:
+
+- section: "7.7.65.28"
+  title: "LE Terminate BIG Complete event"
+  iscmd: false
+  HCI_LE_Terminate_BIG_Complete:
+    code: 62
+    HCI_LE_Terminate_BIG_Complete_Evt:
+      - Subevent_Code: 1
+        value: 28
+      - BIG_Handle: 1
+      - Reason: 1
+
+- section: "7.8.30"
+  title: "LE Test End command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Test_End:
+    OCF: 31
+    HCI_LE_Test_End_Ret:
+      - Status: 1
+      - Num_Packets: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.65.33"
+  title: "LE Transmit Power Reporting event"
+  iscmd: false
+  HCI_LE_Transmit_Power_Reporting:
+    code: 62
+    HCI_LE_Transmit_Power_Reporting_Evt:
+      - Subevent_Code: 1
+        value: 33
+      - Status: 1
+      - Connection_Handle: 2
+      - Reason: 1
+      - PHY: 1
+      - TX_Power_Level: 1
+      - TX_Power_Level_Flag: 1
+      - Delta: 1
+
+- section: "7.8.29"
+  title: "LE Transmitter Test command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Transmitter_Test__v4_:
+    OCF: 123
+    HCI_LE_Transmitter_Test__v4__Cmd:
+      - TX_Channel: 1
+      - Test_Data_Length: 1
+      - Packet_Payload: 1
+      - PHY: 1
+      - CTE_Length: 1
+      - CTE_Type: 1
+      - Switching_Pattern_Length: 1
+      - Antenna_IDs: 1
+        ref2size: Switching_Pattern_Length
+      - TX_Power_Level: 1
+    HCI_LE_Transmitter_Test__v4__Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+  HCI_LE_Transmitter_Test__v3_:
+    OCF: 80
+    HCI_LE_Transmitter_Test__v3__Cmd:
+      - TX_Channel: 1
+      - Test_Data_Length: 1
+      - Packet_Payload: 1
+      - PHY: 1
+      - CTE_Length: 1
+      - CTE_Type: 1
+      - Switching_Pattern_Length: 1
+      - Antenna_IDs: 1
+        ref2size: Switching_Pattern_Length
+    HCI_LE_Transmitter_Test__v3__Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+  HCI_LE_Transmitter_Test__v2_:
+    OCF: 52
+    HCI_LE_Transmitter_Test__v2__Cmd:
+      - TX_Channel: 1
+      - Test_Data_Length: 1
+      - Packet_Payload: 1
+      - PHY: 1
+    HCI_LE_Transmitter_Test__v2__Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+  HCI_LE_Transmitter_Test__v1_:
+    OCF: 30
+    HCI_LE_Transmitter_Test__v1__Cmd:
+      - TX_Channel: 1
+      - Test_Data_Length: 1
+      - Packet_Payload: 1
+    HCI_LE_Transmitter_Test__v1__Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.8.76"
+  title: "LE Write RF Path Compensation command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Write_RF_Path_Compensation:
+    OCF: 77
+    HCI_LE_Write_RF_Path_Compensation_Cmd:
+      - RF_TX_Path_Compensation_Value: 2
+      - RF_RX_Path_Compensation_Value: 2
+    HCI_LE_Write_RF_Path_Compensation_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+      - HCI_LE_Transmit_Power_Reporting:
+
+- section: "7.8.35"
+  title: "LE Write Suggested Default Data Length command"
+  iscmd: true
+  OGF: 8
+  HCI_LE_Write_Suggested_Default_Data_Length:
+    OCF: 36
+    HCI_LE_Write_Suggested_Default_Data_Length_Cmd:
+      - Suggested_Max_TX_Octets: 2
+      - Suggested_Max_TX_Time: 2
+    HCI_LE_Write_Suggested_Default_Data_Length_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.24"
+  title: "Link Key Notification event"
+  iscmd: false
+  HCI_Link_Key_Notification:
+    code: 24
+    HCI_Link_Key_Notification_Evt:
+      - BD_ADDR: 6
+      - Link_Key: 16
+      - Key_Type: 1
+
+- section: "7.7.23"
+  title: "Link Key Request event"
+  iscmd: false
+  HCI_Link_Key_Request:
+    code: 23
+    HCI_Link_Key_Request_Evt:
+      - BD_ADDR: 6
+
+- section: "7.1.11"
+  title: "Link Key Request Negative Reply command"
+  iscmd: true
+  OGF: 1
+  HCI_Link_Key_Request_Negative_Reply:
+    OCF: 12
+    HCI_Link_Key_Request_Negative_Reply_Cmd:
+      - BD_ADDR: 6
+    HCI_Link_Key_Request_Negative_Reply_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.1.10"
+  title: "Link Key Request Reply command"
+  iscmd: true
+  OGF: 1
+  HCI_Link_Key_Request_Reply:
+    OCF: 11
+    HCI_Link_Key_Request_Reply_Cmd:
+      - BD_ADDR: 6
+      - Link_Key: 16
+    HCI_Link_Key_Request_Reply_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.1.18"
+  title: "Link Key Selection command"
+  iscmd: true
+  OGF: 1
+  HCI_Link_Key_Selection:
+    OCF: 23
+    HCI_Link_Key_Selection_Cmd:
+      - Key_Flag: 1
+    Events:
+      - HCI_Command_Status:
+      - HCI_Link_Key_Type_Changed:
+
+- section: "7.7.10"
+  title: "Link Key Type Changed event"
+  iscmd: false
+  HCI_Link_Key_Type_Changed:
+    code: 10
+    HCI_Link_Key_Type_Changed_Evt:
+      - Status: 1
+      - Connection_Handle: 2
+      - Key_Flag: 1
+
+- section: "7.7.46"
+  title: "Link Supervision Timeout Changed event"
+  iscmd: false
+  HCI_Link_Supervision_Timeout_Changed:
+    code: 56
+    HCI_Link_Supervision_Timeout_Changed_Evt:
+      - Connection_Handle: 2
+      - Link_Supervision_Timeout: 2
+
+- section: "7.7.25"
+  title: "Loopback Command event"
+  iscmd: false
+  HCI_Loopback_Command:
+    code: 25
+    HCI_Loopback_Command_Evt:
+      - HCI_Command_Packet: 1
+
+- section: "7.7.27"
+  title: "Max Slots Change event"
+  iscmd: false
+  HCI_Max_Slots_Change:
+    code: 27
+    HCI_Max_Slots_Change_Evt:
+      - Connection_Handle: 2
+      - LMP_Max_Slots: 1
+
+- section: "7.7.20"
+  title: "Mode Change event"
+  iscmd: false
+  HCI_Mode_Change:
+    code: 20
+    HCI_Mode_Change_Evt:
+      - Status: 1
+      - Connection_Handle: 2
+      - Current_Mode: 1
+      - Interval: 2
+
+- section: "7.7.59"
+  title: "Number Of Completed Data Blocks event"
+  iscmd: false
+  HCI_Number_Of_Completed_Data_Blocks:
+    code: 72
+    HCI_Number_Of_Completed_Data_Blocks_Evt:
+      - Total_Num_Data_Blocks: 2
+      - Num_Handles: 1
+      - Connection_Handle: 2
+        ref2size: Num_Handles
+      - Num_Completed_Packets: 2
+        ref2size: Num_Handles
+      - Num_Completed_Blocks: 2
+        ref2size: Num_Handles
+
+- section: "7.7.19"
+  title: "Number Of Completed Packets event"
+  iscmd: false
+  HCI_Number_Of_Completed_Packets:
+    code: 19
+    HCI_Number_Of_Completed_Packets_Evt:
+      - Num_Handles: 1
+      - Connection_Handle: 2
+        ref2size: Num_Handles
+      - Num_Completed_Packets: 2
+        ref2size: Num_Handles
+
+- section: "7.7.31"
+  title: "Page Scan Repetition Mode Change event"
+  iscmd: false
+  HCI_Page_Scan_Repetition_Mode_Change:
+    code: 32
+    HCI_Page_Scan_Repetition_Mode_Change_Evt:
+      - BD_ADDR: 6
+      - Page_Scan_Repetition_Mode: 1
+
+- section: "7.1.3"
+  title: "Periodic Inquiry Mode command"
+  iscmd: true
+  OGF: 1
+  HCI_Periodic_Inquiry_Mode:
+    OCF: 3
+    HCI_Periodic_Inquiry_Mode_Cmd:
+      - Max_Period_Length: 2
+      - Min_Period_Length: 2
+      - LAP: 3
+      - Inquiry_Length: 1
+      - Num_Responses: 1
+    HCI_Periodic_Inquiry_Mode_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+      - HCI_Extended_Inquiry_Result:
+      - HCI_Inquiry_Complete:
+
+- section: "7.7.72"
+  title: "Peripheral Page Response Timeout event"
+  iscmd: false
+  HCI_Peripheral_Page_Response_Timeout:
+    code: 84
+
+- section: "7.7.22"
+  title: "PIN Code Request event"
+  iscmd: false
+  HCI_PIN_Code_Request:
+    code: 22
+    HCI_PIN_Code_Request_Evt:
+      - BD_ADDR: 6
+
+- section: "7.1.13"
+  title: "PIN Code Request Negative Reply command"
+  iscmd: true
+  OGF: 1
+  HCI_PIN_Code_Request_Negative_Reply:
+    OCF: 14
+    HCI_PIN_Code_Request_Negative_Reply_Cmd:
+      - BD_ADDR: 6
+    HCI_PIN_Code_Request_Negative_Reply_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.1.12"
+  title: "PIN Code Request Reply command"
+  iscmd: true
+  OGF: 1
+  HCI_PIN_Code_Request_Reply:
+    OCF: 13
+    HCI_PIN_Code_Request_Reply_Cmd:
+      - BD_ADDR: 6
+      - PIN_Code_Length: 1
+      - PIN_Code: 16
+    HCI_PIN_Code_Request_Reply_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.2.6"
+  title: "QoS Setup command"
+  iscmd: true
+  OGF: 2
+  HCI_QoS_Setup:
+    OCF: 7
+    HCI_QoS_Setup_Cmd:
+      - Connection_Handle: 2
+      - Unused: 1
+      - Service_Type: 1
+      - Token_Rate: 4
+      - Peak_Bandwidth: 4
+      - Latency: 4
+      - Delay_Variation: 4
+    Events:
+      - HCI_Command_Status:
+      - HCI_QoS_Setup_Complete:
+      - HCI_Flow_Specification_Complete:
+
+- section: "7.7.13"
+  title: "QoS Setup Complete event"
+  iscmd: false
+  HCI_QoS_Setup_Complete:
+    code: 13
+    HCI_QoS_Setup_Complete_Evt:
+      - Status: 1
+      - Connection_Handle: 2
+      - Unused: 1
+      - Service_Type: 1
+      - Token_Rate: 4
+      - Peak_Bandwidth: 4
+      - Latency: 4
+      - Delay_Variation: 4
+
+- section: "7.7.30"
+  title: "QoS Violation event"
+  iscmd: false
+  HCI_QoS_Violation:
+    code: 30
+    HCI_QoS_Violation_Evt:
+      - Handle: 2
+
+- section: "7.3.53"
+  title: "Read AFH Channel Assessment Mode command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_AFH_Channel_Assessment_Mode:
+    OCF: 72
+    HCI_Read_AFH_Channel_Assessment_Mode_Ret:
+      - Status: 1
+      - AFH_Channel_Assessment_Mode: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.5.5"
+  title: "Read AFH Channel Map command"
+  iscmd: true
+  OGF: 5
+  HCI_Read_AFH_Channel_Map:
+    OCF: 6
+    HCI_Read_AFH_Channel_Map_Cmd:
+      - Connection_Handle: 2
+    HCI_Read_AFH_Channel_Map_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+      - AFH_Mode: 1
+      - AFH_Channel_Map: 10
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.93"
+  title: "Read Authenticated Payload Timeout command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Authenticated_Payload_Timeout:
+    OCF: 123
+    HCI_Read_Authenticated_Payload_Timeout_Cmd:
+      - Connection_Handle: 2
+    HCI_Read_Authenticated_Payload_Timeout_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+      - Authenticated_Payload_Timeout: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.23"
+  title: "Read Authentication Enable command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Authentication_Enable:
+    OCF: 31
+    HCI_Read_Authentication_Enable_Ret:
+      - Status: 1
+      - Authentication_Enable: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.29"
+  title: "Read Automatic Flush Timeout command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Automatic_Flush_Timeout:
+    OCF: 39
+    HCI_Read_Automatic_Flush_Timeout_Cmd:
+      - Connection_Handle: 2
+    HCI_Read_Automatic_Flush_Timeout_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+      - Flush_Timeout: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.4.6"
+  title: "Read BD_ADDR command"
+  iscmd: true
+  OGF: 4
+  HCI_Read_BD_ADDR:
+    OCF: 9
+    HCI_Read_BD_ADDR_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.4.5"
+  title: "Read Buffer Size command"
+  iscmd: true
+  OGF: 4
+  HCI_Read_Buffer_Size:
+    OCF: 5
+    HCI_Read_Buffer_Size_Ret:
+      - Status: 1
+      - ACL_Data_Packet_Length: 2
+      - Synchronous_Data_Packet_Length: 1
+      - Total_Num_ACL_Data_Packets: 2
+      - Total_Num_Synchronous_Data_Packets: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.25"
+  title: "Read Class of Device command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Class_Of_Device:
+    OCF: 35
+    HCI_Read_Class_Of_Device_Ret:
+      - Status: 1
+      - Class_Of_Device: 3
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.5.6"
+  title: "Read Clock command"
+  iscmd: true
+  OGF: 5
+  HCI_Read_Clock:
+    OCF: 7
+    HCI_Read_Clock_Cmd:
+      - Connection_Handle: 2
+      - Which_Clock: 1
+    HCI_Read_Clock_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+      - Clock: 4
+      - Accuracy: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.1.24"
+  title: "Read Clock Offset command"
+  iscmd: true
+  OGF: 1
+  HCI_Read_Clock_Offset:
+    OCF: 31
+    HCI_Read_Clock_Offset_Cmd:
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_Read_Clock_Offset_Complete:
+
+- section: "7.7.28"
+  title: "Read Clock Offset Complete event"
+  iscmd: false
+  HCI_Read_Clock_Offset_Complete:
+    code: 28
+    HCI_Read_Clock_Offset_Complete_Evt:
+      - Status: 1
+      - Connection_Handle: 2
+      - Clock_Offset: 2
+
+- section: "7.3.13"
+  title: "Read Connection Accept Timeout command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Connection_Accept_Timeout:
+    OCF: 21
+    HCI_Read_Connection_Accept_Timeout_Ret:
+      - Status: 1
+      - Connection_Accept_Timeout: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.44"
+  title: "Read Current IAC LAP command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Current_IAC_LAP:
+    OCF: 57
+    HCI_Read_Current_IAC_LAP_Ret:
+      - Status: 1
+      - Num_Current_IAC: 1
+      - IAC_LAP: 3
+        ref2size: Num_Current_IAC
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.4.7"
+  title: "Read Data Block Size command"
+  iscmd: true
+  OGF: 4
+  HCI_Read_Data_Block_Size:
+    OCF: 10
+    HCI_Read_Data_Block_Size_Ret:
+      - Status: 1
+      - Max_ACL_Data_Packet_Length: 2
+      - Data_Block_Length: 2
+      - Total_Num_Data_Blocks: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.64"
+  title: "Read Default Erroneous Data Reporting command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Default_Erroneous_Data_Reporting:
+    OCF: 90
+    HCI_Read_Default_Erroneous_Data_Reporting_Ret:
+      - Status: 1
+      - Erroneous_Data_Reporting: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.2.11"
+  title: "Read Default Link Policy Settings command"
+  iscmd: true
+  OGF: 2
+  HCI_Read_Default_Link_Policy_Settings:
+    OCF: 14
+    HCI_Read_Default_Link_Policy_Settings_Ret:
+      - Status: 1
+      - Default_Link_Policy_Settings: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.5.7"
+  title: "Read Encryption Key Size command"
+  iscmd: true
+  OGF: 5
+  HCI_Read_Encryption_Key_Size:
+    OCF: 8
+    HCI_Read_Encryption_Key_Size_Cmd:
+      - Connection_Handle: 2
+    HCI_Read_Encryption_Key_Size_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+      - Key_Size: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.74"
+  title: "Read Enhanced Transmit Power Level command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Enhanced_Transmit_Power_Level:
+    OCF: 104
+    HCI_Read_Enhanced_Transmit_Power_Level_Cmd:
+      - Connection_Handle: 2
+      - Type: 1
+    HCI_Read_Enhanced_Transmit_Power_Level_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+      - TX_Power_Level_GFSK: 1
+      - TX_Power_Level_DQPSK: 1
+      - TX_Power_Level_8DPSK: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.98"
+  title: "Read Extended Inquiry Length command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Extended_Inquiry_Length:
+    OCF: 128
+    HCI_Read_Extended_Inquiry_Length_Ret:
+      - Status: 1
+      - Extended_Inquiry_Length: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.55"
+  title: "Read Extended Inquiry Response command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Extended_Inquiry_Response:
+    OCF: 81
+    HCI_Read_Extended_Inquiry_Response_Ret:
+      - Status: 1
+      - FEC_Required: 1
+      - Extended_Inquiry_Response: 240
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.96"
+  title: "Read Extended Page Timeout command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Extended_Page_Timeout:
+    OCF: 126
+    HCI_Read_Extended_Page_Timeout_Ret:
+      - Status: 1
+      - Extended_Page_Timeout: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.5.1"
+  title: "Read Failed Contact Counter command"
+  iscmd: true
+  OGF: 5
+  HCI_Read_Failed_Contact_Counter:
+    OCF: 1
+    HCI_Read_Failed_Contact_Counter_Cmd:
+      - Handle: 2
+    HCI_Read_Failed_Contact_Counter_Ret:
+      - Status: 1
+      - Handle: 2
+      - Failed_Contact_Counter: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.72"
+  title: "Read Flow Control Mode command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Flow_Control_Mode:
+    OCF: 102
+    HCI_Read_Flow_Control_Mode_Ret:
+      - Status: 1
+      - Flow_Control_Mode: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.33"
+  title: "Read Hold Mode Activity command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Hold_Mode_Activity:
+    OCF: 43
+    HCI_Read_Hold_Mode_Activity_Ret:
+      - Status: 1
+      - Hold_Mode_Activity: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.49"
+  title: "Read Inquiry Mode command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Inquiry_Mode:
+    OCF: 68
+    HCI_Read_Inquiry_Mode_Ret:
+      - Status: 1
+      - Inquiry_Mode: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.61"
+  title: "Read Inquiry Response Transmit Power Level command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Inquiry_Response_Transmit_Power_Level:
+    OCF: 88
+    HCI_Read_Inquiry_Response_Transmit_Power_Level_Ret:
+      - Status: 1
+      - TX_Power: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.21"
+  title: "Read Inquiry Scan Activity command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Inquiry_Scan_Activity:
+    OCF: 29
+    HCI_Read_Inquiry_Scan_Activity_Ret:
+      - Status: 1
+      - Inquiry_Scan_Interval: 2
+      - Inquiry_Scan_Window: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.47"
+  title: "Read Inquiry Scan Type command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Inquiry_Scan_Type:
+    OCF: 66
+    HCI_Read_Inquiry_Scan_Type_Ret:
+      - Status: 1
+      - Inquiry_Scan_Type: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.78"
+  title: "Read LE Host Support command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_LE_Host_Support:
+    OCF: 108
+    HCI_Read_LE_Host_Support_Ret:
+      - Status: 1
+      - LE_Supported_Host: 1
+      - Unused: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.2.9"
+  title: "Read Link Policy Settings command"
+  iscmd: true
+  OGF: 2
+  HCI_Read_Link_Policy_Settings:
+    OCF: 12
+    HCI_Read_Link_Policy_Settings_Cmd:
+      - Connection_Handle: 2
+    HCI_Read_Link_Policy_Settings_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+      - Link_Policy_Settings: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.5.3"
+  title: "Read Link Quality command"
+  iscmd: true
+  OGF: 5
+  HCI_Read_Link_Quality:
+    OCF: 3
+    HCI_Read_Link_Quality_Cmd:
+      - Handle: 2
+    HCI_Read_Link_Quality_Ret:
+      - Status: 1
+      - Handle: 2
+      - Link_Quality: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.41"
+  title: "Read Link Supervision Timeout command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Link_Supervision_Timeout:
+    OCF: 54
+    HCI_Read_Link_Supervision_Timeout_Cmd:
+      - Handle: 2
+    HCI_Read_Link_Supervision_Timeout_Ret:
+      - Status: 1
+      - Handle: 2
+      - Link_Supervision_Timeout: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.1.25"
+  title: "Read LMP Handle command"
+  iscmd: true
+  OGF: 1
+  HCI_Read_LMP_Handle:
+    OCF: 32
+    HCI_Read_LMP_Handle_Cmd:
+      - Connection_Handle: 2
+    HCI_Read_LMP_Handle_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+      - LMP_Handle: 1
+      - Reserved: 4
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.4.4"
+  title: "Read Local Extended Features command"
+  iscmd: true
+  OGF: 4
+  HCI_Read_Local_Extended_Features:
+    OCF: 4
+    HCI_Read_Local_Extended_Features_Cmd:
+      - Page_Number: 1
+    HCI_Read_Local_Extended_Features_Ret:
+      - Status: 1
+      - Page_Number: 1
+      - Max_Page_Number: 1
+      - Extended_LMP_Features: 8
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.12"
+  title: "Read Local Name command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Local_Name:
+    OCF: 20
+    HCI_Read_Local_Name_Ret:
+      - Status: 1
+      - Local_Name: 248
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.60"
+  title: "Read Local OOB Data command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Local_OOB_Data:
+    OCF: 87
+    HCI_Read_Local_OOB_Data_Ret:
+      - Status: 1
+      - C: 16
+      - R: 16
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.95"
+  title: "Read Local OOB Extended Data command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Local_OOB_Extended_Data:
+    OCF: 125
+    HCI_Read_Local_OOB_Extended_Data_Ret:
+      - Status: 1
+      - C_192: 16
+      - R_192: 16
+      - C_256: 16
+      - R_256: 16
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.4.9"
+  title: "Read Local Simple Pairing Options command"
+  iscmd: true
+  OGF: 4
+  HCI_Read_Local_Simple_Pairing_Options:
+    OCF: 12
+    HCI_Read_Local_Simple_Pairing_Options_Ret:
+      - Status: 1
+      - Simple_Pairing_Options: 1
+      - Max_Encryption_Key_Size: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.4.10"
+  title: "Read Local Supported Codec Capabilities command"
+  iscmd: true
+  OGF: 4
+  HCI_Read_Local_Supported_Codec_Capabilities:
+    OCF: 14
+    HCI_Read_Local_Supported_Codec_Capabilities_Cmd:
+      - Codec_ID: 5
+      - Logical_Transport_Type: 1
+      - Direction: 1
+    HCI_Read_Local_Supported_Codec_Capabilities_Ret:
+      - Status: 1
+      - Num_Codec_Capabilities: 1
+      - Codec_Capability_Length: 1
+        ref2size: Num_Codec_Capabilities
+      - Codec_Capability: 1
+        ref2size: Codec_Capability_Length
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.4.8"
+  title: "Read Local Supported Codecs command"
+  iscmd: true
+  OGF: 4
+  HCI_Read_Local_Supported_Codecs__v2_:
+    OCF: 13
+    HCI_Read_Local_Supported_Codecs__v2__Ret:
+      - Status: 1
+      - Num_Supported_Standard_Codecs: 1
+      - Standard_Codec_ID: 1
+        ref2size: Num_Supported_Standard_Codecs
+      - Standard_Codec_Transport: 1
+        ref2size: Num_Supported_Standard_Codecs
+      - Num_Supported_Vendor_Specific_Codecs: 1
+      - Vendor_Specific_Codec_ID: 1
+      - Vendor_Specific_Codec_Transport: 1
+    Events:
+      - HCI_Command_Complete:
+  HCI_Read_Local_Supported_Codecs__v1_:
+    OCF: 11
+    HCI_Read_Local_Supported_Codecs__v1__Ret:
+      - Status: 1
+      - Num_Supported_Standard_Codecs: 1
+      - Standard_Codec_ID: 1
+        ref2size: Num_Supported_Standard_Codecs
+      - Num_Supported_Vendor_Specific_Codecs: 1
+      - Vendor_Specific_Codec_ID: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.4.2"
+  title: "Read Local Supported Commands command"
+  iscmd: true
+  OGF: 4
+  HCI_Read_Local_Supported_Commands:
+    OCF: 2
+    HCI_Read_Local_Supported_Commands_Ret:
+      - Status: 1
+      - Supported_Commands: 64
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.4.11"
+  title: "Read Local Supported Controller Delay command"
+  iscmd: true
+  OGF: 4
+  HCI_Read_Local_Supported_Controller_Delay:
+    OCF: 15
+    HCI_Read_Local_Supported_Controller_Delay_Cmd:
+      - Codec_ID: 5
+      - Logical_Transport_Type: 1
+      - Direction: 1
+      - Codec_Configuration_Length: 1
+      - Codec_Configuration: 1
+        ref2size: Codec_Configuration_Length
+    HCI_Read_Local_Supported_Controller_Delay_Ret:
+      - Status: 1
+      - Min_Controller_Delay: 3
+      - Max_Controller_Delay: 3
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.4.3"
+  title: "Read Local Supported Features command"
+  iscmd: true
+  OGF: 4
+  HCI_Read_Local_Supported_Features:
+    OCF: 3
+    HCI_Read_Local_Supported_Features_Ret:
+      - Status: 1
+      - LMP_Features: 8
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.4.1"
+  title: "Read Local Version Information command"
+  iscmd: true
+  OGF: 4
+  HCI_Read_Local_Version_Information:
+    OCF: 1
+    HCI_Read_Local_Version_Information_Ret:
+      - Status: 1
+      - HCI_Version: 1
+      - HCI_Subversion: 2
+      - LMP_Version: 1
+      - Company_Identifier: 2
+      - LMP_Subversion: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.6.1"
+  title: "Read Loopback Mode command"
+  iscmd: true
+  OGF: 6
+  HCI_Read_Loopback_Mode:
+    OCF: 1
+    HCI_Read_Loopback_Mode_Ret:
+      - Status: 1
+      - Loopback_Mode: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.31"
+  title: "Read Num Broadcast Retransmissions command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Num_Broadcast_Retransmissions:
+    OCF: 41
+    HCI_Read_Num_Broadcast_Retransmissions_Ret:
+      - Status: 1
+      - Num_Broadcast_Retransmissions: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.43"
+  title: "Read Number Of Supported IAC command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Number_Of_Supported_IAC:
+    OCF: 56
+    HCI_Read_Number_Of_Supported_IAC_Ret:
+      - Status: 1
+      - Num_Supported_IAC: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.19"
+  title: "Read Page Scan Activity command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Page_Scan_Activity:
+    OCF: 27
+    HCI_Read_Page_Scan_Activity_Ret:
+      - Status: 1
+      - Page_Scan_Interval: 2
+      - Page_Scan_Window: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.51"
+  title: "Read Page Scan Type command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Page_Scan_Type:
+    OCF: 70
+    HCI_Read_Page_Scan_Type_Ret:
+      - Status: 1
+      - Page_Scan_Type: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.15"
+  title: "Read Page Timeout command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Page_Timeout:
+    OCF: 23
+    HCI_Read_Page_Timeout_Ret:
+      - Status: 1
+      - Page_Timeout: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.5"
+  title: "Read PIN Type command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_PIN_Type:
+    OCF: 9
+    HCI_Read_PIN_Type_Ret:
+      - Status: 1
+      - PIN_Type: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.1.22"
+  title: "Read Remote Extended Features command"
+  iscmd: true
+  OGF: 1
+  HCI_Read_Remote_Extended_Features:
+    OCF: 28
+    HCI_Read_Remote_Extended_Features_Cmd:
+      - Connection_Handle: 2
+      - Page_Number: 1
+    Events:
+      - HCI_Command_Status:
+      - HCI_Read_Remote_Extended_Features_Complete:
+
+- section: "7.7.34"
+  title: "Read Remote Extended Features Complete event"
+  iscmd: false
+  HCI_Read_Remote_Extended_Features_Complete:
+    code: 35
+    HCI_Read_Remote_Extended_Features_Complete_Evt:
+      - Status: 1
+      - Connection_Handle: 2
+      - Page_Number: 1
+      - Max_Page_Number: 1
+      - Extended_LMP_Features: 8
+
+- section: "7.1.21"
+  title: "Read Remote Supported Features command"
+  iscmd: true
+  OGF: 1
+  HCI_Read_Remote_Supported_Features:
+    OCF: 27
+    HCI_Read_Remote_Supported_Features_Cmd:
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_Read_Remote_Supported_Features_Complete:
+
+- section: "7.7.11"
+  title: "Read Remote Supported Features Complete event"
+  iscmd: false
+  HCI_Read_Remote_Supported_Features_Complete:
+    code: 11
+    HCI_Read_Remote_Supported_Features_Complete_Evt:
+      - Status: 1
+      - Connection_Handle: 2
+      - LMP_Features: 8
+
+- section: "7.1.23"
+  title: "Read Remote Version Information command"
+  iscmd: true
+  OGF: 1
+  HCI_Read_Remote_Version_Information:
+    OCF: 29
+    HCI_Read_Remote_Version_Information_Cmd:
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_Read_Remote_Version_Information_Complete:
+
+- section: "7.7.12"
+  title: "Read Remote Version Information Complete event"
+  iscmd: false
+  HCI_Read_Remote_Version_Information_Complete:
+    code: 12
+    HCI_Read_Remote_Version_Information_Complete_Evt:
+      - Status: 1
+      - Connection_Handle: 2
+      - Version: 1
+      - Company_Identifier: 2
+      - Subversion: 2
+
+- section: "7.5.4"
+  title: "Read RSSI command"
+  iscmd: true
+  OGF: 5
+  HCI_Read_RSSI:
+    OCF: 5
+    HCI_Read_RSSI_Cmd:
+      - Handle: 2
+    HCI_Read_RSSI_Ret:
+      - Status: 1
+      - Handle: 2
+      - RSSI: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.17"
+  title: "Read Scan Enable command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Scan_Enable:
+    OCF: 25
+    HCI_Read_Scan_Enable_Ret:
+      - Status: 1
+      - Scan_Enable: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.91"
+  title: "Read Secure Connections Host Support command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Secure_Connections_Host_Support:
+    OCF: 121
+    HCI_Read_Secure_Connections_Host_Support_Ret:
+      - Status: 1
+      - Secure_Connections_Host_Support: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.58"
+  title: "Read Simple Pairing Mode command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Simple_Pairing_Mode:
+    OCF: 85
+    HCI_Read_Simple_Pairing_Mode_Ret:
+      - Status: 1
+      - Simple_Pairing_Mode: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.8"
+  title: "Read Stored Link Key command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Stored_Link_Key:
+    OCF: 13
+    HCI_Read_Stored_Link_Key_Cmd:
+      - BD_ADDR: 6
+      - Read_All: 1
+    HCI_Read_Stored_Link_Key_Ret:
+      - Status: 1
+      - Max_Num_Keys: 2
+      - Num_Keys_Read: 2
+    Events:
+      - HCI_Return_Link_Keys:
+      - HCI_Command_Complete:
+
+- section: "7.3.89"
+  title: "Read Synchronization Train Parameters command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Synchronization_Train_Parameters:
+    OCF: 119
+    HCI_Read_Synchronization_Train_Parameters_Ret:
+      - Status: 1
+      - Sync_Train_Interval: 2
+      - Sync_Train_Timeout: 4
+      - Service_Data: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.36"
+  title: "Read Synchronous Flow Control Enable command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Synchronous_Flow_Control_Enable:
+    OCF: 46
+    HCI_Read_Synchronous_Flow_Control_Enable_Ret:
+      - Status: 1
+      - Synchronous_Flow_Control_Enable: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.35"
+  title: "Read Transmit Power Level command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Transmit_Power_Level:
+    OCF: 45
+    HCI_Read_Transmit_Power_Level_Cmd:
+      - Connection_Handle: 2
+      - Type: 1
+    HCI_Read_Transmit_Power_Level_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+      - TX_Power_Level: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.27"
+  title: "Read Voice Setting command"
+  iscmd: true
+  OGF: 3
+  HCI_Read_Voice_Setting:
+    OCF: 37
+    HCI_Read_Voice_Setting_Ret:
+      - Status: 1
+      - Voice_Setting: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.1.52"
+  title: "Receive Synchronization Train command"
+  iscmd: true
+  OGF: 1
+  HCI_Receive_Synchronization_Train:
+    OCF: 68
+    HCI_Receive_Synchronization_Train_Cmd:
+      - BD_ADDR: 6
+      - Sync_Scan_Timeout: 2
+      - Sync_Scan_Window: 2
+      - Sync_Scan_Interval: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_Synchronization_Train_Received:
+
+- section: "7.3.57"
+  title: "Refresh Encryption Key command"
+  iscmd: true
+  OGF: 3
+  HCI_Refresh_Encryption_Key:
+    OCF: 83
+    HCI_Refresh_Encryption_Key_Cmd:
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_Encryption_Key_Refresh_Complete:
+
+- section: "7.1.9"
+  title: "Reject Connection Request command"
+  iscmd: true
+  OGF: 1
+  HCI_Reject_Connection_Request:
+    OCF: 10
+    HCI_Reject_Connection_Request_Cmd:
+      - BD_ADDR: 6
+      - Reason: 1
+    Events:
+      - HCI_Command_Status:
+      - HCI_Connection_Complete:
+      - HCI_Synchronous_Connection_Complete:
+
+- section: "7.1.28"
+  title: "Reject Synchronous Connection Request command"
+  iscmd: true
+  OGF: 1
+  HCI_Reject_Synchronous_Connection_Request:
+    OCF: 42
+    HCI_Reject_Synchronous_Connection_Request_Cmd:
+      - BD_ADDR: 6
+      - Reason: 1
+    Events:
+      - HCI_Command_Status:
+      - HCI_Synchronous_Connection_Complete:
+
+- section: "7.7.50"
+  title: "Remote Host Supported Features Notification event"
+  iscmd: false
+  HCI_Remote_Host_Supported_Features_Notification:
+    code: 61
+    HCI_Remote_Host_Supported_Features_Notification_Evt:
+      - BD_ADDR: 6
+      - Host_Supported_Features: 8
+
+- section: "7.1.20"
+  title: "Remote Name Request Cancel command"
+  iscmd: true
+  OGF: 1
+  HCI_Remote_Name_Request_Cancel:
+    OCF: 26
+    HCI_Remote_Name_Request_Cancel_Cmd:
+      - BD_ADDR: 6
+    HCI_Remote_Name_Request_Cancel_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+      - HCI_Remote_Name_Request_Complete:
+
+- section: "7.1.19"
+  title: "Remote Name Request command"
+  iscmd: true
+  OGF: 1
+  HCI_Remote_Name_Request:
+    OCF: 25
+    HCI_Remote_Name_Request_Cmd:
+      - BD_ADDR: 6
+      - Page_Scan_Repetition_Mode: 1
+      - Reserved: 1
+      - Clock_Offset: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_Remote_Host_Supported_Features_Notification:
+      - HCI_Remote_Name_Request_Complete:
+
+- section: "7.7.7"
+  title: "Remote Name Request Complete event"
+  iscmd: false
+  HCI_Remote_Name_Request_Complete:
+    code: 7
+    HCI_Remote_Name_Request_Complete_Evt:
+      - Status: 1
+      - BD_ADDR: 6
+      - Remote_Name: 248
+
+- section: "7.7.44"
+  title: "Remote OOB Data Request event"
+  iscmd: false
+  HCI_Remote_OOB_Data_Request:
+    code: 53
+    HCI_Remote_OOB_Data_Request_Evt:
+      - BD_ADDR: 6
+
+- section: "7.1.35"
+  title: "Remote OOB Data Request Negative Reply command"
+  iscmd: true
+  OGF: 1
+  HCI_Remote_OOB_Data_Request_Negative_Reply:
+    OCF: 51
+    HCI_Remote_OOB_Data_Request_Negative_Reply_Cmd:
+      - BD_ADDR: 6
+    HCI_Remote_OOB_Data_Request_Negative_Reply_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.1.34"
+  title: "Remote OOB Data Request Reply command"
+  iscmd: true
+  OGF: 1
+  HCI_Remote_OOB_Data_Request_Reply:
+    OCF: 48
+    HCI_Remote_OOB_Data_Request_Reply_Cmd:
+      - BD_ADDR: 6
+      - C: 16
+      - R: 16
+    HCI_Remote_OOB_Data_Request_Reply_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.1.53"
+  title: "Remote OOB Extended Data Request Reply command"
+  iscmd: true
+  OGF: 1
+  HCI_Remote_OOB_Extended_Data_Request_Reply:
+    OCF: 69
+    HCI_Remote_OOB_Extended_Data_Request_Reply_Cmd:
+      - BD_ADDR: 6
+      - C_192: 16
+      - R_192: 16
+      - C_256: 16
+      - R_256: 16
+    HCI_Remote_OOB_Extended_Data_Request_Reply_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.2"
+  title: "Reset command"
+  iscmd: true
+  OGF: 3
+  HCI_Reset:
+    OCF: 3
+    HCI_Reset_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.5.2"
+  title: "Reset Failed Contact Counter command"
+  iscmd: true
+  OGF: 5
+  HCI_Reset_Failed_Contact_Counter:
+    OCF: 2
+    HCI_Reset_Failed_Contact_Counter_Cmd:
+      - Handle: 2
+    HCI_Reset_Failed_Contact_Counter_Ret:
+      - Status: 1
+      - Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.21"
+  title: "Return Link Keys event"
+  iscmd: false
+  HCI_Return_Link_Keys:
+    code: 21
+    HCI_Return_Link_Keys_Evt:
+      - Num_Keys: 1
+      - BD_ADDR: 6
+        ref2size: Num_Keys
+      - Link_Key: 16
+        ref2size: Num_Keys
+
+- section: "7.7.18"
+  title: "Role Change event"
+  iscmd: false
+  HCI_Role_Change:
+    code: 18
+    HCI_Role_Change_Evt:
+      - Status: 1
+      - BD_ADDR: 6
+      - New_Role: 1
+
+- section: "7.2.7"
+  title: "Role Discovery command"
+  iscmd: true
+  OGF: 2
+  HCI_Role_Discovery:
+    OCF: 9
+    HCI_Role_Discovery_Cmd:
+      - Connection_Handle: 2
+    HCI_Role_Discovery_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+      - Current_Role: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.76"
+  title: "SAM Status Change event"
+  iscmd: false
+  HCI_SAM_Status_Change:
+    code: 88
+    HCI_SAM_Status_Change_Evt:
+      - Connection_Handle: 2
+      - Local_SAM_Index: 1
+      - Local_SAM_TX_Availability: 1
+      - Local_SAM_RX_Availability: 1
+      - Remote_SAM_Index: 1
+      - Remote_SAM_TX_Availability: 1
+      - Remote_SAM_RX_Availability: 1
+
+- section: "7.3.63"
+  title: "Send Keypress Notification command"
+  iscmd: true
+  OGF: 3
+  HCI_Send_Keypress_Notification:
+    OCF: 96
+    HCI_Send_Keypress_Notification_Cmd:
+      - BD_ADDR: 6
+      - Notification_Type: 1
+    HCI_Send_Keypress_Notification_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.46"
+  title: "Set AFH Host Channel Classification command"
+  iscmd: true
+  OGF: 3
+  HCI_Set_AFH_Host_Channel_Classification:
+    OCF: 63
+    HCI_Set_AFH_Host_Channel_Classification_Cmd:
+      - AFH_Host_Channel_Classification: 10
+    HCI_Set_AFH_Host_Channel_Classification_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.1.16"
+  title: "Set Connection Encryption command"
+  iscmd: true
+  OGF: 1
+  HCI_Set_Connection_Encryption:
+    OCF: 19
+    HCI_Set_Connection_Encryption_Cmd:
+      - Connection_Handle: 2
+      - Encryption_Enable: 1
+    Events:
+      - HCI_Command_Status:
+      - HCI_Encryption_Change [v2]:
+
+- section: "7.1.49"
+  title: "Set Connectionless Peripheral Broadcast command"
+  iscmd: true
+  OGF: 1
+  HCI_Set_Connectionless_Peripheral_Broadcast:
+    OCF: 65
+    HCI_Set_Connectionless_Peripheral_Broadcast_Cmd:
+      - Enable: 1
+      - LT_ADDR: 1
+      - LPO_Allowed: 1
+      - Packet_Type: 2
+      - Interval_Min: 2
+      - Interval_Max: 2
+      - Supervision_Timeout: 2
+    HCI_Set_Connectionless_Peripheral_Broadcast_Ret:
+      - Status: 1
+      - LT_ADDR: 1
+      - Interval: 2
+    Events:
+      - HCI_Command_Complete:
+      - HCI_Connectionless_Peripheral_Broadcast_Timeout:
+
+- section: "7.3.88"
+  title: "Set Connectionless Peripheral Broadcast Data command"
+  iscmd: true
+  OGF: 3
+  HCI_Set_Connectionless_Peripheral_Broadcast_Data:
+    OCF: 118
+    HCI_Set_Connectionless_Peripheral_Broadcast_Data_Cmd:
+      - LT_ADDR: 1
+      - Fragment: 1
+      - Data_Length: 1
+      - Data: 1
+        ref2size: Data_Length
+    HCI_Set_Connectionless_Peripheral_Broadcast_Data_Ret:
+      - Status: 1
+      - LT_ADDR: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.1.50"
+  title: "Set Connectionless Peripheral Broadcast Receive command"
+  iscmd: true
+  OGF: 1
+  HCI_Set_Connectionless_Peripheral_Broadcast_Receive:
+    OCF: 66
+    HCI_Set_Connectionless_Peripheral_Broadcast_Receive_Cmd:
+      - Enable: 1
+      - BD_ADDR: 6
+      - LT_ADDR: 1
+      - Interval: 2
+      - Clock_Offset: 4
+      - Next_Connectionless_Peripheral_Broadcast_Clock: 4
+      - Supervision_Timeout: 2
+      - Remote_Timing_Accuracy: 1
+      - Skip: 1
+      - Packet_Type: 2
+      - AFH_Channel_Map: 10
+    HCI_Set_Connectionless_Peripheral_Broadcast_Receive_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+      - LT_ADDR: 1
+    Events:
+      - HCI_Command_Complete:
+      - HCI_Connectionless_Peripheral_Broadcast_Timeout:
+
+- section: "7.3.38"
+  title: "Set Controller To Host Flow Control command"
+  iscmd: true
+  OGF: 3
+  HCI_Set_Controller_To_Host_Flow_Control:
+    OCF: 49
+    HCI_Set_Controller_To_Host_Flow_Control_Cmd:
+      - Flow_Control_Enable: 1
+    HCI_Set_Controller_To_Host_Flow_Control_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.100"
+  title: "Set Ecosystem Base Interval command"
+  iscmd: true
+  OGF: 3
+  HCI_Set_Ecosystem_Base_Interval:
+    OCF: 130
+    HCI_Set_Ecosystem_Base_Interval_Cmd:
+      - Interval: 2
+    HCI_Set_Ecosystem_Base_Interval_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.3"
+  title: "Set Event Filter command"
+  iscmd: true
+  OGF: 3
+  HCI_Set_Event_Filter:
+    OCF: 5
+    HCI_Set_Event_Filter_Cmd:
+      - Filter_Type: 1
+      - Filter_Condition_Type: 1
+      - Condition: 7
+    HCI_Set_Event_Filter_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.1"
+  title: "Set Event Mask command"
+  iscmd: true
+  OGF: 3
+  HCI_Set_Event_Mask:
+    OCF: 1
+    HCI_Set_Event_Mask_Cmd:
+      - Event_Mask: 8
+    HCI_Set_Event_Mask_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.69"
+  title: "Set Event Mask Page 2 command"
+  iscmd: true
+  OGF: 3
+  HCI_Set_Event_Mask_Page_2:
+    OCF: 99
+    HCI_Set_Event_Mask_Page_2_Cmd:
+      - Event_Mask_Page_2: 8
+    HCI_Set_Event_Mask_Page_2_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.81"
+  title: "Set External Frame Configuration command"
+  iscmd: true
+  OGF: 3
+  HCI_Set_External_Frame_Configuration:
+    OCF: 111
+    HCI_Set_External_Frame_Configuration_Cmd:
+      - MWS_Frame_Duration: 2
+      - MWS_Frame_Sync_Assert_Offset: 2
+      - MWS_Frame_Sync_Assert_Jitter: 2
+      - MWS_Num_Periods: 1
+      - Period_Duration: 2
+        ref2size: MWS_Num_Periods
+      - Period_Type: 1
+        ref2size: MWS_Num_Periods
+    HCI_Set_External_Frame_Configuration_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.102"
+  title: "Set Min Encryption Key Size command"
+  iscmd: true
+  OGF: 3
+  HCI_Set_Min_Encryption_Key_Size:
+    OCF: 132
+    HCI_Set_Min_Encryption_Key_Size_Cmd:
+      - Min_Encryption_Key_Size: 1
+    HCI_Set_Min_Encryption_Key_Size_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.80"
+  title: "Set MWS Channel Parameters command"
+  iscmd: true
+  OGF: 3
+  HCI_Set_MWS_Channel_Parameters:
+    OCF: 110
+    HCI_Set_MWS_Channel_Parameters_Cmd:
+      - MWS_Channel_Enable: 1
+      - MWS_RX_Center_Frequency: 2
+      - MWS_TX_Center_Frequency: 2
+      - MWS_RX_Channel_Bandwidth: 2
+      - MWS_TX_Channel_Bandwidth: 2
+      - MWS_Channel_Type: 1
+    HCI_Set_MWS_Channel_Parameters_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.84"
+  title: "Set MWS Scan Frequency Table command"
+  iscmd: true
+  OGF: 3
+  HCI_Set_MWS_Scan_Frequency_Table:
+    OCF: 114
+    HCI_Set_MWS_Scan_Frequency_Table_Cmd:
+      - Num_Scan_Frequencies: 1
+      - Scan_Frequency_Low: 2
+        ref2size: Num_Scan_Frequencies
+      - Scan_Frequency_High: 2
+        ref2size: Num_Scan_Frequencies
+    HCI_Set_MWS_Scan_Frequency_Table_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.82"
+  title: "Set MWS Signaling command"
+  iscmd: true
+  OGF: 3
+  HCI_Set_MWS_Signaling:
+    OCF: 112
+    HCI_Set_MWS_Signaling_Cmd:
+      - MWS_RX_Assert_Offset: 2
+      - MWS_RX_Assert_Jitter: 2
+      - MWS_RX_Deassert_Offset: 2
+      - MWS_RX_Deassert_Jitter: 2
+      - MWS_TX_Assert_Offset: 2
+      - MWS_TX_Assert_Jitter: 2
+      - MWS_TX_Deassert_Offset: 2
+      - MWS_TX_Deassert_Jitter: 2
+      - MWS_Pattern_Assert_Offset: 2
+      - MWS_Pattern_Assert_Jitter: 2
+      - MWS_Inactivity_Duration_Assert_Offset: 2
+      - MWS_Inactivity_Duration_Assert_Jitter: 2
+      - MWS_Scan_Frequency_Assert_Offset: 2
+      - MWS_Scan_Frequency_Assert_Jitter: 2
+      - MWS_Priority_Assert_Offset_Request: 2
+    HCI_Set_MWS_Signaling_Ret:
+      - Status: 1
+      - Bluetooth_RX_Priority_Assert_Offset: 2
+      - Bluetooth_RX_Priority_Assert_Jitter: 2
+      - Bluetooth_RX_Priority_Deassert_Offset: 2
+      - Bluetooth_RX_Priority_Deassert_Jitter: 2
+      - 802_RX_Priority_Assert_Offset: 2
+      - 802_RX_Priority_Assert_Jitter: 2
+      - 802_RX_Priority_Deassert_Offset: 2
+      - 802_RX_Priority_Deassert_Jitter: 2
+      - Bluetooth_TX_On_Assert_Offset: 2
+      - Bluetooth_TX_On_Assert_Jitter: 2
+      - Bluetooth_TX_On_Deassert_Offset: 2
+      - Bluetooth_TX_On_Deassert_Jitter: 2
+      - 802_TX_On_Assert_Offset: 2
+      - 802_TX_On_Assert_Jitter: 2
+      - 802_TX_On_Deassert_Offset: 2
+      - 802_TX_On_Deassert_Jitter: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.83"
+  title: "Set MWS Transport Layer command"
+  iscmd: true
+  OGF: 3
+  HCI_Set_MWS_Transport_Layer:
+    OCF: 113
+    HCI_Set_MWS_Transport_Layer_Cmd:
+      - Transport_Layer: 1
+      - To_MWS_Baud_Rate: 4
+      - From_MWS_Baud_Rate: 4
+    HCI_Set_MWS_Transport_Layer_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.85"
+  title: "Set MWS_PATTERN Configuration command"
+  iscmd: true
+  OGF: 3
+  HCI_Set_MWS_PATTERN_Configuration:
+    OCF: 115
+    HCI_Set_MWS_PATTERN_Configuration_Cmd:
+      - MWS_Pattern_Index: 1
+      - MWS_Pattern_Num_Intervals: 1
+      - MWS_Pattern_Interval_Duration: 1
+        ref2size: MWS_Pattern_Num_Intervals
+      - MWS_Pattern_Interval_Type: 1
+        ref2size: MWS_Pattern_Num_Intervals
+    HCI_Set_MWS_PATTERN_Configuration_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.86"
+  title: "Set Reserved LT_ADDR command"
+  iscmd: true
+  OGF: 3
+  HCI_Set_Reserved_LT_ADDR:
+    OCF: 116
+    HCI_Set_Reserved_LT_ADDR_Cmd:
+      - LT_ADDR: 1
+    HCI_Set_Reserved_LT_ADDR_Ret:
+      - Status: 1
+      - LT_ADDR: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.5.12"
+  title: "Set Triggered Clock Capture command"
+  iscmd: true
+  OGF: 5
+  HCI_Set_Triggered_Clock_Capture:
+    OCF: 13
+    HCI_Set_Triggered_Clock_Capture_Cmd:
+      - Connection_Handle: 2
+      - Enable: 1
+      - Which_Clock: 1
+      - LPO_Allowed: 1
+      - Num_Clock_Captures_To_Filter: 1
+    HCI_Set_Triggered_Clock_Capture_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+      - HCI_Triggered_Clock_Capture:
+
+- section: "7.1.26"
+  title: "Setup Synchronous Connection command"
+  iscmd: true
+  OGF: 1
+  HCI_Setup_Synchronous_Connection:
+    OCF: 40
+    HCI_Setup_Synchronous_Connection_Cmd:
+      - Connection_Handle: 2
+      - Transmit_Bandwidth: 4
+      - Receive_Bandwidth: 4
+      - Max_Latency: 2
+      - Voice_Setting: 2
+      - Retransmission_Effort: 1
+      - Packet_Type: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_Synchronous_Connection_Complete:
+      - HCI_Connection_Complete:
+      - HCI_Synchronous_Connection_Changed:
+      - HCI_Connection_Request:
+
+- section: "7.7.45"
+  title: "Simple Pairing Complete event"
+  iscmd: false
+  HCI_Simple_Pairing_Complete:
+    code: 54
+    HCI_Simple_Pairing_Complete_Evt:
+      - Status: 1
+      - BD_ADDR: 6
+
+- section: "7.2.2"
+  title: "Sniff Mode command"
+  iscmd: true
+  OGF: 2
+  HCI_Sniff_Mode:
+    OCF: 3
+    HCI_Sniff_Mode_Cmd:
+      - Connection_Handle: 2
+      - Sniff_Max_Interval: 2
+      - Sniff_Min_Interval: 2
+      - Sniff_Attempt: 2
+      - Sniff_Timeout: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_Mode_Change:
+
+- section: "7.2.14"
+  title: "Sniff Subrating command"
+  iscmd: true
+  OGF: 2
+  HCI_Sniff_Subrating:
+    OCF: 17
+    HCI_Sniff_Subrating_Cmd:
+      - Connection_Handle: 2
+      - Max_Latency: 2
+      - Min_Remote_Timeout: 2
+      - Min_Local_Timeout: 2
+    HCI_Sniff_Subrating_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.37"
+  title: "Sniff Subrating event"
+  iscmd: false
+  HCI_Sniff_Subrating:
+    code: 46
+    HCI_Sniff_Subrating_Evt:
+      - Status: 1
+      - Connection_Handle: 2
+      - Max_TX_Latency: 2
+      - Max_RX_Latency: 2
+      - Min_Remote_Timeout: 2
+      - Min_Local_Timeout: 2
+
+- section: "7.1.51"
+  title: "Start Synchronization Train command"
+  iscmd: true
+  OGF: 1
+  HCI_Start_Synchronization_Train:
+    OCF: 67
+    Events:
+      - HCI_Command_Status:
+
+- section: "7.2.8"
+  title: "Switch Role command"
+  iscmd: true
+  OGF: 2
+  HCI_Switch_Role:
+    OCF: 11
+    HCI_Switch_Role_Cmd:
+      - BD_ADDR: 6
+      - Role: 1
+    Events:
+      - HCI_Command_Status:
+      - HCI_Role_Change:
+
+- section: "7.7.67"
+  title: "Synchronization Train Complete event"
+  iscmd: false
+  HCI_Synchronization_Train_Complete:
+    code: 79
+    HCI_Synchronization_Train_Complete_Evt:
+      - Status: 1
+
+- section: "7.7.68"
+  title: "Synchronization Train Received event"
+  iscmd: false
+  HCI_Synchronization_Train_Received:
+    code: 80
+    HCI_Synchronization_Train_Received_Evt:
+      - Status: 1
+      - BD_ADDR: 6
+      - Clock_Offset: 4
+      - AFH_Channel_Map: 10
+      - LT_ADDR: 1
+      - Next_Broadcast_Instant: 4
+      - Connectionless_Peripheral_Broadcast_Interval: 2
+      - Service_Data: 1
+
+- section: "7.7.36"
+  title: "Synchronous Connection Changed event"
+  iscmd: false
+  HCI_Synchronous_Connection_Changed:
+    code: 45
+    HCI_Synchronous_Connection_Changed_Evt:
+      - Status: 1
+      - Connection_Handle: 2
+      - Transmission_Interval: 1
+      - Retransmission_Window: 1
+      - RX_Packet_Length: 2
+      - TX_Packet_Length: 2
+
+- section: "7.7.35"
+  title: "Synchronous Connection Complete event"
+  iscmd: false
+  HCI_Synchronous_Connection_Complete:
+    code: 44
+    HCI_Synchronous_Connection_Complete_Evt:
+      - Status: 1
+      - Connection_Handle: 2
+      - BD_ADDR: 6
+      - Link_Type: 1
+      - Transmission_Interval: 1
+      - Retransmission_Window: 1
+      - RX_Packet_Length: 2
+      - TX_Packet_Length: 2
+      - Air_Mode: 1
+
+- section: "7.7.66"
+  title: "Triggered Clock Capture event"
+  iscmd: false
+  HCI_Triggered_Clock_Capture:
+    code: 78
+    HCI_Triggered_Clock_Capture_Evt:
+      - Connection_Handle: 2
+      - Which_Clock: 1
+      - Clock: 4
+      - Slot_Offset: 2
+
+- section: "7.1.48"
+  title: "Truncated Page Cancel command"
+  iscmd: true
+  OGF: 1
+  HCI_Truncated_Page_Cancel:
+    OCF: 64
+    HCI_Truncated_Page_Cancel_Cmd:
+      - BD_ADDR: 6
+    HCI_Truncated_Page_Cancel_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+      - HCI_Truncated_Page_Complete:
+
+- section: "7.1.47"
+  title: "Truncated Page command"
+  iscmd: true
+  OGF: 1
+  HCI_Truncated_Page:
+    OCF: 63
+    HCI_Truncated_Page_Cmd:
+      - BD_ADDR: 6
+      - Page_Scan_Repetition_Mode: 1
+      - Clock_Offset: 2
+    Events:
+      - HCI_Command_Status:
+      - HCI_Truncated_Page_Complete:
+
+- section: "7.7.71"
+  title: "Truncated Page Complete event"
+  iscmd: false
+  HCI_Truncated_Page_Complete:
+    code: 83
+    HCI_Truncated_Page_Complete_Evt:
+      - Status: 1
+      - BD_ADDR: 6
+
+- section: "7.7.42"
+  title: "User Confirmation Request event"
+  iscmd: false
+  HCI_User_Confirmation_Request:
+    code: 51
+    HCI_User_Confirmation_Request_Evt:
+      - BD_ADDR: 6
+      - Numeric_Value: 4
+
+- section: "7.1.31"
+  title: "User Confirmation Request Negative Reply command"
+  iscmd: true
+  OGF: 1
+  HCI_User_Confirmation_Request_Negative_Reply:
+    OCF: 45
+    HCI_User_Confirmation_Request_Negative_Reply_Cmd:
+      - BD_ADDR: 6
+    HCI_User_Confirmation_Request_Negative_Reply_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.1.30"
+  title: "User Confirmation Request Reply command"
+  iscmd: true
+  OGF: 1
+  HCI_User_Confirmation_Request_Reply:
+    OCF: 44
+    HCI_User_Confirmation_Request_Reply_Cmd:
+      - BD_ADDR: 6
+    HCI_User_Confirmation_Request_Reply_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.7.48"
+  title: "User Passkey Notification event"
+  iscmd: false
+  HCI_User_Passkey_Notification:
+    code: 59
+    HCI_User_Passkey_Notification_Evt:
+      - BD_ADDR: 6
+      - Passkey: 4
+
+- section: "7.7.43"
+  title: "User Passkey Request event"
+  iscmd: false
+  HCI_User_Passkey_Request:
+    code: 52
+    HCI_User_Passkey_Request_Evt:
+      - BD_ADDR: 6
+
+- section: "7.1.33"
+  title: "User Passkey Request Negative Reply command"
+  iscmd: true
+  OGF: 1
+  HCI_User_Passkey_Request_Negative_Reply:
+    OCF: 47
+    HCI_User_Passkey_Request_Negative_Reply_Cmd:
+      - BD_ADDR: 6
+    HCI_User_Passkey_Request_Negative_Reply_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.1.32"
+  title: "User Passkey Request Reply command"
+  iscmd: true
+  OGF: 1
+  HCI_User_Passkey_Request_Reply:
+    OCF: 46
+    HCI_User_Passkey_Request_Reply_Cmd:
+      - BD_ADDR: 6
+      - Numeric_Value: 4
+    HCI_User_Passkey_Request_Reply_Ret:
+      - Status: 1
+      - BD_ADDR: 6
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.54"
+  title: "Write AFH Channel Assessment Mode command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_AFH_Channel_Assessment_Mode:
+    OCF: 73
+    HCI_Write_AFH_Channel_Assessment_Mode_Cmd:
+      - AFH_Channel_Assessment_Mode: 1
+    HCI_Write_AFH_Channel_Assessment_Mode_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.94"
+  title: "Write Authenticated Payload Timeout command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Authenticated_Payload_Timeout:
+    OCF: 124
+    HCI_Write_Authenticated_Payload_Timeout_Cmd:
+      - Connection_Handle: 2
+      - Authenticated_Payload_Timeout: 2
+    HCI_Write_Authenticated_Payload_Timeout_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.24"
+  title: "Write Authentication Enable command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Authentication_Enable:
+    OCF: 32
+    HCI_Write_Authentication_Enable_Cmd:
+      - Authentication_Enable: 1
+    HCI_Write_Authentication_Enable_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.30"
+  title: "Write Automatic Flush Timeout command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Automatic_Flush_Timeout:
+    OCF: 40
+    HCI_Write_Automatic_Flush_Timeout_Cmd:
+      - Connection_Handle: 2
+      - Flush_Timeout: 2
+    HCI_Write_Automatic_Flush_Timeout_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.26"
+  title: "Write Class of Device command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Class_Of_Device:
+    OCF: 36
+    HCI_Write_Class_Of_Device_Cmd:
+      - Class_Of_Device: 3
+    HCI_Write_Class_Of_Device_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.14"
+  title: "Write Connection Accept Timeout command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Connection_Accept_Timeout:
+    OCF: 22
+    HCI_Write_Connection_Accept_Timeout_Cmd:
+      - Connection_Accept_Timeout: 2
+    HCI_Write_Connection_Accept_Timeout_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.45"
+  title: "Write Current IAC LAP command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Current_IAC_LAP:
+    OCF: 58
+    HCI_Write_Current_IAC_LAP_Cmd:
+      - Num_Current_IAC: 1
+      - IAC_LAP: 3
+        ref2size: Num_Current_IAC
+    HCI_Write_Current_IAC_LAP_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.65"
+  title: "Write Default Erroneous Data Reporting command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Default_Erroneous_Data_Reporting:
+    OCF: 91
+    HCI_Write_Default_Erroneous_Data_Reporting_Cmd:
+      - Erroneous_Data_Reporting: 1
+    HCI_Write_Default_Erroneous_Data_Reporting_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.2.12"
+  title: "Write Default Link Policy Settings command"
+  iscmd: true
+  OGF: 2
+  HCI_Write_Default_Link_Policy_Settings:
+    OCF: 15
+    HCI_Write_Default_Link_Policy_Settings_Cmd:
+      - Default_Link_Policy_Settings: 2
+    HCI_Write_Default_Link_Policy_Settings_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.99"
+  title: "Write Extended Inquiry Length command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Extended_Inquiry_Length:
+    OCF: 129
+    HCI_Write_Extended_Inquiry_Length_Cmd:
+      - Extended_Inquiry_Length: 2
+    HCI_Write_Extended_Inquiry_Length_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.56"
+  title: "Write Extended Inquiry Response command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Extended_Inquiry_Response:
+    OCF: 82
+    HCI_Write_Extended_Inquiry_Response_Cmd:
+      - FEC_Required: 1
+      - Extended_Inquiry_Response: 240
+    HCI_Write_Extended_Inquiry_Response_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.97"
+  title: "Write Extended Page Timeout command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Extended_Page_Timeout:
+    OCF: 127
+    HCI_Write_Extended_Page_Timeout_Cmd:
+      - Extended_Page_Timeout: 2
+    HCI_Write_Extended_Page_Timeout_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.73"
+  title: "Write Flow Control Mode command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Flow_Control_Mode:
+    OCF: 103
+    HCI_Write_Flow_Control_Mode_Cmd:
+      - Flow_Control_Mode: 1
+    HCI_Write_Flow_Control_Mode_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.34"
+  title: "Write Hold Mode Activity command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Hold_Mode_Activity:
+    OCF: 44
+    HCI_Write_Hold_Mode_Activity_Cmd:
+      - Hold_Mode_Activity: 1
+    HCI_Write_Hold_Mode_Activity_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.50"
+  title: "Write Inquiry Mode command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Inquiry_Mode:
+    OCF: 69
+    HCI_Write_Inquiry_Mode_Cmd:
+      - Inquiry_Mode: 1
+    HCI_Write_Inquiry_Mode_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.22"
+  title: "Write Inquiry Scan Activity command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Inquiry_Scan_Activity:
+    OCF: 30
+    HCI_Write_Inquiry_Scan_Activity_Cmd:
+      - Inquiry_Scan_Interval: 2
+      - Inquiry_Scan_Window: 2
+    HCI_Write_Inquiry_Scan_Activity_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.48"
+  title: "Write Inquiry Scan Type command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Inquiry_Scan_Type:
+    OCF: 67
+    HCI_Write_Inquiry_Scan_Type_Cmd:
+      - Scan_Type: 1
+    HCI_Write_Inquiry_Scan_Type_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.62"
+  title: "Write Inquiry Transmit Power Level command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Inquiry_Transmit_Power_Level:
+    OCF: 89
+    HCI_Write_Inquiry_Transmit_Power_Level_Cmd:
+      - TX_Power: 1
+    HCI_Write_Inquiry_Transmit_Power_Level_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.79"
+  title: "Write LE Host Support command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_LE_Host_Support:
+    OCF: 109
+    HCI_Write_LE_Host_Support_Cmd:
+      - LE_Supported_Host: 1
+      - Unused: 1
+    HCI_Write_LE_Host_Support_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.2.10"
+  title: "Write Link Policy Settings command"
+  iscmd: true
+  OGF: 2
+  HCI_Write_Link_Policy_Settings:
+    OCF: 13
+    HCI_Write_Link_Policy_Settings_Cmd:
+      - Connection_Handle: 2
+      - Link_Policy_Settings: 2
+    HCI_Write_Link_Policy_Settings_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.42"
+  title: "Write Link Supervision Timeout command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Link_Supervision_Timeout:
+    OCF: 55
+    HCI_Write_Link_Supervision_Timeout_Cmd:
+      - Connection_Handle: 2
+      - Link_Supervision_Timeout: 2
+    HCI_Write_Link_Supervision_Timeout_Ret:
+      - Status: 1
+      - Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.11"
+  title: "Write Local Name command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Local_Name:
+    OCF: 19
+    HCI_Write_Local_Name_Cmd:
+      - Local_Name: 248
+    HCI_Write_Local_Name_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.6.2"
+  title: "Write Loopback Mode command"
+  iscmd: true
+  OGF: 6
+  HCI_Write_Loopback_Mode:
+    OCF: 2
+    HCI_Write_Loopback_Mode_Cmd:
+      - Loopback_Mode: 1
+    HCI_Write_Loopback_Mode_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.32"
+  title: "Write Num Broadcast Retransmissions command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Num_Broadcast_Retransmissions:
+    OCF: 42
+    HCI_Write_Num_Broadcast_Retransmissions_Cmd:
+      - Num_Broadcast_Retransmissions: 1
+    HCI_Write_Num_Broadcast_Retransmissions_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.20"
+  title: "Write Page Scan Activity command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Page_Scan_Activity:
+    OCF: 28
+    HCI_Write_Page_Scan_Activity_Cmd:
+      - Page_Scan_Interval: 2
+      - Page_Scan_Window: 2
+    HCI_Write_Page_Scan_Activity_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.52"
+  title: "Write Page Scan Type command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Page_Scan_Type:
+    OCF: 71
+    HCI_Write_Page_Scan_Type_Cmd:
+      - Page_Scan_Type: 1
+    HCI_Write_Page_Scan_Type_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.16"
+  title: "Write Page Timeout command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Page_Timeout:
+    OCF: 24
+    HCI_Write_Page_Timeout_Cmd:
+      - Page_Timeout: 2
+    HCI_Write_Page_Timeout_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.6"
+  title: "Write PIN Type command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_PIN_Type:
+    OCF: 10
+    HCI_Write_PIN_Type_Cmd:
+      - PIN_Type: 1
+    HCI_Write_PIN_Type_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.18"
+  title: "Write Scan Enable command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Scan_Enable:
+    OCF: 26
+    HCI_Write_Scan_Enable_Cmd:
+      - Scan_Enable: 1
+    HCI_Write_Scan_Enable_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.92"
+  title: "Write Secure Connections Host Support command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Secure_Connections_Host_Support:
+    OCF: 122
+    HCI_Write_Secure_Connections_Host_Support_Cmd:
+      - Secure_Connections_Host_Support: 1
+    HCI_Write_Secure_Connections_Host_Support_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.6.8"
+  title: "Write Secure Connections Test Mode command"
+  iscmd: true
+  OGF: 6
+  HCI_Write_Secure_Connections_Test_Mode:
+    OCF: 10
+    HCI_Write_Secure_Connections_Test_Mode_Cmd:
+      - Connection_Handle: 2
+      - DM1_ACL-U_Mode: 1
+      - eSCO_Loopback_Mode: 1
+    HCI_Write_Secure_Connections_Test_Mode_Ret:
+      - Status: 1
+      - Connection_Handle: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.6.4"
+  title: "Write Simple Pairing Debug Mode command"
+  iscmd: true
+  OGF: 6
+  HCI_Write_Simple_Pairing_Debug_Mode:
+    OCF: 4
+    HCI_Write_Simple_Pairing_Debug_Mode_Cmd:
+      - Simple_Pairing_Debug_Mode: 1
+    HCI_Write_Simple_Pairing_Debug_Mode_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.59"
+  title: "Write Simple Pairing Mode command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Simple_Pairing_Mode:
+    OCF: 86
+    HCI_Write_Simple_Pairing_Mode_Cmd:
+      - Simple_Pairing_Mode: 1
+    HCI_Write_Simple_Pairing_Mode_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.9"
+  title: "Write Stored Link Key command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Stored_Link_Key:
+    OCF: 17
+    HCI_Write_Stored_Link_Key_Cmd:
+      - Num_Keys_To_Write: 1
+      - BD_ADDR: 6
+        ref2size: Num_Keys_To_Write
+      - Link_Key: 16
+        ref2size: Num_Keys_To_Write
+    HCI_Write_Stored_Link_Key_Ret:
+      - Status: 1
+      - Num_Keys_Written: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.90"
+  title: "Write Synchronization Train Parameters command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Synchronization_Train_Parameters:
+    OCF: 120
+    HCI_Write_Synchronization_Train_Parameters_Cmd:
+      - Interval_Min: 2
+      - Interval_Max: 2
+      - Sync_Train_Timeout: 4
+      - Service_Data: 1
+    HCI_Write_Synchronization_Train_Parameters_Ret:
+      - Status: 1
+      - Sync_Train_Interval: 2
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.37"
+  title: "Write Synchronous Flow Control Enable command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Synchronous_Flow_Control_Enable:
+    OCF: 47
+    HCI_Write_Synchronous_Flow_Control_Enable_Cmd:
+      - Synchronous_Flow_Control_Enable: 1
+    HCI_Write_Synchronous_Flow_Control_Enable_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:
+
+- section: "7.3.28"
+  title: "Write Voice Setting command"
+  iscmd: true
+  OGF: 3
+  HCI_Write_Voice_Setting:
+    OCF: 38
+    HCI_Write_Voice_Setting_Cmd:
+      - Voice_Setting: 2
+    HCI_Write_Voice_Setting_Ret:
+      - Status: 1
+    Events:
+      - HCI_Command_Complete:

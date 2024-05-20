@@ -42,6 +42,10 @@ the text was not changed.
 Even then, this code is provided 'as is'; there is no guarantee that the
 parsing did not introduce any errors.
 
+A small program, spec2yaml.c was added, that converts the generated header
+into a YAML file, that can be used by .e.g a python code generator or any
+other tool. The resulting hci-spec2src-5.4.yaml is also available.
+
 As example how a generated header file, generated from the specification
 source could look like, the file hci-types-5.4.h is included. It was
 generated from the hci-spec2src-5.4.h file, with some help of the t2c-types
@@ -80,7 +84,7 @@ To build the sample code.
 
 ```bash 
 $ cd codec
-$ gcc [-m32] -Os -fstack-protector -Wall -Werror -I . -I .. -o sample sample.c hci-codec.c hci-tables.c
+$ gcc [-m32] -Os -fstack-protector -fsanitize=undefined -Wall -Werror -I . -I .. -o sample sample.c hci-codec.c hci-tables.c
 $ size sample
   text           data     bss     dec     hex filename
   9902            518       2   10422    28b6 sample
