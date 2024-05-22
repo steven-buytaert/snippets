@@ -366,7 +366,7 @@ typedef struct HCI_Delete_Reserved_LT_ADDR_Cmd_t {
 } HCI_Delete_Reserved_LT_ADDR_Cmd_t;
 
 typedef struct HCI_Delete_Reserved_LT_ADDR_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     LT_ADDR;
 } HCI_Delete_Reserved_LT_ADDR_Ret_t;
@@ -382,7 +382,7 @@ typedef struct HCI_Delete_Stored_Link_Key_Cmd_t {
 } HCI_Delete_Stored_Link_Key_Cmd_t;
 
 typedef struct HCI_Delete_Stored_Link_Key_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Num_Keys_Deleted;
 } HCI_Delete_Stored_Link_Key_Ret_t;
@@ -584,7 +584,7 @@ typedef struct HCI_Flush_Occurred_Evt_t {
 static const uint16_t Get_MWS_Transport_Layer_Configuration_Cmd = 0x140c; // OGF 0x5 OCF 0x00c
 
 typedef struct HCI_Get_MWS_Transport_Layer_Configuration_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Num_Transports;
   struct {
@@ -896,7 +896,7 @@ typedef struct HCI_LE_BIG_Terminate_Sync_Cmd_t {
 } HCI_LE_BIG_Terminate_Sync_Cmd_t;
 
 typedef struct HCI_LE_BIG_Terminate_Sync_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     BIG_Handle;
 } HCI_LE_BIG_Terminate_Sync_Ret_t;
@@ -1282,7 +1282,7 @@ typedef struct HCI_LE_Encrypt_Cmd_t {
 } HCI_LE_Encrypt_Cmd_t;
 
 typedef struct HCI_LE_Encrypt_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Encrypted_Data[16];
 } HCI_LE_Encrypt_Ret_t;
@@ -1336,7 +1336,7 @@ typedef struct HCI_LE_Enhanced_Read_Transmit_Power_Level_Cmd_t {
 } HCI_LE_Enhanced_Read_Transmit_Power_Level_Cmd_t;
 
 typedef struct HCI_LE_Enhanced_Read_Transmit_Power_Level_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_Conn_Handle_t        Status_Conn;
   uint8_t                     PHY;
   uint8_t                     Current_TX_Power_Level;
@@ -1444,7 +1444,7 @@ typedef struct HCI_LE_Generate_DHKey_Complete_Evt_t {
 static const uint16_t LE_ISO_Read_Test_Counters_Cmd = 0x2072; // OGF 0x8 OCF 0x072
 
 typedef struct HCI_LE_ISO_Read_Test_Counters_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_Conn_Handle_t        Status_Conn;
   uint32_t                    Received_SDU_Count;
   uint32_t                    Missed_SDU_Count;
@@ -1470,7 +1470,7 @@ typedef struct HCI_LE_ISO_Receive_Test_Cmd_t {
 static const uint16_t LE_ISO_Test_End_Cmd = 0x2073; // OGF 0x8 OCF 0x073
 
 typedef struct HCI_LE_ISO_Test_End_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_Conn_Handle_t        Status_Conn;
   uint32_t                    Received_SDU_Count;
   uint32_t                    Missed_SDU_Count;
@@ -1765,7 +1765,7 @@ typedef struct HCI_LE_PHY_Update_Complete_Evt_t {
 static const uint16_t LE_Rand_Cmd = 0x2018; // OGF 0x8 OCF 0x018
 
 typedef struct HCI_LE_Rand_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Random_Number[8];
 } HCI_LE_Rand_Ret_t;
@@ -1775,7 +1775,7 @@ typedef struct HCI_LE_Rand_Ret_t {
 static const uint16_t LE_Read_Advertising_Channel_Tx_Power_Cmd = 0x2007; // OGF 0x8 OCF 0x007
 
 typedef struct HCI_LE_Read_Advertising_Channel_Tx_Power_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     TX_Power_Level;
 } HCI_LE_Read_Advertising_Channel_Tx_Power_Ret_t;
@@ -1785,7 +1785,7 @@ typedef struct HCI_LE_Read_Advertising_Channel_Tx_Power_Ret_t {
 static const uint16_t LE_Read_Antenna_Information_Cmd = 0x2058; // OGF 0x8 OCF 0x058
 
 typedef struct HCI_LE_Read_Antenna_Information_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Supported_Switching_Sampling_Rates;
   uint8_t                     Num_Antennae;
@@ -1798,7 +1798,7 @@ typedef struct HCI_LE_Read_Antenna_Information_Ret_t {
 static const uint16_t LE_Read_Buffer_Size_v2_Cmd = 0x2060; // OGF 0x8 OCF 0x060
 
 typedef struct HCI_LE_Read_Buffer_Size_v2_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    LE_ACL_Data_Packet_Length;
   uint8_t                     Total_Num_LE_ACL_Data_Packets;
@@ -1809,7 +1809,7 @@ typedef struct HCI_LE_Read_Buffer_Size_v2_Ret_t {
 static const uint16_t LE_Read_Buffer_Size_v1_Cmd = 0x2002; // OGF 0x8 OCF 0x002
 
 typedef struct HCI_LE_Read_Buffer_Size_v1_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    LE_ACL_Data_Packet_Length;
   uint8_t                     Total_Num_LE_ACL_Data_Packets;
@@ -1822,7 +1822,7 @@ typedef struct HCI_LE_Read_Buffer_Size_v1_Ret_t {
 static const uint16_t LE_Read_Channel_Map_Cmd = 0x2015; // OGF 0x8 OCF 0x015
 
 typedef struct HCI_LE_Read_Channel_Map_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_Conn_Handle_t        Status_Conn;
   uint8_t                     Channel_Map[5];
 } HCI_LE_Read_Channel_Map_Ret_t;
@@ -1832,7 +1832,7 @@ typedef struct HCI_LE_Read_Channel_Map_Ret_t {
 static const uint16_t LE_Read_Filter_Accept_List_Size_Cmd = 0x200f; // OGF 0x8 OCF 0x00f
 
 typedef struct HCI_LE_Read_Filter_Accept_List_Size_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Filter_Accept_List_Size;
 } HCI_LE_Read_Filter_Accept_List_Size_Ret_t;
@@ -1844,7 +1844,7 @@ typedef struct HCI_LE_Read_Filter_Accept_List_Size_Ret_t {
 static const uint16_t LE_Read_ISO_Link_Quality_Cmd = 0x2075; // OGF 0x8 OCF 0x075
 
 typedef struct HCI_LE_Read_ISO_Link_Quality_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_Conn_Handle_t        Status_Conn;
   uint32_t                    TX_UnACKed_Packets;
   uint32_t                    TX_Flushed_Packets;
@@ -1862,7 +1862,7 @@ typedef struct HCI_LE_Read_ISO_Link_Quality_Ret_t {
 static const uint16_t LE_Read_ISO_TX_Sync_Cmd = 0x2061; // OGF 0x8 OCF 0x061
 
 typedef struct HCI_LE_Read_ISO_TX_Sync_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_Conn_Handle_t        Status_Conn;
   uint16_t                    Packet_Sequence_Number;
   uint32_t                    TX_Time_Stamp;
@@ -1891,7 +1891,7 @@ typedef struct HCI_LE_Read_Local_Resolvable_Addr_Cmd_t {
 } HCI_LE_Read_Local_Resolvable_Addr_Cmd_t;
 
 typedef struct HCI_LE_Read_Local_Resolvable_Addr_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   BD_Addr_t                   Local_Resolvable_Addr;
 } HCI_LE_Read_Local_Resolvable_Addr_Ret_t;
@@ -1901,7 +1901,7 @@ typedef struct HCI_LE_Read_Local_Resolvable_Addr_Ret_t {
 static const uint16_t LE_Read_Local_Supported_Features_Cmd = 0x2003; // OGF 0x8 OCF 0x003
 
 typedef struct HCI_LE_Read_Local_Supported_Features_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     LE_Features[8];
 } HCI_LE_Read_Local_Supported_Features_Ret_t;
@@ -1911,7 +1911,7 @@ typedef struct HCI_LE_Read_Local_Supported_Features_Ret_t {
 static const uint16_t LE_Read_Maximum_Advertising_Data_Length_Cmd = 0x203a; // OGF 0x8 OCF 0x03a
 
 typedef struct HCI_LE_Read_Maximum_Advertising_Data_Length_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Max_Advertising_Data_Length;
 } HCI_LE_Read_Maximum_Advertising_Data_Length_Ret_t;
@@ -1921,7 +1921,7 @@ typedef struct HCI_LE_Read_Maximum_Advertising_Data_Length_Ret_t {
 static const uint16_t LE_Read_Maximum_Data_Length_Cmd = 0x202f; // OGF 0x8 OCF 0x02f
 
 typedef struct HCI_LE_Read_Maximum_Data_Length_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Supported_Max_TX_Octets;
   uint16_t                    Supported_Max_TX_Time;
@@ -1934,7 +1934,7 @@ typedef struct HCI_LE_Read_Maximum_Data_Length_Ret_t {
 static const uint16_t LE_Read_Number_of_Supported_Advertising_Sets_Cmd = 0x203b; // OGF 0x8 OCF 0x03b
 
 typedef struct HCI_LE_Read_Number_of_Supported_Advertising_Sets_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Num_Supported_Advertising_Sets;
 } HCI_LE_Read_Number_of_Supported_Advertising_Sets_Ret_t;
@@ -1949,7 +1949,7 @@ typedef struct HCI_LE_Read_Peer_Resolvable_Addr_Cmd_t {
 } HCI_LE_Read_Peer_Resolvable_Addr_Cmd_t;
 
 typedef struct HCI_LE_Read_Peer_Resolvable_Addr_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   BD_Addr_t                   Peer_Resolvable_Addr;
 } HCI_LE_Read_Peer_Resolvable_Addr_Ret_t;
@@ -1959,7 +1959,7 @@ typedef struct HCI_LE_Read_Peer_Resolvable_Addr_Ret_t {
 static const uint16_t LE_Read_PAdvertiser_List_Size_Cmd = 0x204a; // OGF 0x8 OCF 0x04a
 
 typedef struct HCI_LE_Read_PAdvertiser_List_Size_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     PAdvertiser_List_Size;
 } HCI_LE_Read_PAdvertiser_List_Size_Ret_t;
@@ -1971,7 +1971,7 @@ typedef struct HCI_LE_Read_PAdvertiser_List_Size_Ret_t {
 static const uint16_t LE_Read_PHY_Cmd = 0x2030; // OGF 0x8 OCF 0x030
 
 typedef struct HCI_LE_Read_PHY_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_Conn_Handle_t        Status_Conn;
   uint8_t                     TX_PHY;
   uint8_t                     RX_PHY;
@@ -2010,7 +2010,7 @@ typedef struct HCI_LE_Read_Remote_Transmit_Power_Level_Cmd_t {
 static const uint16_t LE_Read_Resolving_List_Size_Cmd = 0x202a; // OGF 0x8 OCF 0x02a
 
 typedef struct HCI_LE_Read_Resolving_List_Size_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Resolving_List_Size;
 } HCI_LE_Read_Resolving_List_Size_Ret_t;
@@ -2020,7 +2020,7 @@ typedef struct HCI_LE_Read_Resolving_List_Size_Ret_t {
 static const uint16_t LE_Read_RF_Path_Compensation_Cmd = 0x204c; // OGF 0x8 OCF 0x04c
 
 typedef struct HCI_LE_Read_RF_Path_Compensation_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    RF_TX_Path_Compensation_Value;
   uint16_t                    RF_RX_Path_Compensation_Value;
@@ -2031,7 +2031,7 @@ typedef struct HCI_LE_Read_RF_Path_Compensation_Ret_t {
 static const uint16_t LE_Read_Suggested_Default_Data_Length_Cmd = 0x2023; // OGF 0x8 OCF 0x023
 
 typedef struct HCI_LE_Read_Suggested_Default_Data_Length_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Suggested_Max_TX_Octets;
   uint16_t                    Suggested_Max_TX_Time;
@@ -2042,7 +2042,7 @@ typedef struct HCI_LE_Read_Suggested_Default_Data_Length_Ret_t {
 static const uint16_t LE_Read_Supported_States_Cmd = 0x201c; // OGF 0x8 OCF 0x01c
 
 typedef struct HCI_LE_Read_Supported_States_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     LE_States;
 } HCI_LE_Read_Supported_States_Ret_t;
@@ -2052,7 +2052,7 @@ typedef struct HCI_LE_Read_Supported_States_Ret_t {
 static const uint16_t LE_Read_Transmit_Power_Cmd = 0x204b; // OGF 0x8 OCF 0x04b
 
 typedef struct HCI_LE_Read_Transmit_Power_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Min_TX_Power;
   uint8_t                     Max_TX_Power;
@@ -2172,7 +2172,7 @@ typedef struct HCI_LE_Remove_CIG_Cmd_t {
 } HCI_LE_Remove_CIG_Cmd_t;
 
 typedef struct HCI_LE_Remove_CIG_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     CIG_ID;
 } HCI_LE_Remove_CIG_Ret_t;
@@ -2351,7 +2351,7 @@ typedef struct HCI_LE_Set_CIG_Parameters_Cmd_t {
 } HCI_LE_Set_CIG_Parameters_Cmd_t;
 
 typedef struct HCI_LE_Set_CIG_Parameters_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     CIG_ID;
   uint8_t                     CIS_Count;
@@ -2389,7 +2389,7 @@ typedef struct HCI_LE_Set_CIG_Parameters_Test_Cmd_t {
 } HCI_LE_Set_CIG_Parameters_Test_Cmd_t;
 
 typedef struct HCI_LE_Set_CIG_Parameters_Test_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     CIG_ID;
   uint8_t                     CIS_Count;
@@ -2468,7 +2468,7 @@ typedef struct HCI_LE_Set_Connectionless_IQ_Sampling_Enable_Cmd_t {
 } HCI_LE_Set_Connectionless_IQ_Sampling_Enable_Cmd_t;
 
 typedef struct HCI_LE_Set_Connectionless_IQ_Sampling_Enable_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Sync_Handle;
 } HCI_LE_Set_Connectionless_IQ_Sampling_Enable_Ret_t;
@@ -2608,7 +2608,7 @@ typedef struct HCI_LE_Set_Extended_Advertising_Parameters_v2_Cmd_t {
 } HCI_LE_Set_Extended_Advertising_Parameters_v2_Cmd_t;
 
 typedef struct HCI_LE_Set_Extended_Advertising_Parameters_v2_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Selected_TX_Power;
 } HCI_LE_Set_Extended_Advertising_Parameters_v2_Ret_t;
@@ -2634,7 +2634,7 @@ typedef struct HCI_LE_Set_Extended_Advertising_Parameters_v1_Cmd_t {
 } HCI_LE_Set_Extended_Advertising_Parameters_v1_Cmd_t;
 
 typedef struct HCI_LE_Set_Extended_Advertising_Parameters_v1_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Selected_TX_Power;
 } HCI_LE_Set_Extended_Advertising_Parameters_v1_Ret_t;
@@ -2781,7 +2781,7 @@ typedef struct HCI_LE_Set_PA_Parameters_v2_Cmd_t {
 } HCI_LE_Set_PA_Parameters_v2_Cmd_t;
 
 typedef struct HCI_LE_Set_PA_Parameters_v2_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Advertising_Handle;
 } HCI_LE_Set_PA_Parameters_v2_Ret_t;
@@ -2826,7 +2826,7 @@ typedef struct HCI_LE_Set_PA_Response_Data_Cmd_t {
 } HCI_LE_Set_PA_Response_Data_Cmd_t;
 
 typedef struct HCI_LE_Set_PA_Response_Data_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Sync_Handle;
 } HCI_LE_Set_PA_Response_Data_Ret_t;
@@ -2849,7 +2849,7 @@ typedef struct HCI_LE_Set_PA_Subevent_Data_Cmd_t {
 } HCI_LE_Set_PA_Subevent_Data_Cmd_t;
 
 typedef struct HCI_LE_Set_PA_Subevent_Data_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Advertising_Handle;
 } HCI_LE_Set_PA_Subevent_Data_Ret_t;
@@ -2867,7 +2867,7 @@ typedef struct HCI_LE_Set_Periodic_Sync_Subevent_Cmd_t {
 } HCI_LE_Set_Periodic_Sync_Subevent_Cmd_t;
 
 typedef struct HCI_LE_Set_Periodic_Sync_Subevent_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Sync_Handle;
 } HCI_LE_Set_Periodic_Sync_Subevent_Ret_t;
@@ -3058,7 +3058,7 @@ typedef struct HCI_LE_Terminate_BIG_Complete_Evt_t {
 static const uint16_t LE_Test_End_Cmd = 0x201f; // OGF 0x8 OCF 0x01f
 
 typedef struct HCI_LE_Test_End_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Num_Packets;
 } HCI_LE_Test_End_Ret_t;
@@ -3392,7 +3392,7 @@ typedef struct HCI_QoS_Violation_Evt_t {
 static const uint16_t Read_AFH_Channel_Assessment_Mode_Cmd = 0x0c48; // OGF 0x3 OCF 0x048
 
 typedef struct HCI_Read_AFH_Channel_Assessment_Mode_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     AFH_Channel_Assessment_Mode;
 } HCI_Read_AFH_Channel_Assessment_Mode_Ret_t;
@@ -3404,7 +3404,7 @@ typedef struct HCI_Read_AFH_Channel_Assessment_Mode_Ret_t {
 static const uint16_t Read_AFH_Channel_Map_Cmd = 0x1406; // OGF 0x5 OCF 0x006
 
 typedef struct HCI_Read_AFH_Channel_Map_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_Conn_Handle_t        Status_Conn;
   uint8_t                     AFH_Mode;
   uint8_t                     AFH_Channel_Map[10];
@@ -3417,7 +3417,7 @@ typedef struct HCI_Read_AFH_Channel_Map_Ret_t {
 static const uint16_t Read_Authenticated_Payload_Timeout_Cmd = 0x0c7b; // OGF 0x3 OCF 0x07b
 
 typedef struct HCI_Read_Authenticated_Payload_Timeout_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_Conn_Handle_t        Status_Conn;
   uint16_t                    Authenticated_Payload_Timeout;
 } HCI_Read_Authenticated_Payload_Timeout_Ret_t;
@@ -3427,7 +3427,7 @@ typedef struct HCI_Read_Authenticated_Payload_Timeout_Ret_t {
 static const uint16_t Read_Authentication_Enable_Cmd = 0x0c1f; // OGF 0x3 OCF 0x01f
 
 typedef struct HCI_Read_Authentication_Enable_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Authentication_Enable;
 } HCI_Read_Authentication_Enable_Ret_t;
@@ -3439,7 +3439,7 @@ typedef struct HCI_Read_Authentication_Enable_Ret_t {
 static const uint16_t Read_Automatic_Flush_Timeout_Cmd = 0x0c27; // OGF 0x3 OCF 0x027
 
 typedef struct HCI_Read_Automatic_Flush_Timeout_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_Conn_Handle_t        Status_Conn;
   uint16_t                    Flush_Timeout;
 } HCI_Read_Automatic_Flush_Timeout_Ret_t;
@@ -3455,7 +3455,7 @@ static const uint16_t Read_BD_ADDR_Cmd = 0x1009; // OGF 0x4 OCF 0x009
 static const uint16_t Read_Buffer_Size_Cmd = 0x1005; // OGF 0x4 OCF 0x005
 
 typedef struct HCI_Read_Buffer_Size_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    ACL_Data_Packet_Length;
   uint8_t                     Synchronous_Data_Packet_Length;
@@ -3468,7 +3468,7 @@ typedef struct HCI_Read_Buffer_Size_Ret_t {
 static const uint16_t Read_Class_Of_Device_Cmd = 0x0c23; // OGF 0x3 OCF 0x023
 
 typedef struct HCI_Read_Class_Of_Device_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Class_Of_Device[3];
 } HCI_Read_Class_Of_Device_Ret_t;
@@ -3484,7 +3484,7 @@ typedef struct HCI_Read_Clock_Cmd_t {
 } HCI_Read_Clock_Cmd_t;
 
 typedef struct HCI_Read_Clock_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_Conn_Handle_t        Status_Conn;
   uint32_t                    Clock;
   uint16_t                    Accuracy;
@@ -3511,7 +3511,7 @@ typedef struct HCI_Read_Clock_Offset_Complete_Evt_t {
 static const uint16_t Read_Connection_Accept_Timeout_Cmd = 0x0c15; // OGF 0x3 OCF 0x015
 
 typedef struct HCI_Read_Connection_Accept_Timeout_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Connection_Accept_Timeout;
 } HCI_Read_Connection_Accept_Timeout_Ret_t;
@@ -3521,7 +3521,7 @@ typedef struct HCI_Read_Connection_Accept_Timeout_Ret_t {
 static const uint16_t Read_Current_IAC_LAP_Cmd = 0x0c39; // OGF 0x3 OCF 0x039
 
 typedef struct HCI_Read_Current_IAC_LAP_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Num_Current_IAC;
   uint8_t                     IAC_LAP[3];
@@ -3532,7 +3532,7 @@ typedef struct HCI_Read_Current_IAC_LAP_Ret_t {
 static const uint16_t Read_Data_Block_Size_Cmd = 0x100a; // OGF 0x4 OCF 0x00a
 
 typedef struct HCI_Read_Data_Block_Size_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Max_ACL_Data_Packet_Length;
   uint16_t                    Data_Block_Length;
@@ -3544,7 +3544,7 @@ typedef struct HCI_Read_Data_Block_Size_Ret_t {
 static const uint16_t Read_Default_Erroneous_Data_Reporting_Cmd = 0x0c5a; // OGF 0x3 OCF 0x05a
 
 typedef struct HCI_Read_Default_Erroneous_Data_Reporting_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Erroneous_Data_Reporting;
 } HCI_Read_Default_Erroneous_Data_Reporting_Ret_t;
@@ -3554,7 +3554,7 @@ typedef struct HCI_Read_Default_Erroneous_Data_Reporting_Ret_t {
 static const uint16_t Read_Default_Link_Policy_Settings_Cmd = 0x080e; // OGF 0x2 OCF 0x00e
 
 typedef struct HCI_Read_Default_Link_Policy_Settings_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Default_Link_Policy_Settings;
 } HCI_Read_Default_Link_Policy_Settings_Ret_t;
@@ -3566,7 +3566,7 @@ typedef struct HCI_Read_Default_Link_Policy_Settings_Ret_t {
 static const uint16_t Read_Encryption_Key_Size_Cmd = 0x1408; // OGF 0x5 OCF 0x008
 
 typedef struct HCI_Read_Encryption_Key_Size_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_Conn_Handle_t        Status_Conn;
   uint8_t                     Key_Size;
 } HCI_Read_Encryption_Key_Size_Ret_t;
@@ -3582,7 +3582,7 @@ typedef struct HCI_Read_Enhanced_Transmit_Power_Level_Cmd_t {
 } HCI_Read_Enhanced_Transmit_Power_Level_Cmd_t;
 
 typedef struct HCI_Read_Enhanced_Transmit_Power_Level_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_Conn_Handle_t        Status_Conn;
   uint8_t                     TX_Power_Level_GFSK;
   uint8_t                     TX_Power_Level_DQPSK;
@@ -3594,7 +3594,7 @@ typedef struct HCI_Read_Enhanced_Transmit_Power_Level_Ret_t {
 static const uint16_t Read_Extended_Inquiry_Length_Cmd = 0x0c80; // OGF 0x3 OCF 0x080
 
 typedef struct HCI_Read_Extended_Inquiry_Length_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Extended_Inquiry_Length;
 } HCI_Read_Extended_Inquiry_Length_Ret_t;
@@ -3604,7 +3604,7 @@ typedef struct HCI_Read_Extended_Inquiry_Length_Ret_t {
 static const uint16_t Read_Extended_Inquiry_Response_Cmd = 0x0c51; // OGF 0x3 OCF 0x051
 
 typedef struct HCI_Read_Extended_Inquiry_Response_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     FEC_Required;
   uint8_t                     Extended_Inquiry_Response[240];
@@ -3615,7 +3615,7 @@ typedef struct HCI_Read_Extended_Inquiry_Response_Ret_t {
 static const uint16_t Read_Extended_Page_Timeout_Cmd = 0x0c7e; // OGF 0x3 OCF 0x07e
 
 typedef struct HCI_Read_Extended_Page_Timeout_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Extended_Page_Timeout;
 } HCI_Read_Extended_Page_Timeout_Ret_t;
@@ -3630,7 +3630,7 @@ typedef struct HCI_Read_Failed_Contact_Counter_Cmd_t {
 } HCI_Read_Failed_Contact_Counter_Cmd_t;
 
 typedef struct HCI_Read_Failed_Contact_Counter_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Handle;
   uint16_t                    Failed_Contact_Counter;
@@ -3641,7 +3641,7 @@ typedef struct HCI_Read_Failed_Contact_Counter_Ret_t {
 static const uint16_t Read_Flow_Control_Mode_Cmd = 0x0c66; // OGF 0x3 OCF 0x066
 
 typedef struct HCI_Read_Flow_Control_Mode_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Flow_Control_Mode;
 } HCI_Read_Flow_Control_Mode_Ret_t;
@@ -3651,7 +3651,7 @@ typedef struct HCI_Read_Flow_Control_Mode_Ret_t {
 static const uint16_t Read_Hold_Mode_Activity_Cmd = 0x0c2b; // OGF 0x3 OCF 0x02b
 
 typedef struct HCI_Read_Hold_Mode_Activity_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Hold_Mode_Activity;
 } HCI_Read_Hold_Mode_Activity_Ret_t;
@@ -3661,7 +3661,7 @@ typedef struct HCI_Read_Hold_Mode_Activity_Ret_t {
 static const uint16_t Read_Inquiry_Mode_Cmd = 0x0c44; // OGF 0x3 OCF 0x044
 
 typedef struct HCI_Read_Inquiry_Mode_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Inquiry_Mode;
 } HCI_Read_Inquiry_Mode_Ret_t;
@@ -3671,7 +3671,7 @@ typedef struct HCI_Read_Inquiry_Mode_Ret_t {
 static const uint16_t Read_Inquiry_Response_Transmit_Power_Level_Cmd = 0x0c58; // OGF 0x3 OCF 0x058
 
 typedef struct HCI_Read_Inquiry_Response_Transmit_Power_Level_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     TX_Power;
 } HCI_Read_Inquiry_Response_Transmit_Power_Level_Ret_t;
@@ -3681,7 +3681,7 @@ typedef struct HCI_Read_Inquiry_Response_Transmit_Power_Level_Ret_t {
 static const uint16_t Read_Inquiry_Scan_Activity_Cmd = 0x0c1d; // OGF 0x3 OCF 0x01d
 
 typedef struct HCI_Read_Inquiry_Scan_Activity_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Inquiry_Scan_Interval;
   uint16_t                    Inquiry_Scan_Window;
@@ -3692,7 +3692,7 @@ typedef struct HCI_Read_Inquiry_Scan_Activity_Ret_t {
 static const uint16_t Read_Inquiry_Scan_Type_Cmd = 0x0c42; // OGF 0x3 OCF 0x042
 
 typedef struct HCI_Read_Inquiry_Scan_Type_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Inquiry_Scan_Type;
 } HCI_Read_Inquiry_Scan_Type_Ret_t;
@@ -3702,7 +3702,7 @@ typedef struct HCI_Read_Inquiry_Scan_Type_Ret_t {
 static const uint16_t Read_LE_Host_Support_Cmd = 0x0c6c; // OGF 0x3 OCF 0x06c
 
 typedef struct HCI_Read_LE_Host_Support_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     LE_Supported_Host;
   uint8_t                     Unused;
@@ -3715,7 +3715,7 @@ typedef struct HCI_Read_LE_Host_Support_Ret_t {
 static const uint16_t Read_Link_Policy_Settings_Cmd = 0x080c; // OGF 0x2 OCF 0x00c
 
 typedef struct HCI_Read_Link_Policy_Settings_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_Conn_Handle_t        Status_Conn;
   uint16_t                    Link_Policy_Settings;
 } HCI_Read_Link_Policy_Settings_Ret_t;
@@ -3730,7 +3730,7 @@ typedef struct HCI_Read_Link_Quality_Cmd_t {
 } HCI_Read_Link_Quality_Cmd_t;
 
 typedef struct HCI_Read_Link_Quality_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Handle;
   uint8_t                     Link_Quality;
@@ -3746,7 +3746,7 @@ typedef struct HCI_Read_Link_Supervision_Timeout_Cmd_t {
 } HCI_Read_Link_Supervision_Timeout_Cmd_t;
 
 typedef struct HCI_Read_Link_Supervision_Timeout_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Handle;
   uint16_t                    Link_Supervision_Timeout;
@@ -3759,7 +3759,7 @@ typedef struct HCI_Read_Link_Supervision_Timeout_Ret_t {
 static const uint16_t Read_LMP_Handle_Cmd = 0x0420; // OGF 0x1 OCF 0x020
 
 typedef struct HCI_Read_LMP_Handle_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_Conn_Handle_t        Status_Conn;
   uint8_t                     LMP_Handle;
   uint32_t                    Reserved;
@@ -3775,7 +3775,7 @@ typedef struct HCI_Read_Local_Extended_Features_Cmd_t {
 } HCI_Read_Local_Extended_Features_Cmd_t;
 
 typedef struct HCI_Read_Local_Extended_Features_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Page_Number;
   uint8_t                     Max_Page_Number;
@@ -3787,7 +3787,7 @@ typedef struct HCI_Read_Local_Extended_Features_Ret_t {
 static const uint16_t Read_Local_Name_Cmd = 0x0c14; // OGF 0x3 OCF 0x014
 
 typedef struct HCI_Read_Local_Name_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Local_Name[248];
 } HCI_Read_Local_Name_Ret_t;
@@ -3797,7 +3797,7 @@ typedef struct HCI_Read_Local_Name_Ret_t {
 static const uint16_t Read_Local_OOB_Data_Cmd = 0x0c57; // OGF 0x3 OCF 0x057
 
 typedef struct HCI_Read_Local_OOB_Data_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     C[16];
   uint8_t                     R[16];
@@ -3808,7 +3808,7 @@ typedef struct HCI_Read_Local_OOB_Data_Ret_t {
 static const uint16_t Read_Local_OOB_Extended_Data_Cmd = 0x0c7d; // OGF 0x3 OCF 0x07d
 
 typedef struct HCI_Read_Local_OOB_Extended_Data_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     C_192[16];
   uint8_t                     R_192[16];
@@ -3821,7 +3821,7 @@ typedef struct HCI_Read_Local_OOB_Extended_Data_Ret_t {
 static const uint16_t Read_Local_Simple_Pairing_Options_Cmd = 0x100c; // OGF 0x4 OCF 0x00c
 
 typedef struct HCI_Read_Local_Simple_Pairing_Options_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Simple_Pairing_Options;
   uint8_t                     Max_Encryption_Key_Size;
@@ -3839,7 +3839,7 @@ typedef struct HCI_Read_Local_Supported_Codec_Capabilities_Cmd_t {
 } HCI_Read_Local_Supported_Codec_Capabilities_Cmd_t;
 
 typedef struct HCI_Read_Local_Supported_Codec_Capabilities_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Num_Codec_Capabilities;
   struct {
@@ -3853,7 +3853,7 @@ typedef struct HCI_Read_Local_Supported_Codec_Capabilities_Ret_t {
 static const uint16_t Read_Local_Supported_Codecs_v2_Cmd = 0x100d; // OGF 0x4 OCF 0x00d
 
 typedef struct HCI_Read_Local_Supported_Codecs_v2_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Num_Supported_Standard_Codecs;
   struct {
@@ -3868,7 +3868,7 @@ typedef struct HCI_Read_Local_Supported_Codecs_v2_Ret_t {
 static const uint16_t Read_Local_Supported_Codecs_v1_Cmd = 0x100b; // OGF 0x4 OCF 0x00b
 
 typedef struct HCI_Read_Local_Supported_Codecs_v1_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Num_Supported_Standard_Codecs;
   uint8_t  *                  Standard_Codec_ID;
@@ -3881,7 +3881,7 @@ typedef struct HCI_Read_Local_Supported_Codecs_v1_Ret_t {
 static const uint16_t Read_Local_Supported_Commands_Cmd = 0x1002; // OGF 0x4 OCF 0x002
 
 typedef struct HCI_Read_Local_Supported_Commands_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Supported_Commands[64];
 } HCI_Read_Local_Supported_Commands_Ret_t;
@@ -3900,7 +3900,7 @@ typedef struct HCI_Read_Local_Supported_Controller_Delay_Cmd_t {
 } HCI_Read_Local_Supported_Controller_Delay_Cmd_t;
 
 typedef struct HCI_Read_Local_Supported_Controller_Delay_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Min_Controller_Delay[3];
   uint8_t                     Max_Controller_Delay[3];
@@ -3911,7 +3911,7 @@ typedef struct HCI_Read_Local_Supported_Controller_Delay_Ret_t {
 static const uint16_t Read_Local_Supported_Features_Cmd = 0x1003; // OGF 0x4 OCF 0x003
 
 typedef struct HCI_Read_Local_Supported_Features_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     LMP_Features[8];
 } HCI_Read_Local_Supported_Features_Ret_t;
@@ -3921,7 +3921,7 @@ typedef struct HCI_Read_Local_Supported_Features_Ret_t {
 static const uint16_t Read_Local_Version_Information_Cmd = 0x1001; // OGF 0x4 OCF 0x001
 
 typedef struct HCI_Read_Local_Version_Information_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     HCI_Version;
   uint16_t                    HCI_Subversion;
@@ -3935,7 +3935,7 @@ typedef struct HCI_Read_Local_Version_Information_Ret_t {
 static const uint16_t Read_Loopback_Mode_Cmd = 0x1801; // OGF 0x6 OCF 0x001
 
 typedef struct HCI_Read_Loopback_Mode_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Loopback_Mode;
 } HCI_Read_Loopback_Mode_Ret_t;
@@ -3945,7 +3945,7 @@ typedef struct HCI_Read_Loopback_Mode_Ret_t {
 static const uint16_t Read_Num_Broadcast_Cmdransmissions_Cmd = 0x0c29; // OGF 0x3 OCF 0x029
 
 typedef struct HCI_Read_Num_Broadcast_Retransmissions_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Num_Broadcast_Retransmissions;
 } HCI_Read_Num_Broadcast_Retransmissions_Ret_t;
@@ -3955,7 +3955,7 @@ typedef struct HCI_Read_Num_Broadcast_Retransmissions_Ret_t {
 static const uint16_t Read_Number_Of_Supported_IAC_Cmd = 0x0c38; // OGF 0x3 OCF 0x038
 
 typedef struct HCI_Read_Number_Of_Supported_IAC_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Num_Supported_IAC;
 } HCI_Read_Number_Of_Supported_IAC_Ret_t;
@@ -3965,7 +3965,7 @@ typedef struct HCI_Read_Number_Of_Supported_IAC_Ret_t {
 static const uint16_t Read_Page_Scan_Activity_Cmd = 0x0c1b; // OGF 0x3 OCF 0x01b
 
 typedef struct HCI_Read_Page_Scan_Activity_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Page_Scan_Interval;
   uint16_t                    Page_Scan_Window;
@@ -3976,7 +3976,7 @@ typedef struct HCI_Read_Page_Scan_Activity_Ret_t {
 static const uint16_t Read_Page_Scan_Type_Cmd = 0x0c46; // OGF 0x3 OCF 0x046
 
 typedef struct HCI_Read_Page_Scan_Type_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Page_Scan_Type;
 } HCI_Read_Page_Scan_Type_Ret_t;
@@ -3986,7 +3986,7 @@ typedef struct HCI_Read_Page_Scan_Type_Ret_t {
 static const uint16_t Read_Page_Timeout_Cmd = 0x0c17; // OGF 0x3 OCF 0x017
 
 typedef struct HCI_Read_Page_Timeout_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Page_Timeout;
 } HCI_Read_Page_Timeout_Ret_t;
@@ -3996,7 +3996,7 @@ typedef struct HCI_Read_Page_Timeout_Ret_t {
 static const uint16_t Read_PIN_Type_Cmd = 0x0c09; // OGF 0x3 OCF 0x009
 
 typedef struct HCI_Read_PIN_Type_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     PIN_Type;
 } HCI_Read_PIN_Type_Ret_t;
@@ -4067,7 +4067,7 @@ typedef struct HCI_Read_RSSI_Cmd_t {
 } HCI_Read_RSSI_Cmd_t;
 
 typedef struct HCI_Read_RSSI_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Handle;
   uint8_t                     RSSI;
@@ -4078,7 +4078,7 @@ typedef struct HCI_Read_RSSI_Ret_t {
 static const uint16_t Read_Scan_Enable_Cmd = 0x0c19; // OGF 0x3 OCF 0x019
 
 typedef struct HCI_Read_Scan_Enable_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Scan_Enable;
 } HCI_Read_Scan_Enable_Ret_t;
@@ -4088,7 +4088,7 @@ typedef struct HCI_Read_Scan_Enable_Ret_t {
 static const uint16_t Read_Secure_Connections_Host_Support_Cmd = 0x0c79; // OGF 0x3 OCF 0x079
 
 typedef struct HCI_Read_Secure_Connections_Host_Support_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Secure_Connections_Host_Support;
 } HCI_Read_Secure_Connections_Host_Support_Ret_t;
@@ -4098,7 +4098,7 @@ typedef struct HCI_Read_Secure_Connections_Host_Support_Ret_t {
 static const uint16_t Read_Simple_Pairing_Mode_Cmd = 0x0c55; // OGF 0x3 OCF 0x055
 
 typedef struct HCI_Read_Simple_Pairing_Mode_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Simple_Pairing_Mode;
 } HCI_Read_Simple_Pairing_Mode_Ret_t;
@@ -4114,7 +4114,7 @@ typedef struct HCI_Read_Stored_Link_Key_Cmd_t {
 } HCI_Read_Stored_Link_Key_Cmd_t;
 
 typedef struct HCI_Read_Stored_Link_Key_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Max_Num_Keys;
   uint16_t                    Num_Keys_Read;
@@ -4125,7 +4125,7 @@ typedef struct HCI_Read_Stored_Link_Key_Ret_t {
 static const uint16_t Read_Sync_Train_Parameters_Cmd = 0x0c77; // OGF 0x3 OCF 0x077
 
 typedef struct HCI_Read_Sync_Train_Parameters_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Sync_Train_Interval;
   uint32_t                    Sync_Train_Timeout;
@@ -4137,7 +4137,7 @@ typedef struct HCI_Read_Sync_Train_Parameters_Ret_t {
 static const uint16_t Read_Sync_Flow_Control_Enable_Cmd = 0x0c2e; // OGF 0x3 OCF 0x02e
 
 typedef struct HCI_Read_Sync_Flow_Control_Enable_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Sync_Flow_Control_Enable;
 } HCI_Read_Sync_Flow_Control_Enable_Ret_t;
@@ -4153,7 +4153,7 @@ typedef struct HCI_Read_Transmit_Power_Level_Cmd_t {
 } HCI_Read_Transmit_Power_Level_Cmd_t;
 
 typedef struct HCI_Read_Transmit_Power_Level_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_Conn_Handle_t        Status_Conn;
   uint8_t                     TX_Power_Level;
 } HCI_Read_Transmit_Power_Level_Ret_t;
@@ -4163,7 +4163,7 @@ typedef struct HCI_Read_Transmit_Power_Level_Ret_t {
 static const uint16_t Read_Voice_Setting_Cmd = 0x0c25; // OGF 0x3 OCF 0x025
 
 typedef struct HCI_Read_Voice_Setting_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Voice_Setting;
 } HCI_Read_Voice_Setting_Ret_t;
@@ -4313,7 +4313,7 @@ typedef struct HCI_Reset_Failed_Contact_Counter_Cmd_t {
 } HCI_Reset_Failed_Contact_Counter_Cmd_t;
 
 typedef struct HCI_Reset_Failed_Contact_Counter_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Handle;
 } HCI_Reset_Failed_Contact_Counter_Ret_t;
@@ -4348,7 +4348,7 @@ typedef struct HCI_Role_Change_Evt_t {
 static const uint16_t Role_Discovery_Cmd = 0x0809; // OGF 0x2 OCF 0x009
 
 typedef struct HCI_Role_Discovery_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_Conn_Handle_t        Status_Conn;
   uint8_t                     Current_Role;
 } HCI_Role_Discovery_Ret_t;
@@ -4417,7 +4417,7 @@ typedef struct HCI_Set_Connectionless_Peripheral_Broadcast_Cmd_t {
 } HCI_Set_Connectionless_Peripheral_Broadcast_Cmd_t;
 
 typedef struct HCI_Set_Connectionless_Peripheral_Broadcast_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     LT_ADDR;
   uint16_t                    Interval;
@@ -4436,7 +4436,7 @@ typedef struct HCI_Set_Connectionless_Peripheral_Broadcast_Data_Cmd_t {
 } HCI_Set_Connectionless_Peripheral_Broadcast_Data_Cmd_t;
 
 typedef struct HCI_Set_Connectionless_Peripheral_Broadcast_Data_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     LT_ADDR;
 } HCI_Set_Connectionless_Peripheral_Broadcast_Data_Ret_t;
@@ -4461,7 +4461,7 @@ typedef struct HCI_Set_Connectionless_Peripheral_Broadcast_Receive_Cmd_t {
 } HCI_Set_Connectionless_Peripheral_Broadcast_Receive_Cmd_t;
 
 typedef struct HCI_Set_Connectionless_Peripheral_Broadcast_Receive_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   Status_BD_Addr_t            Status_BD_Addr;
   uint8_t                     LT_ADDR;
 } HCI_Set_Connectionless_Peripheral_Broadcast_Receive_Ret_t;
@@ -4607,7 +4607,7 @@ typedef struct HCI_Set_MWS_Signaling_Cmd_t {
 } HCI_Set_MWS_Signaling_Cmd_t;
 
 typedef struct HCI_Set_MWS_Signaling_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Bluetooth_RX_Priority_Assert_Offset;
   uint16_t                    Bluetooth_RX_Priority_Assert_Jitter;
@@ -4666,7 +4666,7 @@ typedef struct HCI_Set_Reserved_LT_ADDR_Cmd_t {
 } HCI_Set_Reserved_LT_ADDR_Cmd_t;
 
 typedef struct HCI_Set_Reserved_LT_ADDR_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     LT_ADDR;
 } HCI_Set_Reserved_LT_ADDR_Ret_t;
@@ -5159,7 +5159,7 @@ typedef struct HCI_Write_Link_Supervision_Timeout_Cmd_t {
 } HCI_Write_Link_Supervision_Timeout_Cmd_t;
 
 typedef struct HCI_Write_Link_Supervision_Timeout_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Handle;
 } HCI_Write_Link_Supervision_Timeout_Ret_t;
@@ -5313,7 +5313,7 @@ typedef struct HCI_Write_Stored_Link_Key_Cmd_t {
 } HCI_Write_Stored_Link_Key_Cmd_t;
 
 typedef struct HCI_Write_Stored_Link_Key_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint8_t                     Num_Keys_Written;
 } HCI_Write_Stored_Link_Key_Ret_t;
@@ -5331,7 +5331,7 @@ typedef struct HCI_Write_Sync_Train_Parameters_Cmd_t {
 } HCI_Write_Sync_Train_Parameters_Cmd_t;
 
 typedef struct HCI_Write_Sync_Train_Parameters_Ret_t {
-  HCI_Command_Complete_Evt_t  CC_Evt;
+  HCI_Command_Complete_Evt_t  CCEvt;
   uint8_t                     Status;
   uint16_t                    Sync_Train_Interval;
 } HCI_Write_Sync_Train_Parameters_Ret_t;
