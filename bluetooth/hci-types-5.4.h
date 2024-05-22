@@ -9,6 +9,8 @@
 
 #define __packed__
 
+#define COMMON_CLUSTERED // Common structures are clustered into separate types.
+
 typedef enum HCI_Pkt_Type_t {
    type_CMD                   = 0x01,
    type_ACL                   = 0x02,
@@ -20,6 +22,11 @@ typedef enum HCI_Pkt_Type_t {
 typedef struct BD_Addr_t {
   uint8_t                     u08[6];
 } BD_Addr_t;
+
+typedef struct HCI_Ident_t {
+  uint8_t                     type;            // Address type
+  BD_Addr_t                   Addr;
+} HCI_Ident_t;
 
 typedef union HCI_Opcode_t {
   uint16_t                    opcode;
@@ -91,21 +98,21 @@ typedef struct Status_Conn_Handle_t {
   uint16_t                    Conn_Handle;
 } Status_Conn_Handle_t;
 
-// <no spec> Event / Status / Connection Handle passe partout.
+// <no spec> { Evt / Status / Connection Handle } passe partout.
 
 typedef struct Evt_Status_Conn_t {
   HCI_Evt_t                   Evt;
   Status_Conn_Handle_t        SC;
 } Evt_Status_Conn_t;
 
-// <no spec> Command / Connection Handle passe partout.
+// <no spec> { Cmd / Connection Handle } passe partout.
 
 typedef struct Cmd_Conn_Handle_t {
   HCI_Cmd_t                   Cmd;
   uint16_t                    Conn_Handle;
 } Cmd_Conn_Handle_t;
 
-// <no spec> Event / Connection Handle passe partout.
+// <no spec> { Evt / Connection Handle } passe partout.
 
 typedef struct Evt_Conn_Handle_t {
   HCI_Evt_t                   Evt;
@@ -136,7 +143,7 @@ typedef struct HCI_Command_Complete_Evt_t {
   HCI_Opcode_t                Opcode;
 } HCI_Command_Complete_Evt_t;
 
-// <no spec> Command Complete / Status / Address passe partout.
+// <no spec> { CCEvt / Status / Address } passe partout.
 
 typedef struct CC_Status_Addr_t {
   HCI_Command_Complete_Evt_t  CCEvt;
@@ -163,7 +170,7 @@ static const uint16_t Accept_Connection_Request_Cmd = 0x0409; // OGF 0x1 OCF 0x0
 
 typedef struct HCI_Accept_Connection_Request_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Role;
 } HCI_Accept_Connection_Request_Cmd_t;
 
@@ -173,7 +180,7 @@ static const uint16_t Accept_Sync_Conn_Request_Cmd = 0x0429; // OGF 0x1 OCF 0x02
 
 typedef struct HCI_Accept_Sync_Conn_Request_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint32_t                    Transmit_Bandwidth;
   uint32_t                    Receive_Bandwidth;
   uint16_t                    Max_Latency;
@@ -254,7 +261,7 @@ static const uint8_t Connection_Complete_Evt = 0x03;
 typedef struct HCI_Connection_Complete_Evt_t {
   HCI_Evt_t                   Evt;
   Status_Conn_Handle_t        Status_Conn;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Link_Type;
   uint8_t                     Encryption_Enabled;
 } HCI_Connection_Complete_Evt_t;
@@ -275,7 +282,7 @@ static const uint8_t Connection_Request_Evt = 0x04;
 
 typedef struct HCI_Connection_Request_Evt_t {
   HCI_Evt_t                   Evt;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Class_Of_Device[3];
   uint8_t                     Link_Type;
 } HCI_Connection_Request_Evt_t;
@@ -295,7 +302,7 @@ static const uint8_t Connectionless_Peripheral_Broadcast_Receive_Evt = 0x51;
 
 typedef struct HCI_Connectionless_Peripheral_Broadcast_Receive_Evt_t {
   HCI_Evt_t                   Evt;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     LT_ADDR;
   uint32_t                    Clock;
   uint32_t                    Offset;
@@ -311,7 +318,7 @@ static const uint8_t Connectionless_Peripheral_Broadcast_Timeout_Evt = 0x52;
 
 typedef struct HCI_Connectionless_Peripheral_Broadcast_Timeout_Evt_t {
   HCI_Evt_t                   Evt;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     LT_ADDR;
 } HCI_Connectionless_Peripheral_Broadcast_Timeout_Evt_t;
 
@@ -321,7 +328,7 @@ static const uint16_t Create_Connection_Cancel_Cmd = 0x0408; // OGF 0x1 OCF 0x00
 
 typedef struct HCI_Create_Connection_Cancel_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
 } HCI_Create_Connection_Cancel_Cmd_t;
 
 // HCI_Create_Connection_Cancel_Ret_t only has one member: Status_BD_Addr.
@@ -332,7 +339,7 @@ static const uint16_t Create_Connection_Cmd = 0x0405; // OGF 0x1 OCF 0x005
 
 typedef struct HCI_Create_Connection_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint16_t                    Packet_Type;
   uint8_t                     Page_Scan_Repetition_Mode;
   uint8_t                     Reserved;
@@ -370,7 +377,7 @@ static const uint16_t Delete_Stored_Link_Key_Cmd = 0x0c12; // OGF 0x3 OCF 0x012
 
 typedef struct HCI_Delete_Stored_Link_Key_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Delete_All;
 } HCI_Delete_Stored_Link_Key_Cmd_t;
 
@@ -433,11 +440,7 @@ static const uint8_t Encryption_Key_Refresh_Complete_Evt = 0x30;
 
 // 7.1.46 Enhanced Accept Synchronous Connection Request command
 
-static const uint16_t Enhanced_Accept_Sync_Conn_Request_Cmd = 0x043e; // OGF 0x1 OCF 0x03e
-
-typedef struct HCI_Enhanced_Accept_Sync_Conn_Request_Cmd_t {
-  HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+typedef struct HCI_Sync_Config_t {             // Common
   uint32_t                    Transmit_Bandwidth;
   uint32_t                    Receive_Bandwidth;
   uint8_t                     Transmit_Coding_Format[5];
@@ -461,6 +464,14 @@ typedef struct HCI_Enhanced_Accept_Sync_Conn_Request_Cmd_t {
   uint16_t                    Max_Latency;
   uint16_t                    Packet_Type;
   uint8_t                     Retransmission_Effort;
+} HCI_Sync_Config_t;
+
+static const uint16_t Enhanced_Accept_Sync_Conn_Request_Cmd = 0x043e; // OGF 0x1 OCF 0x03e
+
+typedef struct HCI_Enhanced_Accept_Sync_Conn_Request_Cmd_t {
+  HCI_Cmd_t                   Cmd;
+  BD_Addr_t                   Addr;
+  HCI_Sync_Config_t           Sync_Config;
 } HCI_Enhanced_Accept_Sync_Conn_Request_Cmd_t;
 
 // 7.3.66 Enhanced Flush command
@@ -489,29 +500,7 @@ static const uint16_t Enhanced_Setup_Sync_Conn_Cmd = 0x043d; // OGF 0x1 OCF 0x03
 typedef struct HCI_Enhanced_Setup_Sync_Conn_Cmd_t {
   HCI_Cmd_t                   Cmd;
   uint16_t                    Conn_Handle;
-  uint32_t                    Transmit_Bandwidth;
-  uint32_t                    Receive_Bandwidth;
-  uint8_t                     Transmit_Coding_Format[5];
-  uint8_t                     Receive_Coding_Format[5];
-  uint16_t                    Transmit_Codec_Frame_Size;
-  uint16_t                    Receive_Codec_Frame_Size;
-  uint32_t                    Input_Bandwidth;
-  uint32_t                    Output_Bandwidth;
-  uint8_t                     Input_Coding_Format[5];
-  uint8_t                     Output_Coding_Format[5];
-  uint16_t                    Input_Coded_Data_Size;
-  uint16_t                    Output_Coded_Data_Size;
-  uint8_t                     Input_PCM_Data_Format;
-  uint8_t                     Output_PCM_Data_Format;
-  uint8_t                     Input_PCM_Sample_Payload_MSB_Position;
-  uint8_t                     Output_PCM_Sample_Payload_MSB_Position;
-  uint8_t                     Input_Data_Path;
-  uint8_t                     Output_Data_Path;
-  uint8_t                     Input_Transport_Unit_Size;
-  uint8_t                     Output_Transport_Unit_Size;
-  uint16_t                    Max_Latency;
-  uint16_t                    Packet_Type;
-  uint8_t                     Retransmission_Effort;
+  HCI_Sync_Config_t           Sync_Config;
 } HCI_Enhanced_Setup_Sync_Conn_Cmd_t;
 
 // 7.1.4 Exit Periodic Inquiry Mode command
@@ -533,7 +522,7 @@ static const uint8_t Extended_Inquiry_Result_Evt = 0x2f;
 typedef struct HCI_Extended_Inquiry_Result_Evt_t {
   HCI_Evt_t                   Evt;
   uint8_t                     Num_Responses;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Page_Scan_Repetition_Mode;
   uint8_t                     Reserved;
   uint8_t                     Class_Of_Device[3];
@@ -544,18 +533,22 @@ typedef struct HCI_Extended_Inquiry_Result_Evt_t {
 
 // 7.2.13 Flow Specification command
 
-static const uint16_t Flow_Specification_Cmd = 0x0810; // OGF 0x2 OCF 0x010
-
-typedef struct HCI_Flow_Specification_Cmd_t {
-  HCI_Cmd_t                   Cmd;
-  uint16_t                    Conn_Handle;
-  uint8_t                     Unused;
+typedef struct HCI_Flow_Spec_t {               // Common
   uint8_t                     Flow_Direction;
   uint8_t                     Service_Type;
   uint32_t                    Token_Rate;
   uint32_t                    Token_Bucket_Size;
   uint32_t                    Peak_Bandwidth;
   uint32_t                    Access_Latency;
+} HCI_Flow_Spec_t;
+
+static const uint16_t Flow_Specification_Cmd = 0x0810; // OGF 0x2 OCF 0x010
+
+typedef struct HCI_Flow_Specification_Cmd_t {
+  HCI_Cmd_t                   Cmd;
+  uint16_t                    Conn_Handle;
+  uint8_t                     Unused;
+  HCI_Flow_Spec_t             Flow_Spec;
 } HCI_Flow_Specification_Cmd_t;
 
 // 7.7.32 Flow Specification Complete event
@@ -566,12 +559,7 @@ typedef struct HCI_Flow_Specification_Complete_Evt_t {
   HCI_Evt_t                   Evt;
   Status_Conn_Handle_t        Status_Conn;
   uint8_t                     Unused;
-  uint8_t                     Flow_Direction;
-  uint8_t                     Service_Type;
-  uint32_t                    Token_Rate;
-  uint32_t                    Token_Bucket_Size;
-  uint32_t                    Peak_Bandwidth;
-  uint32_t                    Access_Latency;
+  HCI_Flow_Spec_t             Flow_Spec;
 } HCI_Flow_Specification_Complete_Evt_t;
 
 // 7.3.4 Flush command
@@ -697,7 +685,7 @@ typedef struct HCI_Inquiry_Result_Evt_t {
   HCI_Evt_t                   Evt;
   uint8_t                     Num_Responses;
   struct {
-    BD_Addr_t                 BD_Addr;
+    BD_Addr_t                 Addr;
     uint8_t                   Page_Scan_Repetition_Mode;
     uint16_t                  Reserved;
     uint8_t                   Class_Of_Device[3];
@@ -713,7 +701,7 @@ typedef struct HCI_Inquiry_Result_with_RSSI_Evt_t {
   HCI_Evt_t                   Evt;
   uint8_t                     Num_Responses;
   struct {
-    BD_Addr_t                 BD_Addr;
+    BD_Addr_t                 Addr;
     uint8_t                   Page_Scan_Repetition_Mode;
     uint8_t                   Reserved;
     uint8_t                   Class_Of_Device[3];
@@ -728,7 +716,7 @@ static const uint8_t IO_Capability_Request_Evt = 0x31;
 
 typedef struct HCI_IO_Capability_Request_Evt_t {
   HCI_Evt_t                   Evt;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
 } HCI_IO_Capability_Request_Evt_t;
 
 // 7.1.36 IO Capability Request Negative Reply command
@@ -737,7 +725,7 @@ static const uint16_t IO_Capability_Request_Negative_Reply_Cmd = 0x0434; // OGF 
 
 typedef struct HCI_IO_Capability_Request_Negative_Reply_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Reason;
 } HCI_IO_Capability_Request_Negative_Reply_Cmd_t;
 
@@ -749,7 +737,7 @@ static const uint16_t IO_Capability_Request_Reply_Cmd = 0x042b; // OGF 0x1 OCF 0
 
 typedef struct HCI_IO_Capability_Request_Reply_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     IO_Capability;
   uint8_t                     OOB_Data_Present;
   uint8_t                     Authentication_Requirements;
@@ -763,7 +751,7 @@ static const uint8_t IO_Capability_Response_Evt = 0x32;
 
 typedef struct HCI_IO_Capability_Response_Evt_t {
   HCI_Evt_t                   Evt;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     IO_Capability;
   uint8_t                     OOB_Data_Present;
   uint8_t                     Authentication_Requirements;
@@ -775,7 +763,7 @@ static const uint8_t Keypress_Notification_Evt = 0x3c;
 
 typedef struct HCI_Keypress_Notification_Evt_t {
   HCI_Evt_t                   Evt;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Notification_Type;
 } HCI_Keypress_Notification_Evt_t;
 
@@ -791,8 +779,7 @@ static const uint16_t LE_Add_Device_To_Filter_Accept_List_Cmd = 0x2011; // OGF 0
 
 typedef struct HCI_LE_Add_Device_To_Filter_Accept_List_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  uint8_t                     Addr_Type;
-  BD_Addr_t                   Addr;
+  HCI_Ident_t                 Ident;
 } HCI_LE_Add_Device_To_Filter_Accept_List_Cmd_t;
 
 // HCI_LE_Add_Device_To_Filter_Accept_List_Ret_t only has one member: Status.
@@ -803,8 +790,7 @@ static const uint16_t LE_Add_Device_To_PAdvertiser_List_Cmd = 0x2047; // OGF 0x8
 
 typedef struct HCI_LE_Add_Device_To_PAdvertiser_List_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  uint8_t                     Advertiser_Addr_Type;
-  BD_Addr_t                   Advertiser_Addr;
+  HCI_Ident_t                 Advertiser;
   uint8_t                     Advertising_SID;
 } HCI_LE_Add_Device_To_PAdvertiser_List_Cmd_t;
 
@@ -816,8 +802,7 @@ static const uint16_t LE_Add_Device_To_Resolving_List_Cmd = 0x2027; // OGF 0x8 O
 
 typedef struct HCI_LE_Add_Device_To_Resolving_List_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  uint8_t                     Peer_Identity_Addr_Type;
-  BD_Addr_t                   Peer_Identity_Addr;
+  HCI_Ident_t                 Peer_Identity;
   uint8_t                     Peer_IRK[16];
   uint8_t                     Local_IRK[16];
 } HCI_LE_Add_Device_To_Resolving_List_Cmd_t;
@@ -834,8 +819,7 @@ typedef struct HCI_LE_Advertising_Report_Evt_t {
   uint8_t                     Num_Reports;
   struct {
     uint8_t                   Event_Type;
-    uint8_t                   Addr_Type;
-    BD_Addr_t                 Addr;
+    HCI_Ident_t               Ident;
     uint8_t                   Data_Length;
     uint8_t  *                Data;
     uint8_t                   RSSI;
@@ -1022,8 +1006,7 @@ typedef struct HCI_LE_Connection_Complete_Evt_t {
   uint8_t                     Status;
   uint16_t                    Conn_Handle;
   uint8_t                     Role;
-  uint8_t                     Peer_Addr_Type;
-  BD_Addr_t                   Peer_Addr;
+  HCI_Ident_t                 Peer;
   uint16_t                    Connection_Interval;
   uint16_t                    Peripheral_Latency;
   uint16_t                    Supervision_Timeout;
@@ -1225,8 +1208,7 @@ typedef struct HCI_LE_Create_Connection_Cmd_t {
   uint16_t                    LE_Scan_Interval;
   uint16_t                    LE_Scan_Window;
   uint8_t                     Initiator_Filter_Policy;
-  uint8_t                     Peer_Addr_Type;
-  BD_Addr_t                   Peer_Addr;
+  HCI_Ident_t                 Peer;
   uint8_t                     Own_Addr_Type;
   uint16_t                    Connection_Interval_Min;
   uint16_t                    Connection_Interval_Max;
@@ -1271,10 +1253,8 @@ typedef struct HCI_LE_Directed_Advertising_Report_Evt_t {
   uint8_t                     Num_Reports;
   struct {
     uint8_t                   Event_Type;
-    uint8_t                   Addr_Type;
-    BD_Addr_t                 Addr;
-    uint8_t                   Direct_Addr_Type;
-    BD_Addr_t                 Direct_Addr;
+    HCI_Ident_t               Ident;
+    HCI_Ident_t               Direct;
     uint8_t                   RSSI;
   } Reports[0];
 } HCI_LE_Directed_Advertising_Report_Evt_t;
@@ -1317,8 +1297,7 @@ typedef struct HCI_LE_Enhanced_Connection_Complete_v2_Evt_t {
   uint8_t                     Status;
   uint16_t                    Conn_Handle;
   uint8_t                     Role;
-  uint8_t                     Peer_Addr_Type;
-  BD_Addr_t                   Peer_Addr;
+  HCI_Ident_t                 Peer;
   BD_Addr_t                   Local_Resolvable_Private_Addr;
   BD_Addr_t                   Peer_Resolvable_Private_Addr;
   uint16_t                    Connection_Interval;
@@ -1337,8 +1316,7 @@ typedef struct HCI_LE_Enhanced_Connection_Complete_v1_Evt_t {
   uint8_t                     Status;
   uint16_t                    Conn_Handle;
   uint8_t                     Role;
-  uint8_t                     Peer_Addr_Type;
-  BD_Addr_t                   Peer_Addr;
+  HCI_Ident_t                 Peer;
   BD_Addr_t                   Local_Resolvable_Private_Addr;
   BD_Addr_t                   Peer_Resolvable_Private_Addr;
   uint16_t                    Connection_Interval;
@@ -1375,22 +1353,31 @@ typedef struct HCI_LE_Extended_Advertising_Report_Evt_t {
   uint8_t                     Num_Reports;
   struct {
     uint16_t                  Event_Type;
-    uint8_t                   Addr_Type;
-    BD_Addr_t                 Addr;
+    HCI_Ident_t               Ident;
     uint8_t                   Primary_PHY;
     uint8_t                   Secondary_PHY;
     uint8_t                   Advertising_SID;
     uint8_t                   TX_Power;
     uint8_t                   RSSI;
     uint16_t                  PA_Interval;
-    uint8_t                   Direct_Addr_Type;
-    BD_Addr_t                 Direct_Addr;
+    HCI_Ident_t               Direct;
     uint8_t                   Data_Length;
     uint8_t  *                Data;
   } Reports[0];
 } HCI_LE_Extended_Advertising_Report_Evt_t;
 
 // 7.8.66 LE Extended Create Connection command
+
+typedef struct HCI_Conn_Cfg_t {                // Common
+  uint8_t                     Scan_Interval;
+  uint8_t                     Scan_Window;
+  uint8_t                     Connection_Interval_Min;
+  uint8_t                     Connection_Interval_Max;
+  uint8_t                     Max_Latency;
+  uint8_t                     Supervision_Timeout;
+  uint8_t                     Min_CE_Length;
+  uint8_t                     Max_CE_Length;
+} HCI_Conn_Cfg_t;
 
 static const uint16_t LE_Extended_Create_Connection_v2_Cmd = 0x2085; // OGF 0x8 OCF 0x085
 
@@ -1400,18 +1387,10 @@ typedef struct HCI_LE_Extended_Create_Connection_v2_Cmd_t {
   uint8_t                     Subevent;
   uint8_t                     Initiator_Filter_Policy;
   uint8_t                     Own_Addr_Type;
-  uint8_t                     Peer_Addr_Type;
-  BD_Addr_t                   Peer_Addr;
+  HCI_Ident_t                 Peer;
   uint8_t                     Initiating_PHYs;
   struct {
-    uint8_t                   Scan_Interval;
-    uint8_t                   Scan_Window;
-    uint8_t                   Connection_Interval_Min;
-    uint8_t                   Connection_Interval_Max;
-    uint8_t                   Max_Latency;
-    uint8_t                   Supervision_Timeout;
-    uint8_t                   Min_CE_Length;
-    uint8_t                   Max_CE_Length;
+    HCI_Conn_Cfg_t            Conn_Cfg;
   } Initiating_PHYs_data[0];
 } HCI_LE_Extended_Create_Connection_v2_Cmd_t;
 
@@ -1421,18 +1400,10 @@ typedef struct HCI_LE_Extended_Create_Connection_v1_Cmd_t {
   HCI_Cmd_t                   Cmd;
   uint8_t                     Initiator_Filter_Policy;
   uint8_t                     Own_Addr_Type;
-  uint8_t                     Peer_Addr_Type;
-  BD_Addr_t                   Peer_Addr;
+  HCI_Ident_t                 Peer;
   uint8_t                     Initiating_PHYs;
   struct {
-    uint8_t                   Scan_Interval;
-    uint8_t                   Scan_Window;
-    uint8_t                   Connection_Interval_Min;
-    uint8_t                   Connection_Interval_Max;
-    uint8_t                   Max_Latency;
-    uint8_t                   Supervision_Timeout;
-    uint8_t                   Min_CE_Length;
-    uint8_t                   Max_CE_Length;
+    HCI_Conn_Cfg_t            Conn_Cfg;
   } Initiating_PHYs_data[0];
 } HCI_LE_Extended_Create_Connection_v1_Cmd_t;
 
@@ -1587,8 +1558,7 @@ typedef struct HCI_LE_PA_Create_Sync_Cmd_t {
   HCI_Cmd_t                   Cmd;
   uint8_t                     Options;
   uint8_t                     Advertising_SID;
-  uint8_t                     Advertiser_Addr_Type;
-  BD_Addr_t                   Advertiser_Addr;
+  HCI_Ident_t                 Advertiser;
   uint16_t                    Skip;
   uint16_t                    Sync_Timeout;
   uint8_t                     Sync_CTE_Type;
@@ -1675,6 +1645,12 @@ typedef struct HCI_LE_PA_Subevent_Data_Request_Evt_t {
 
 // 7.7.65.14 LE Periodic Advertising Sync Established event
 
+typedef struct HCI_Adv_Ctx_t {                 // Common
+  uint8_t                     Advertising_SID;
+  HCI_Ident_t                 Advertiser;
+  uint8_t                     Advertiser_PHY;
+} HCI_Adv_Ctx_t;
+
 static const uint8_t LE_PAS_Established_v2_Evt_sub = 0x24;
 
 typedef struct HCI_LE_PAS_Established_v2_Evt_t {
@@ -1682,10 +1658,7 @@ typedef struct HCI_LE_PAS_Established_v2_Evt_t {
   uint8_t                     Subevent_Code;
   uint8_t                     Status;
   uint16_t                    Sync_Handle;
-  uint8_t                     Advertising_SID;
-  uint8_t                     Advertiser_Addr_Type;
-  BD_Addr_t                   Advertiser_Addr;
-  uint8_t                     Advertiser_PHY;
+  HCI_Adv_Ctx_t               Adv_Ctx;
   uint16_t                    PA_Interval;
   uint8_t                     Advertiser_Clock_Accuracy;
   uint8_t                     Num_Subevents;
@@ -1701,10 +1674,7 @@ typedef struct HCI_LE_PAS_Established_v1_Evt_t {
   uint8_t                     Subevent_Code;
   uint8_t                     Status;
   uint16_t                    Sync_Handle;
-  uint8_t                     Advertising_SID;
-  uint8_t                     Advertiser_Addr_Type;
-  BD_Addr_t                   Advertiser_Addr;
-  uint8_t                     Advertiser_PHY;
+  HCI_Adv_Ctx_t               Adv_Ctx;
   uint16_t                    PA_Interval;
   uint8_t                     Advertiser_Clock_Accuracy;
 } HCI_LE_PAS_Established_v1_Evt_t;
@@ -1743,10 +1713,7 @@ typedef struct HCI_LE_PAST_Received_v2_Evt_t {
   uint16_t                    Conn_Handle;
   uint16_t                    Service_Data;
   uint16_t                    Sync_Handle;
-  uint8_t                     Advertising_SID;
-  uint8_t                     Advertiser_Addr_Type;
-  BD_Addr_t                   Advertiser_Addr;
-  uint8_t                     Advertiser_PHY;
+  HCI_Adv_Ctx_t               Adv_Ctx;
   uint16_t                    PA_Interval;
   uint8_t                     Advertiser_Clock_Accuracy;
   uint8_t                     Num_Subevents;
@@ -1764,10 +1731,7 @@ typedef struct HCI_LE_PAST_Received_v1_Evt_t {
   uint16_t                    Conn_Handle;
   uint16_t                    Service_Data;
   uint16_t                    Sync_Handle;
-  uint8_t                     Advertising_SID;
-  uint8_t                     Advertiser_Addr_Type;
-  BD_Addr_t                   Advertiser_Addr;
-  uint8_t                     Advertiser_PHY;
+  HCI_Adv_Ctx_t               Adv_Ctx;
   uint16_t                    PA_Interval;
   uint8_t                     Advertiser_Clock_Accuracy;
 } HCI_LE_PAST_Received_v1_Evt_t;
@@ -1923,8 +1887,7 @@ static const uint16_t LE_Read_Local_Resolvable_Addr_Cmd = 0x202c; // OGF 0x8 OCF
 
 typedef struct HCI_LE_Read_Local_Resolvable_Addr_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  uint8_t                     Peer_Identity_Addr_Type;
-  BD_Addr_t                   Peer_Identity_Addr;
+  HCI_Ident_t                 Peer_Identity;
 } HCI_LE_Read_Local_Resolvable_Addr_Cmd_t;
 
 typedef struct HCI_LE_Read_Local_Resolvable_Addr_Ret_t {
@@ -1982,8 +1945,7 @@ static const uint16_t LE_Read_Peer_Resolvable_Addr_Cmd = 0x202b; // OGF 0x8 OCF 
 
 typedef struct HCI_LE_Read_Peer_Resolvable_Addr_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  uint8_t                     Peer_Identity_Addr_Type;
-  BD_Addr_t                   Peer_Identity_Addr;
+  HCI_Ident_t                 Peer_Identity;
 } HCI_LE_Read_Peer_Resolvable_Addr_Cmd_t;
 
 typedef struct HCI_LE_Read_Peer_Resolvable_Addr_Ret_t {
@@ -2221,8 +2183,7 @@ static const uint16_t LE_Remove_Device_From_Filter_Accept_List_Cmd = 0x2012; // 
 
 typedef struct HCI_LE_Remove_Device_From_Filter_Accept_List_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  uint8_t                     Addr_Type;
-  BD_Addr_t                   Addr;
+  HCI_Ident_t                 Ident;
 } HCI_LE_Remove_Device_From_Filter_Accept_List_Cmd_t;
 
 // HCI_LE_Remove_Device_From_Filter_Accept_List_Ret_t only has one member: Status.
@@ -2233,8 +2194,7 @@ static const uint16_t LE_Remove_Device_From_PAdvertiser_List_Cmd = 0x2048; // OG
 
 typedef struct HCI_LE_Remove_Device_From_PAdvertiser_List_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  uint8_t                     Advertiser_Addr_Type;
-  BD_Addr_t                   Advertiser_Addr;
+  HCI_Ident_t                 Advertiser;
   uint8_t                     Advertising_SID;
 } HCI_LE_Remove_Device_From_PAdvertiser_List_Cmd_t;
 
@@ -2246,8 +2206,7 @@ static const uint16_t LE_Remove_Device_From_Resolving_List_Cmd = 0x2028; // OGF 
 
 typedef struct HCI_LE_Remove_Device_From_Resolving_List_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  uint8_t                     Peer_Identity_Addr_Type;
-  BD_Addr_t                   Peer_Identity_Addr;
+  HCI_Ident_t                 Peer_Identity;
 } HCI_LE_Remove_Device_From_Resolving_List_Cmd_t;
 
 // HCI_LE_Remove_Device_From_Resolving_List_Ret_t only has one member: Status.
@@ -2290,8 +2249,7 @@ typedef struct HCI_LE_Scan_Request_Received_Evt_t {
   HCI_Evt_t                   Evt;
   uint8_t                     Subevent_Code;
   uint8_t                     Advertising_Handle;
-  uint8_t                     Scanner_Addr_Type;
-  BD_Addr_t                   Scanner_Addr;
+  HCI_Ident_t                 Scanner;
 } HCI_LE_Scan_Request_Received_Evt_t;
 
 // 7.7.65.17 LE Scan Timeout event
@@ -2347,8 +2305,7 @@ typedef struct HCI_LE_Set_Advertising_Parameters_Cmd_t {
   uint16_t                    Advertising_Interval_Max;
   uint8_t                     Advertising_Type;
   uint8_t                     Own_Addr_Type;
-  uint8_t                     Peer_Addr_Type;
-  BD_Addr_t                   Peer_Addr;
+  HCI_Ident_t                 Peer;
   uint8_t                     Advertising_Channel_Map;
   uint8_t                     Advertising_Filter_Policy;
 } HCI_LE_Set_Advertising_Parameters_Cmd_t;
@@ -2638,8 +2595,7 @@ typedef struct HCI_LE_Set_Extended_Advertising_Parameters_v2_Cmd_t {
   uint8_t                     Primary_Advertising_Interval_Max[3];
   uint8_t                     Primary_Advertising_Channel_Map;
   uint8_t                     Own_Addr_Type;
-  uint8_t                     Peer_Addr_Type;
-  BD_Addr_t                   Peer_Addr;
+  HCI_Ident_t                 Peer;
   uint8_t                     Advertising_Filter_Policy;
   uint8_t                     Advertising_TX_Power;
   uint8_t                     Primary_Advertising_PHY;
@@ -2667,8 +2623,7 @@ typedef struct HCI_LE_Set_Extended_Advertising_Parameters_v1_Cmd_t {
   uint8_t                     Primary_Advertising_Interval_Max[3];
   uint8_t                     Primary_Advertising_Channel_Map;
   uint8_t                     Own_Addr_Type;
-  uint8_t                     Peer_Addr_Type;
-  BD_Addr_t                   Peer_Addr;
+  HCI_Ident_t                 Peer;
   uint8_t                     Advertising_Filter_Policy;
   uint8_t                     Advertising_TX_Power;
   uint8_t                     Primary_Advertising_PHY;
@@ -2951,8 +2906,7 @@ static const uint16_t LE_Set_Privacy_Mode_Cmd = 0x204e; // OGF 0x8 OCF 0x04e
 
 typedef struct HCI_LE_Set_Privacy_Mode_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  uint8_t                     Peer_Identity_Addr_Type;
-  BD_Addr_t                   Peer_Identity_Addr;
+  HCI_Ident_t                 Peer_Identity;
   uint8_t                     Privacy_Mode;
 } HCI_LE_Set_Privacy_Mode_Cmd_t;
 
@@ -3213,7 +3167,7 @@ static const uint8_t Link_Key_Notification_Evt = 0x18;
 
 typedef struct HCI_Link_Key_Notification_Evt_t {
   HCI_Evt_t                   Evt;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Link_Key[16];
   uint8_t                     Key_Type;
 } HCI_Link_Key_Notification_Evt_t;
@@ -3224,7 +3178,7 @@ static const uint8_t Link_Key_Request_Evt = 0x17;
 
 typedef struct HCI_Link_Key_Request_Evt_t {
   HCI_Evt_t                   Evt;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
 } HCI_Link_Key_Request_Evt_t;
 
 // 7.1.11 Link Key Request Negative Reply command
@@ -3233,7 +3187,7 @@ static const uint16_t Link_Key_Request_Negative_Reply_Cmd = 0x040c; // OGF 0x1 O
 
 typedef struct HCI_Link_Key_Request_Negative_Reply_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
 } HCI_Link_Key_Request_Negative_Reply_Cmd_t;
 
 // HCI_Link_Key_Request_Negative_Reply_Ret_t only has one member: Status_BD_Addr.
@@ -3244,7 +3198,7 @@ static const uint16_t Link_Key_Request_Reply_Cmd = 0x040b; // OGF 0x1 OCF 0x00b
 
 typedef struct HCI_Link_Key_Request_Reply_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Link_Key[16];
 } HCI_Link_Key_Request_Reply_Cmd_t;
 
@@ -3343,7 +3297,7 @@ static const uint8_t Page_Scan_Repetition_Mode_Change_Evt = 0x20;
 
 typedef struct HCI_Page_Scan_Repetition_Mode_Change_Evt_t {
   HCI_Evt_t                   Evt;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Page_Scan_Repetition_Mode;
 } HCI_Page_Scan_Repetition_Mode_Change_Evt_t;
 
@@ -3368,7 +3322,7 @@ static const uint8_t PIN_Code_Request_Evt = 0x16;
 
 typedef struct HCI_PIN_Code_Request_Evt_t {
   HCI_Evt_t                   Evt;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
 } HCI_PIN_Code_Request_Evt_t;
 
 // 7.1.13 PIN Code Request Negative Reply command
@@ -3377,7 +3331,7 @@ static const uint16_t PIN_Code_Request_Negative_Reply_Cmd = 0x040e; // OGF 0x1 O
 
 typedef struct HCI_PIN_Code_Request_Negative_Reply_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
 } HCI_PIN_Code_Request_Negative_Reply_Cmd_t;
 
 // HCI_PIN_Code_Request_Negative_Reply_Ret_t only has one member: Status_BD_Addr.
@@ -3388,7 +3342,7 @@ static const uint16_t PIN_Code_Request_Reply_Cmd = 0x040d; // OGF 0x1 OCF 0x00d
 
 typedef struct HCI_PIN_Code_Request_Reply_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     PIN_Code_Length;
   uint8_t                     PIN_Code[16];
 } HCI_PIN_Code_Request_Reply_Cmd_t;
@@ -3397,17 +3351,21 @@ typedef struct HCI_PIN_Code_Request_Reply_Cmd_t {
 
 // 7.2.6 QoS Setup command
 
-static const uint16_t QoS_Setup_Cmd = 0x0807; // OGF 0x2 OCF 0x007
-
-typedef struct HCI_QoS_Setup_Cmd_t {
-  HCI_Cmd_t                   Cmd;
-  uint16_t                    Conn_Handle;
+typedef struct HCI_QoS_t {                     // Common
   uint8_t                     Unused;
   uint8_t                     Service_Type;
   uint32_t                    Token_Rate;
   uint32_t                    Peak_Bandwidth;
   uint32_t                    Latency;
   uint32_t                    Delay_Variation;
+} HCI_QoS_t;
+
+static const uint16_t QoS_Setup_Cmd = 0x0807; // OGF 0x2 OCF 0x007
+
+typedef struct HCI_QoS_Setup_Cmd_t {
+  HCI_Cmd_t                   Cmd;
+  uint16_t                    Conn_Handle;
+  HCI_QoS_t                   QoS;
 } HCI_QoS_Setup_Cmd_t;
 
 // 7.7.13 QoS Setup Complete event
@@ -3417,12 +3375,7 @@ static const uint8_t QoS_Setup_Complete_Evt = 0x0d;
 typedef struct HCI_QoS_Setup_Complete_Evt_t {
   HCI_Evt_t                   Evt;
   Status_Conn_Handle_t        Status_Conn;
-  uint8_t                     Unused;
-  uint8_t                     Service_Type;
-  uint32_t                    Token_Rate;
-  uint32_t                    Peak_Bandwidth;
-  uint32_t                    Latency;
-  uint32_t                    Delay_Variation;
+  HCI_QoS_t                   QoS;
 } HCI_QoS_Setup_Complete_Evt_t;
 
 // 7.7.30 QoS Violation event
@@ -4156,7 +4109,7 @@ static const uint16_t Read_Stored_Link_Key_Cmd = 0x0c0d; // OGF 0x3 OCF 0x00d
 
 typedef struct HCI_Read_Stored_Link_Key_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Read_All;
 } HCI_Read_Stored_Link_Key_Cmd_t;
 
@@ -4221,7 +4174,7 @@ static const uint16_t Receive_Sync_Train_Cmd = 0x0444; // OGF 0x1 OCF 0x044
 
 typedef struct HCI_Receive_Sync_Train_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint16_t                    Sync_Scan_Timeout;
   uint16_t                    Sync_Scan_Window;
   uint16_t                    Sync_Scan_Interval;
@@ -4239,7 +4192,7 @@ static const uint16_t Reject_Connection_Request_Cmd = 0x040a; // OGF 0x1 OCF 0x0
 
 typedef struct HCI_Reject_Connection_Request_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Reason;
 } HCI_Reject_Connection_Request_Cmd_t;
 
@@ -4249,7 +4202,7 @@ static const uint16_t Reject_Sync_Conn_Request_Cmd = 0x042a; // OGF 0x1 OCF 0x02
 
 typedef struct HCI_Reject_Sync_Conn_Request_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Reason;
 } HCI_Reject_Sync_Conn_Request_Cmd_t;
 
@@ -4259,7 +4212,7 @@ static const uint8_t Remote_Host_Supported_Features_Notification_Evt = 0x3d;
 
 typedef struct HCI_Remote_Host_Supported_Features_Notification_Evt_t {
   HCI_Evt_t                   Evt;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Host_Supported_Features[8];
 } HCI_Remote_Host_Supported_Features_Notification_Evt_t;
 
@@ -4269,7 +4222,7 @@ static const uint16_t Remote_Name_Request_Cancel_Cmd = 0x041a; // OGF 0x1 OCF 0x
 
 typedef struct HCI_Remote_Name_Request_Cancel_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
 } HCI_Remote_Name_Request_Cancel_Cmd_t;
 
 // HCI_Remote_Name_Request_Cancel_Ret_t only has one member: Status_BD_Addr.
@@ -4280,7 +4233,7 @@ static const uint16_t Remote_Name_Request_Cmd = 0x0419; // OGF 0x1 OCF 0x019
 
 typedef struct HCI_Remote_Name_Request_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Page_Scan_Repetition_Mode;
   uint8_t                     Reserved;
   uint16_t                    Clock_Offset;
@@ -4302,7 +4255,7 @@ static const uint8_t Remote_OOB_Data_Request_Evt = 0x35;
 
 typedef struct HCI_Remote_OOB_Data_Request_Evt_t {
   HCI_Evt_t                   Evt;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
 } HCI_Remote_OOB_Data_Request_Evt_t;
 
 // 7.1.35 Remote OOB Data Request Negative Reply command
@@ -4311,7 +4264,7 @@ static const uint16_t Remote_OOB_Data_Request_Negative_Reply_Cmd = 0x0433; // OG
 
 typedef struct HCI_Remote_OOB_Data_Request_Negative_Reply_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
 } HCI_Remote_OOB_Data_Request_Negative_Reply_Cmd_t;
 
 // HCI_Remote_OOB_Data_Request_Negative_Reply_Ret_t only has one member: Status_BD_Addr.
@@ -4322,7 +4275,7 @@ static const uint16_t Remote_OOB_Data_Request_Reply_Cmd = 0x0430; // OGF 0x1 OCF
 
 typedef struct HCI_Remote_OOB_Data_Request_Reply_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     C[16];
   uint8_t                     R[16];
 } HCI_Remote_OOB_Data_Request_Reply_Cmd_t;
@@ -4335,7 +4288,7 @@ static const uint16_t Remote_OOB_Extended_Data_Request_Reply_Cmd = 0x0445; // OG
 
 typedef struct HCI_Remote_OOB_Extended_Data_Request_Reply_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     C_192[16];
   uint8_t                     R_192[16];
   uint8_t                     C_256[16];
@@ -4373,7 +4326,7 @@ typedef struct HCI_Return_Link_Keys_Evt_t {
   HCI_Evt_t                   Evt;
   uint8_t                     Num_Keys;
   struct {
-    BD_Addr_t                 BD_Addr;
+    BD_Addr_t                 Addr;
     uint8_t                   Link_Key[16];
   } Keys[0];
 } HCI_Return_Link_Keys_Evt_t;
@@ -4421,7 +4374,7 @@ static const uint16_t Send_Keypress_Notification_Cmd = 0x0c60; // OGF 0x3 OCF 0x
 
 typedef struct HCI_Send_Keypress_Notification_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Notification_Type;
 } HCI_Send_Keypress_Notification_Cmd_t;
 
@@ -4495,7 +4448,7 @@ static const uint16_t Set_Connectionless_Peripheral_Broadcast_Receive_Cmd = 0x04
 typedef struct HCI_Set_Connectionless_Peripheral_Broadcast_Receive_Cmd_t {
   HCI_Cmd_t                   Cmd;
   uint8_t                     Enable;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     LT_ADDR;
   uint16_t                    Interval;
   uint32_t                    Clock_Offset;
@@ -4800,7 +4753,7 @@ static const uint16_t Switch_Role_Cmd = 0x080b; // OGF 0x2 OCF 0x00b
 
 typedef struct HCI_Switch_Role_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Role;
 } HCI_Switch_Role_Cmd_t;
 
@@ -4845,7 +4798,7 @@ static const uint8_t Sync_Conn_Complete_Evt = 0x2c;
 typedef struct HCI_Sync_Conn_Complete_Evt_t {
   HCI_Evt_t                   Evt;
   Status_Conn_Handle_t        Status_Conn;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Link_Type;
   uint8_t                     Transmission_Interval;
   uint8_t                     Retransmission_Window;
@@ -4872,7 +4825,7 @@ static const uint16_t Truncated_Page_Cancel_Cmd = 0x0440; // OGF 0x1 OCF 0x040
 
 typedef struct HCI_Truncated_Page_Cancel_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
 } HCI_Truncated_Page_Cancel_Cmd_t;
 
 // HCI_Truncated_Page_Cancel_Ret_t only has one member: Status_BD_Addr.
@@ -4883,7 +4836,7 @@ static const uint16_t Truncated_Page_Cmd = 0x043f; // OGF 0x1 OCF 0x03f
 
 typedef struct HCI_Truncated_Page_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint8_t                     Page_Scan_Repetition_Mode;
   uint16_t                    Clock_Offset;
 } HCI_Truncated_Page_Cmd_t;
@@ -4900,7 +4853,7 @@ static const uint8_t User_Confirmation_Request_Evt = 0x33;
 
 typedef struct HCI_User_Confirmation_Request_Evt_t {
   HCI_Evt_t                   Evt;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint32_t                    Numeric_Value;
 } HCI_User_Confirmation_Request_Evt_t;
 
@@ -4910,7 +4863,7 @@ static const uint16_t User_Confirmation_Request_Negative_Reply_Cmd = 0x042d; // 
 
 typedef struct HCI_User_Confirmation_Request_Negative_Reply_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
 } HCI_User_Confirmation_Request_Negative_Reply_Cmd_t;
 
 // HCI_User_Confirmation_Request_Negative_Reply_Ret_t only has one member: Status_BD_Addr.
@@ -4921,7 +4874,7 @@ static const uint16_t User_Confirmation_Request_Reply_Cmd = 0x042c; // OGF 0x1 O
 
 typedef struct HCI_User_Confirmation_Request_Reply_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
 } HCI_User_Confirmation_Request_Reply_Cmd_t;
 
 // HCI_User_Confirmation_Request_Reply_Ret_t only has one member: Status_BD_Addr.
@@ -4932,7 +4885,7 @@ static const uint8_t User_Passkey_Notification_Evt = 0x3b;
 
 typedef struct HCI_User_Passkey_Notification_Evt_t {
   HCI_Evt_t                   Evt;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint32_t                    Passkey;
 } HCI_User_Passkey_Notification_Evt_t;
 
@@ -4942,7 +4895,7 @@ static const uint8_t User_Passkey_Request_Evt = 0x34;
 
 typedef struct HCI_User_Passkey_Request_Evt_t {
   HCI_Evt_t                   Evt;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
 } HCI_User_Passkey_Request_Evt_t;
 
 // 7.1.33 User Passkey Request Negative Reply command
@@ -4951,7 +4904,7 @@ static const uint16_t User_Passkey_Request_Negative_Reply_Cmd = 0x042f; // OGF 0
 
 typedef struct HCI_User_Passkey_Request_Negative_Reply_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
 } HCI_User_Passkey_Request_Negative_Reply_Cmd_t;
 
 // HCI_User_Passkey_Request_Negative_Reply_Ret_t only has one member: Status_BD_Addr.
@@ -4962,7 +4915,7 @@ static const uint16_t User_Passkey_Request_Reply_Cmd = 0x042e; // OGF 0x1 OCF 0x
 
 typedef struct HCI_User_Passkey_Request_Reply_Cmd_t {
   HCI_Cmd_t                   Cmd;
-  BD_Addr_t                   BD_Addr;
+  BD_Addr_t                   Addr;
   uint32_t                    Numeric_Value;
 } HCI_User_Passkey_Request_Reply_Cmd_t;
 
@@ -5354,7 +5307,7 @@ typedef struct HCI_Write_Stored_Link_Key_Cmd_t {
   HCI_Cmd_t                   Cmd;
   uint8_t                     Num_Keys_To_Write;
   struct {
-    BD_Addr_t                 BD_Addr;
+    BD_Addr_t                 Addr;
     uint8_t                   Link_Key[16];
   } Keys_To_Write[0];
 } HCI_Write_Stored_Link_Key_Cmd_t;
