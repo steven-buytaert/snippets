@@ -63,6 +63,8 @@ int main(int argc, char * argv[]) {
 
   // -- Now encode it back into an HCI packet.
 
+  printf("Report Evt.length %u bytes (from reference packet).\n", rep->Evt.length);
+
   rep->Evt.length = 0;                                      // No need to provide the packet length.
 
   CodecReq_t EReq = {
@@ -75,6 +77,8 @@ int main(int argc, char * argv[]) {
   assert(sizeof(packet) == struct2pkt(& EReq));             // Re-encoded should match original packet size.
 
   assert(0 == memcmp(encoded, packet, sizeof(packet)));     // And contents should match original.
+
+  printf("Packet Evt.length %u bytes (calculated by codec).\n", encoded[2]);
 
   // -- Sizing calculation for decoding (encoding works similar).
   
