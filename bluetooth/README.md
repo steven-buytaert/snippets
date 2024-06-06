@@ -72,27 +72,27 @@ hci-types-5.4.h header file.
 
 The encoder/decoder (currently) is only for the 5.4 Bluetooth specification.
 
-The current codec tables are generated for a 32 bit little endian machine.
-If requested, I can provide them also for a 64 bit little endian machine.
-Generating them, including the byte swapping instructions for a big endian
-machine, would be possible to implement, but is currently not foreseen.
+The codec tables depend on the bit width of the system on which the codec
+will run. There are therefore 2 tables provided, for a 32 bit system and a
+64 bit system. Both tables are foreseen for little endian CPUs. It would be
+possible to generate the tables for a big endian CPU but that is not
+foreseen.
 
 There is a small and simple sample application that shows the decoding and
-encoding steps.
+encoding steps for a single structure of the more than 1400 HCI packet
+types.
 
-To build the sample code.
+To build the sample code for a 64 bits system.
 
 ```bash 
 $ cd codec
-$ gcc [-m32] -Os -fstack-protector -fsanitize=undefined -Wall -Werror -I . -I .. -o sample sample.c hci-codec.c hci-tables.c
+$ gcc -Os -fstack-protector -Wall -Werror -I . -I .. -o sample sample.c hci-codec.c hci-tables-64.c
 $ size sample
   text           data     bss     dec     hex filename
-  9902            518       2   10422    28b6 sample
+  10288	          998	    2	11288	 2c18 sample    (64 bits)
+  9902            518       2   10422    28b6 sample    (32 bits)
 $ ./sample
 ```
-
-Since the tables are generated for use on a 32 bit (embedded) system, make sure the sample
-is compiled in 32 bit mode.
 
 So in a bit more than 10k of code size, all types can be properly encoded
 and decoded.
