@@ -20,13 +20,16 @@ make snippet which is kind of obvious).
   gcc -m32 -Wall -Wsign-conversion -Wextra -Wno-unused-parameter -I . -I ../uintxx *.c ../uintxx/uintxx.c -o sample
   ./sample
   1.3806515690000000e-23 printf
-  1.3806515690000000e-23 sbtecvt
+  1.3806515690000000e-23 this implementation
   3.14159274 sbtecvt
   ```
 
   The code works for both 32 bit and 64 bit CPUs, so therefore the -m32.
   Leave this command line option out for the 64 bit version. Also big
   or little endianess shouldn't matter.
+
+  This is as far as I know the smallest implementation to properly format
+  IEEE754 variables into printable format; around 6KByte of code.
 
   [This blog entry of Victor Zverovich](https://www.zverovich.net/2019/02/11/formatting-floating-point-numbers.html)
   was an inspiration for the code to convert the IEEE754 format.
