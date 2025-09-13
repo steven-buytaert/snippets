@@ -1,6 +1,7 @@
-// Copyright (c) 2020,2021 Steven Buytaert
+// Copyright (c) 2020,2021-2025 Steven Buytaert
 
 #include <assert.h>
+#include <string.h>
 #include <circbuffer.h>
 
 uint8_t bcb_get(bcb_t cb) {
@@ -186,6 +187,44 @@ void bcb_produced(bcb_t cb, const Slice_t * slice) {
   assert(0 == slice->num || put != slice->snap.get);        // When we produced data, put should never become get because it would mean we're empty
 
   cb->put = put;                                            // Assign new put atomically
+
+}
+
+uint32_t bcb_write(bcb_t cb, const uint8_t data[], uint32_t num) {
+
+  uint32_t done = 0u;
+  Slice_t  Slice;
+
+  while (num && ! bcb_isfull(cb)) {
+    bcb_writeslice(cb, & Slice);
+    Slice.num = (Slice.num > num) ? num : Slice.num;        // Truncate if what remains to be written is less then space available
+    (void) memcpy(Slice.data, data, Slice.num);             // Do the copy
+    num  -= Slice.num;
+    data += Slice.num;
+    done += Slice.num;
+    bcb_produced(cb, & Slice);
+  }
+
+  return done;                                              // Return bytes actually written
+
+}
+
+uint32_t bcb_read(bcb_t cb, uint8_t data[], uint32_t num) {
+
+  uint8_t * d = data;
+  uint32_t  r = num;                                        // Remaining to be read
+  Slice_t   Slice;
+
+  while (r && ! bcb_isempty(cb)) {
+    bcb_readslice(cb, & Slice);
+    Slice.num = (Slice.num > r) ? r : Slice.num;            // Only advance number of bytes still available in user buffer
+    (void) memcpy(d, Slice.data, Slice.num);                // Copy to user buffer
+    bcb_consumed(cb, & Slice);                              // Tell actual number of bytes consumed from this slice
+    r -= Slice.num;
+    d += Slice.num;
+  }
+
+  return (uint32_t) (d - data);                             // Return bytes actually read
 
 }
 

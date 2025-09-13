@@ -1,7 +1,7 @@
 #ifndef CIRCBUFFER_H
 #define CIRCBUFFER_H
 
-// Copyright (c) 2020,2021 Steven Buytaert
+// Copyright (c) 2020,2021-2025 Steven Buytaert
 
 #include <stdint.h>
 
@@ -39,6 +39,11 @@ void     bcb_readslice(const Bcb_t * cb, slice_t slice);
 void     bcb_consumed(bcb_t cb, const Slice_t * slice); 
 void     bcb_writeslice(const Bcb_t * cb, slice_t slice);
 void     bcb_produced(bcb_t cb, const Slice_t * slice);  
+
+// Most basic API, sometimes all you need.
+
 void     bcb_init(bcb_t cb, uint32_t size);
+uint32_t bcb_write(bcb_t cb, const uint8_t data[], uint32_t num);
+uint32_t bcb_read(bcb_t cb, uint8_t data[], uint32_t num);
 
 #endif // CIRCBUFFER_H
